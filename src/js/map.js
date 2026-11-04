@@ -44,7 +44,7 @@ const MapView = (() => {
       L.circleMarker([it.lat, it.lon], {
         renderer: canvas, radius: it.event ? 4 : 3, weight: 0, fillOpacity: it.event ? 0.8 : 0.35, fillColor: COLORS[kind],
       }).bindTooltip(`${Util.escapeHtml(it.name)}<br>${Util.fmtDateTime(it.date)}${it.event ? '<br><b>' + Util.escapeHtml(it.event.place) + '</b>' : ''}`)
-        .on('click', () => it.event && cb.onEventClick?.(it.event))
+        .on('click', () => cb.onPointClick?.(it))
         .addTo(pointLayer);
     }
     for (const h of analysis.homes.filter(h => h.auto)) {

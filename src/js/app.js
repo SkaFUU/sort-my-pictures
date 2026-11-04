@@ -1,18 +1,7 @@
 // Oberflaeche und Ablauf
 (() => {
   const $ = sel => document.querySelector(sel);
-  const h = (tag, attrs = {}, ...kids) => {
-    const el = document.createElement(tag);
-    for (const [k, v] of Object.entries(attrs)) {
-      if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
-      else if (k === 'class') el.className = v;
-      else if (k === 'html') el.innerHTML = v;
-      else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
-    }
-    for (const c of kids.flat()) if (c != null) el.append(c);
-    return el;
-  };
-  const { escapeHtml: esc, fmtDate, fmtBytes } = Util;
+  const { escapeHtml: esc, fmtDate, fmtBytes, h } = Util;
 
   const ZKEY = 'fotosortierer.zones', OKEY = 'fotosortierer.overrides';
   const loadJson = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch { return d; } };
@@ -23,6 +12,7 @@
     overrides: loadJson(OKEY, { events: {}, files: {} }),
     src: null, dst: null, items: null, analysis: null, plan: null,
     abort: null, selected: null, thumbUrls: [],
+    faceCache: null, faceNames: {}, people: null,
   };
   const saveZones = () => localStorage.setItem(ZKEY, JSON.stringify(st.zones));
   const saveOverrides = () => localStorage.setItem(OKEY, JSON.stringify(st.overrides));
@@ -66,8 +56,14 @@
           h('button', { onclick: () => { if (confirm('Gespeicherte Ortsnamen löschen?')) { Geo.clear(); recompute(); } } }, 'Cache leeren'),
           h('span', { id: 'geoCacheInfo', class: 'hint' })));
       }
-      form.append(h('details', { class: 'sec', open: !['Sonderordner', 'Bilder ohne GPS'].includes(sec.section) },
-        h('summary', {}, sec.section, sec.online ? h('span', { class: 'badge-online', title: 'Nutzt das Internet' }, '🌐 online') : null),
+      if (sec.section === 'Filter') {
+        body.append(h('div', { class: 'row' }, h('button', { onclick: resetFilter }, 'Filter zurücksetzen')));
+      }
+      const closed = ['Sonderordner', 'Bilder ohne GPS', 'Personen'].includes(sec.section) || (sec.section === 'Filter' && !filterActive());
+      form.append(h('details', { class: 'sec', open: !closed, 'data-sec': sec.section },
+        h('summary', {}, sec.section,
+          sec.section === 'Filter' ? h('span', { id: 'filterBadge', class: 'badge-filter', hidden: !filterActive() }, 'aktiv') : null,
+          sec.online ? h('span', { class: 'badge-online', title: 'Nutzt das Internet' }, '🌐 online') : null),
         body));
     }
     refreshDeps();
@@ -81,9 +77,18 @@
     else if (it.type === 'num') input = h('input', { type: 'number', id, value: v, min: it.min, step: it.step || 1 });
     else if (it.type === 'select') input = h('select', { id }, it.options.map(([val, lab]) => h('option', { value: val, selected: String(v) === val }, lab)));
     else if (it.type === 'area') input = h('textarea', { id, rows: 3 }, v);
+    else if (it.type === 'date' || it.type === 'time') input = h('input', { type: it.type, id, value: v });
+    else if (it.type === 'zone') input = h('select', { id, class: 'zone-select' });
+    else if (it.type === 'weekdays') {
+      input = h('span', { id, class: 'weekdays' }, ['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'].map((d, i) =>
+        h('label', {}, h('input', { type: 'checkbox', 'data-i': i, checked: v[i] === '1' }), d)));
+    }
     else input = h('input', { type: 'text', id, value: v });
 
-    const read = () => it.type === 'bool' ? input.checked : it.type === 'num' ? parseFloat(input.value) : input.value;
+    const read = () => it.type === 'bool' ? input.checked
+      : it.type === 'num' ? parseFloat(input.value)
+      : it.type === 'weekdays' ? [...input.querySelectorAll('input')].map(c => c.checked ? '1' : '0').join('')
+      : input.value;
     const apply = () => {
       const val = read();
       if (it.type === 'num' && !Number.isFinite(val)) return;
@@ -93,7 +98,8 @@
       onSettingChanged(it);
     };
     const deb = Util.debounce(apply, 400);
-    input.addEventListener(it.type === 'bool' || it.type === 'select' ? 'change' : 'input', it.type === 'bool' || it.type === 'select' ? apply : deb);
+    const instant = ['bool', 'select', 'zone', 'weekdays', 'date', 'time'].includes(it.type);
+    input.addEventListener(instant ? 'change' : 'input', instant ? apply : deb);
 
     const label = h('label', { for: id }, it.label, it.online ? h('span', { class: 'badge-online' }, '🌐') : null);
     const row = h('div', { class: `row row-${it.type}`, 'data-key': it.key },
@@ -113,9 +119,21 @@
     }
   }
 
+  const FILTER_KEYS = Settings.SCHEMA.find(s => s.section === 'Filter').items.map(i => i.key);
+  const filterActive = () => FILTER_KEYS.some(k => String(st.s[k]) !== String(Settings.byKey[k].def) && k !== 'filterZoneMode');
+  function resetFilter() {
+    for (const k of FILTER_KEYS) st.s[k] = Settings.byKey[k].def;
+    Settings.save(st.s);
+    buildSettings();
+    renderZoneSelect();
+    recompute();
+  }
+
   function onSettingChanged(it) {
     netState();
+    const fb = $('#filterBadge'); if (fb) fb.hidden = !filterActive();
     if (it.level === 'map') { MapView.setTiles(st.s.tiles); return; }
+    if (it.level === 'faces') { status('Gilt für Fotos, die neu analysiert werden.'); return; }
     if (it.level === 'scan') { if (st.items) status('Geändert: bitte neu einlesen („Einlesen“).'); return; }
     if (it.level === 'date' && st.items) for (const i of st.items) Meta.applyDate(i, st.s);
     recompute();
@@ -125,20 +143,28 @@
   function recompute(keepView = true) {
     $('#geoCacheInfo') && ($('#geoCacheInfo').textContent = `${Geo.size()} Orte gespeichert`);
     if (!st.items) { updateButtons(); return; }
+    // Personen aus der Gesichtserkennung den Bildern zuordnen
+    st.people = st.faceCache ? Faces.cluster(st.items, st.faceCache, st.faceNames, st.s.faceThreshold) : null;
+    for (const it of st.items) it.persons = st.people?.byItem.get(it.id);
     st.analysis = Analyze.run(st.items, st.s, st.zones, st.overrides);
-    st.plan = Plan.build(st.analysis, st.s);
+    st.plan = Plan.build(st.analysis, st.s, st.zones);
     if (st.selected) st.selected = st.analysis.events.find(e => e.id === st.selected.id) || null;
     MapView.render(st.analysis, st.zones);
     renderEvents();
     renderPreview();
     renderZoneList();
+    if ($('#tab-review').classList.contains('active')) Review.render();
+    if ($('#tab-people').classList.contains('active')) People.render();
     updateButtons();
     const missing = st.s.geocode ? st.analysis.events.filter(e => !Geo.lookup(e.lat, e.lon)).length : 0;
     const gb = $('#btnGeocode'); if (gb) gb.textContent = `🌐 Fehlende Ortsnamen holen (${missing})`;
-    const evs = st.analysis.events.filter(e => e.kind !== 'none');
+    const evs = st.analysis.events.filter(e => e.kind !== 'none' && e.passCount);
     $('#cntEvents').textContent = evs.length;
+    const open = st.analysis.events.filter(e => e.passCount && !e.ok).length;
+    $('#cntReview').textContent = open || '';
     if (!document.body.classList.contains('busy')) {
-      status(`${st.items.length} Dateien · ${st.analysis.withGps} mit GPS · ${evs.length} Ereignisse · ${st.plan.ops.length} Kopien geplant`);
+      status(`${st.items.length} Dateien · ${st.analysis.withGps} mit GPS · ${evs.length} Ereignisse · ${st.plan.ops.length} Kopien geplant` +
+        (st.plan.filtered ? ` · ${st.plan.filtered} durch Filter ausgeblendet` : ''));
     }
   }
   const recomputeSoon = Util.debounce(recompute, 150);
@@ -177,6 +203,7 @@
     try {
       const t0 = Date.now();
       st.items = await Meta.scan(st.src, st.s, t => status(t, -1), st.abort.signal);
+      st.faceCache = await Faces.loadCache(st.src.name);
       busy(false);
       recompute();
       MapView.fitAll(st.analysis);
@@ -194,6 +221,39 @@
       log(`Ortsnamen geholt: ${r.fetched}${r.errors ? `, Fehler: ${r.errors}` : ''}`);
     } finally { busy(false); recompute(); }
   }
+
+  // ---------------- Gesichter ----------------
+  async function scanFaces() {
+    if (!st.items) return;
+    if (!(await ensurePermission(st.src, 'read'))) return;
+    st.abort = new AbortController();
+    busy(true);
+    status('Lade Gesichtsmodelle …', -1);
+    try {
+      const backend = await Faces.load();
+      log(`Gesichtserkennung gestartet (lokal, ${backend === 'webgl' ? 'Grafikkarte' : 'Prozessor – langsamer'})`);
+      st.faceCache = await Faces.scanAll(st.items, st.src.name, st.s, p => {
+        const left = p.done ? (p.secs / p.done) * (p.total - p.done) : 0;
+        status(`Gesichter erkennen … ${p.done} / ${p.total} Fotos · ${p.found} Gesichter · noch ca. ${Math.ceil(left / 60)} min`, p.done / p.total);
+      }, st.abort.signal);
+      log(st.abort.signal.aborted ? 'Gesichtserkennung abgebrochen – „Gesichter erkennen“ setzt fort.' : 'Gesichtserkennung fertig.');
+    } catch (e) { log('Gesichtserkennung fehlgeschlagen: ' + e.message, 'err'); }
+    finally { busy(false); recompute(); People.render(); }
+  }
+
+  // Namen fuer Gesichter setzen (null = Name entfernen, '#ignore' = ignorieren)
+  function setFaceNames(ids, name) {
+    for (const id of ids) { if (name) st.faceNames[id] = name; else delete st.faceNames[id]; }
+    Util.idb.set('faceNames', st.faceNames).catch(() => {});
+    recompute();
+    People.render();
+  }
+  const faceName = (it, i) => {
+    const n = st.faceNames[`${it.path}#${i}`];
+    if (n && n !== '#ignore') return n;
+    const g = st.people?.groups.find(g => g.name && g.faces.some(f => f.id === `${it.path}#${i}`));
+    return g ? g.name + ' ?' : '';
+  };
 
   async function copy() {
     if (!st.plan) return;
@@ -227,6 +287,8 @@
     document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
     document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + name));
     if (name === 'map') setTimeout(MapView.invalidate, 0);
+    if (name === 'review') Review.render();
+    if (name === 'people') People.render();
   }
 
   // ---------------- Zonen ----------------
@@ -238,7 +300,17 @@
     setTimeout(() => document.querySelector(`[data-zone="${z.id}"] input`)?.focus(), 50);
   }
 
+  // Zonen-Auswahl im Filter aktuell halten
+  function renderZoneSelect() {
+    const sel = $('#set-filterZone');
+    if (!sel) return;
+    sel.innerHTML = '';
+    sel.append(h('option', { value: '' }, '– keine –'),
+      ...st.zones.map(z => h('option', { value: z.id, selected: st.s.filterZone === z.id }, `${z.name || MapView.ZONE_TYPES[z.type]} (${z.r} km)`)));
+  }
+
   function renderZoneList() {
+    renderZoneSelect();
     const list = $('#zoneList');
     list.innerHTML = '';
     if (!st.zones.length) list.append(h('div', { class: 'hint' }, 'Noch keine Zonen. „+ Zone“ und dann auf die Karte klicken.'));
@@ -270,6 +342,7 @@
       ySel.value = fYear;
     }
     for (const ev of a.events) {
+      if (!ev.passCount) continue;
       if (fKind && ev.kind !== fKind) continue;
       if (fYear && String(ev.start.getFullYear()) !== fYear) continue;
       if (fText && !ev.place.toLowerCase().includes(fText)) continue;
@@ -290,12 +363,14 @@
         h('td', { class: 'nowrap' }, ev.days > 1 ? `${fmtDate(ev.start)} – ${fmtDate(ev.end)}` : fmtDate(ev.start)),
         h('td', { class: 'num' }, ev.days),
         h('td', { class: 'num' }, ev.weekendDays),
-        h('td', { class: 'num' }, ev.items.length),
+        h('td', { class: 'num', title: ev.passCount < ev.items.length ? `${ev.items.length - ev.passCount} durch Filter ausgeblendet` : '' },
+          ev.passCount < ev.items.length ? `${ev.passCount}/${ev.items.length}` : ev.items.length),
         h('td', { class: 'num' }, ev.perDay.toFixed(1)),
         h('td', { class: 'num' }, Math.round(ev.maxKm) + ' km'),
         h('td', { class: 'src' }, ev.placeSrc),
         h('td', { class: 'path' }, dir ? dir.join('/') : '–'),
         h('td', { class: 'nowrap' },
+          h('span', { class: 'ok-mark', title: ev.ok ? 'Im Prüfmodus bestätigt' : 'Noch nicht geprüft' }, ev.ok ? '✓' : ''),
           h('button', { title: 'Auf Karte zeigen', onclick: () => { showTab('map'); MapView.fitEvent(ev); } }, '🗺'),
           h('button', { title: 'Bilder anzeigen', onclick: () => { st.selected = ev; renderEvents(); } }, '🖼'))));
     }
@@ -321,11 +396,13 @@
       const fig = h('figure', { class: inEv ? '' : 'off' });
       const ph = h('div', { class: 'ph' }, it.isVideo ? '🎬' : '🖼');
       fig.append(ph);
+      ph.onclick = () => Viewer.open(all, all.indexOf(it));
       loadThumb(it).then(u => {
         if (!u) return;
         st.thumbUrls.push(u);
         const el = it.isVideo ? h('video', { src: u + '#t=0.5', muted: true, preload: 'metadata' }) : h('img', { src: u, decoding: 'async' });
         el.onerror = () => el.replaceWith(ph);
+        el.onclick = () => Viewer.open(all, all.indexOf(it));
         ph.replaceWith(el);
       });
       fig.append(h('figcaption', {},
@@ -362,10 +439,10 @@
     for (const it of a.items) srcCount[it.dateSrc] = (srcCount[it.dateSrc] || 0) + 1;
     const kinds = {};
     for (const o of p.ops) kinds[o.kind] = (kinds[o.kind] || 0) + 1;
-    const kindName = { month: 'Monatsordner', rule: 'Sonderordner', vac: st.s.vacFolder, trip: st.s.tripFolder, work: st.s.workFolder };
+    const kindName = { month: 'Monatsordner', rule: 'Sonderordner', vac: st.s.vacFolder, trip: st.s.tripFolder, work: st.s.workFolder, person: 'Personen' };
     sum.innerHTML = `
       <div class="cards">
-        <div><b>${a.items.length}</b>Dateien</div>
+        <div><b>${a.items.length - p.filtered}</b>Dateien${p.filtered ? ` (${p.filtered} gefiltert)` : ''}</div>
         <div><b>${p.ops.length}</b>Kopien</div>
         <div><b>${fmtBytes(bytes)}</b>Gesamt</div>
         <div><b>${a.withGps}</b>mit GPS</div>
@@ -391,10 +468,12 @@
         const inner = h('div', { class: 'tree-inner' });
         renderTreeLevel(inner, c);
         const files = c.files.sort((a, b) => a.name.localeCompare(b.name, 'de', { numeric: true }));
-        for (const f of files.slice(0, 500)) {
-          inner.append(h('div', { class: 'tree-file', title: `Quelle: ${f.item.path}\nDatum: ${Util.fmtDateTime(f.item.date)} (${f.item.dateSrc})` },
+        const list = files.map(f => f.item);
+        files.slice(0, 500).forEach((f, i) => {
+          inner.append(h('div', { class: 'tree-file', title: `Quelle: ${f.item.path}\nDatum: ${Util.fmtDateTime(f.item.date)} (${f.item.dateSrc})\nKlick: Bildansicht`,
+            onclick: () => Viewer.open(list, i) },
             f.name, h('span', { class: 'from' }, ' ← ' + f.item.name)));
-        }
+        });
         if (files.length > 500) inner.append(h('div', { class: 'hint' }, `… und ${files.length - 500} weitere`));
         d.append(inner);
       });
@@ -404,7 +483,7 @@
 
   // ---------------- Export / Import ----------------
   function exportConfig() {
-    const blob = new Blob([JSON.stringify({ settings: st.s, zones: st.zones, overrides: st.overrides }, null, 2)], { type: 'application/json' });
+    const blob = new Blob([JSON.stringify({ settings: st.s, zones: st.zones, overrides: st.overrides, faceNames: st.faceNames }, null, 2)], { type: 'application/json' });
     const a = h('a', { href: URL.createObjectURL(blob), download: 'fotosortierer-einstellungen.json' });
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
@@ -417,6 +496,7 @@
         if (j.settings) { st.s = { ...Settings.defaults(), ...j.settings }; Settings.save(st.s); }
         if (j.zones) { st.zones = j.zones; saveZones(); }
         if (j.overrides) { st.overrides = j.overrides; saveOverrides(); }
+        if (j.faceNames) { st.faceNames = j.faceNames; Util.idb.set('faceNames', st.faceNames).catch(() => {}); }
         buildSettings(); netState(); MapView.setTiles(st.s.tiles); recompute();
       } catch (e) { alert('Datei ungültig: ' + e.message); }
     };
@@ -442,10 +522,27 @@
       onAddMode: on => $('#btnAddZone').classList.toggle('active', on),
       onZoneMoved: (z, lat, lon) => { z.lat = lat; z.lon = lon; saveZones(); recompute(); },
       onZoneClick: z => document.querySelector(`[data-zone="${z.id}"] input`)?.focus(),
-      onEventClick: ev => { st.selected = ev; renderEvents(); showTab('events'); },
+      onPointClick: it => {
+        const list = it.event ? it.event.items : st.analysis.items.filter(i => i.day === it.day);
+        Viewer.open(list, list.indexOf(it));
+      },
     });
     MapView.setTiles(st.s.tiles);
     renderZoneList();
+
+    // Kontext fuer Bildansicht, Pruefmodus und Personen
+    const appCtx = {
+      st, recompute, saveOverrides, loadThumb, scanFaces, setFaceNames, faceName,
+      openViewer: (list, i) => Viewer.open(list, i),
+      opsOf: it => st.plan?.byItem.get(it.id) || [],
+      facesOf: it => Faces.facesOf(it, st.faceCache),
+      openEvent: ev => { st.selected = ev; showTab('events'); renderEvents(); },
+      showEventOnMap: ev => { showTab('map'); MapView.fitEvent(ev); },
+    };
+    Viewer.init(appCtx);
+    Review.init(appCtx);
+    People.init(appCtx);
+    try { st.faceNames = (await Util.idb.get('faceNames')) || {}; } catch { /* leer */ }
 
     $('#btnSrc').onclick = pickSrc;
     $('#btnDst').onclick = pickDst;

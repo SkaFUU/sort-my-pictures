@@ -2,6 +2,24 @@
 // level: was bei einer Aenderung neu berechnet werden muss (scan > date > analyze > map)
 const Settings = (() => {
   const SCHEMA = [
+    { section: 'Filter', items: [
+      { key: 'filterFrom', label: 'Von Datum', type: 'date', def: '' },
+      { key: 'filterTo', label: 'Bis Datum', type: 'date', def: '' },
+      { key: 'filterTimeFrom', label: 'Uhrzeit von', type: 'time', def: '',
+        help: 'Leer = ganzer Tag. „von“ später als „bis“ geht über Mitternacht (z.B. 20:00–06:00).' },
+      { key: 'filterTimeTo', label: 'Uhrzeit bis', type: 'time', def: '' },
+      { key: 'filterWeekdays', label: 'Wochentage', type: 'weekdays', def: '1111111' },
+      { key: 'filterType', label: 'Dateiart', type: 'select', def: 'all',
+        options: [['all', 'Fotos und Videos'], ['photo', 'nur Fotos'], ['video', 'nur Videos']] },
+      { key: 'filterGps', label: 'Standort', type: 'select', def: 'all',
+        options: [['all', 'alle'], ['with', 'nur mit GPS'], ['without', 'nur ohne GPS']] },
+      { key: 'filterZone', label: 'Zone', type: 'zone', def: '' },
+      { key: 'filterZoneMode', label: 'Zone-Bedingung', type: 'select', def: 'in',
+        options: [['in', 'nur innerhalb der Zone'], ['out', 'nur außerhalb der Zone']] },
+      { key: 'filterCamera', label: 'Kamera enthält', type: 'text', def: '' },
+      { key: 'filterPersons', label: 'Personen (kommagetrennt)', type: 'text', def: '',
+        help: 'Nur Bilder, auf denen mindestens eine dieser Personen erkannt wurde (Tab „Personen“).' },
+    ]},
     { section: 'Quelle', items: [
       { key: 'recursive', label: 'Unterordner einbeziehen', type: 'bool', def: true, level: 'scan' },
       { key: 'includePhotos', label: 'Fotos (jpg, heic, png, dng …)', type: 'bool', def: true, level: 'scan' },
@@ -65,6 +83,16 @@ const Settings = (() => {
     { section: 'Bilder ohne GPS', items: [
       { key: 'includeNoGps', label: 'Im Zeitraum eines Ereignisses mitnehmen', type: 'bool', def: true,
         help: 'Z.B. Videos oder Screenshots ohne Standort, die zwischen dem ersten und letzten Urlaubsfoto entstanden.' },
+    ]},
+    { section: 'Personen', items: [
+      { key: 'personFolders', label: 'Personenordner anlegen', type: 'bool', def: false,
+        help: 'Kopiert jedes Foto zusätzlich in den Ordner jeder benannten Person darauf. Gesichtserkennung läuft lokal (Tab „Personen“).' },
+      { key: 'personTpl', label: 'Personenordner', type: 'text', def: 'Personen/{PERSON}/{YYYY}/{MM}_{MMMM}', dep: 'personFolders',
+        help: 'Zusätzlich {PERSON}.' },
+      { key: 'faceThreshold', label: 'Ähnlichkeit (0.3 streng – 0.7 locker)', type: 'num', def: 0.5, min: 0.2, step: 0.05 },
+      { key: 'faceMinSize', label: 'Mindestgröße Gesicht (Pixel)', type: 'num', def: 40, min: 10, level: 'faces',
+        help: 'Kleinere Gesichter (Hintergrund) werden ignoriert. Gilt für neu analysierte Fotos.' },
+      { key: 'faceMinGroup', label: 'Gruppen zeigen ab Gesichtern', type: 'num', def: 3, min: 1 },
     ]},
     { section: 'Ortsnamen', online: true, items: [
       { key: 'geocode', label: 'Ortsnamen von OpenStreetMap', type: 'bool', def: false, online: true,

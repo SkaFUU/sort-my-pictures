@@ -88,6 +88,9 @@ const Analyze = (() => {
       for (let d = dayFromKey(dayKey(ev.start)), i = 0; i < ev.days; i++, d = addDays(d, 1)) if (isWeekend(d)) we++;
       ev.weekendDays = we;
       ev.perDay = members.length / ev.days;
+      ev.reason = kind === 'vac'
+        ? `${ev.days} Tage, bis ${Math.round(ev.maxKm)} km von zu Hause`
+        : `${far.length} Bilder außerhalb, bis ${Math.round(ev.maxKm)} km von zu Hause`;
       for (const m of members) m.event = ev;
       events.push(ev);
     };
@@ -152,12 +155,19 @@ const Analyze = (() => {
         const inWork = ev.far.filter(p => zoneHit(workZones, p)).length > ev.far.length / 2;
         const byRule = ev.kind === 'vac' && s.workRuleEnabled &&
           (!s.workNoWeekend || ev.weekendDays === 0) && ev.perDay < s.workMaxPerDay;
-        if (inWork || byRule) ev.kind = ev.autoKind = 'work';
+        if (inWork) { ev.kind = ev.autoKind = 'work'; ev.reason = 'liegt in einer Zone „Dienstort“'; ev.byZone = true; }
+        else if (byRule) {
+          ev.kind = ev.autoKind = 'work';
+          ev.reason = `Regel: ${s.workNoWeekend ? 'nur Werktage, ' : ''}${ev.perDay.toFixed(1)} Bilder/Tag (Grenze ${s.workMaxPerDay})`;
+        }
       }
       if (s.workSamePlace) {
         const places = new Set(events.filter(e => e.kind === 'work').map(e => e.place));
         for (const ev of events) {
-          if (ev.kind === 'trip' && places.has(ev.place) && !isWeekend(ev.start)) ev.kind = ev.autoKind = 'work';
+          if (ev.kind === 'trip' && places.has(ev.place) && !isWeekend(ev.start)) {
+            ev.kind = ev.autoKind = 'work';
+            ev.reason = 'Werktag am selben Ort wie andere Dienstreisen';
+          }
         }
       }
     }
@@ -168,6 +178,7 @@ const Analyze = (() => {
       if (!o) continue;
       if (o.kind) ev.kind = o.kind;
       if (o.name) { ev.place = o.name; ev.placeSrc = 'manuell'; }
+      ev.ok = !!o.ok;
     }
     for (const ev of events) if (ev.kind === 'none') for (const m of ev.items) m.event = null;
 

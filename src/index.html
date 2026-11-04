@@ -50,6 +50,8 @@
       <nav id="tabs">
         <button data-tab="map" class="active">🗺 Karte</button>
         <button data-tab="events">📅 Ereignisse <span id="cntEvents" class="pill"></span></button>
+        <button data-tab="review">✅ Prüfen <span id="cntReview" class="pill pill-open"></span></button>
+        <button data-tab="people">🙂 Personen</button>
         <button data-tab="preview">📁 Vorschau</button>
         <button data-tab="log">📝 Protokoll</button>
       </nav>
@@ -97,6 +99,32 @@
         </div>
       </section>
 
+      <section id="tab-review" class="tab">
+        <div class="toolbar">
+          <label><input id="rvOpen" type="checkbox" checked> nur ungeprüfte</label>
+          <select id="rvOrder">
+            <option value="unsure">unsichere zuerst</option>
+            <option value="date">nach Datum</option>
+          </select>
+          <span id="rvProgress" class="hint"></span>
+          <span class="spacer"></span>
+          <span class="hint">Tasten: <kbd>1</kbd>–<kbd>4</kbd> wählen · <kbd>Enter</kbd> Vorschlag übernehmen · <kbd>←</kbd> <kbd>→</kbd> blättern</span>
+        </div>
+        <div id="rvCard"></div>
+      </section>
+
+      <section id="tab-people" class="tab">
+        <div class="toolbar">
+          <button id="btnFaces" class="primary" title="Läuft komplett lokal im Browser">🙂 Gesichter erkennen (lokal)</button>
+          <label><input id="pplSmall" type="checkbox"> kleine Gruppen zeigen</label>
+          <span class="spacer"></span>
+          <button id="btnFacesReset">Namen zurücksetzen</button>
+        </div>
+        <div id="pplInfo" class="hint pad"></div>
+        <datalist id="personNames"></datalist>
+        <div id="pplGroups"></div>
+      </section>
+
       <section id="tab-preview" class="tab">
         <div id="previewSummary"><div class="hint">Noch nichts eingelesen.</div></div>
         <div id="previewTree"></div>
@@ -111,6 +139,8 @@
 
   <script src="vendor/leaflet.js"></script>
   <script src="vendor/exifr.js"></script>
+  <script src="vendor/face-api.js"></script>
+  <script src="vendor/face-models.js"></script>
   <script src="js/util.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/metadata.js"></script>
@@ -119,6 +149,10 @@
   <script src="js/plan.js"></script>
   <script src="js/copy.js"></script>
   <script src="js/map.js"></script>
+  <script src="js/faces.js"></script>
+  <script src="js/viewer.js"></script>
+  <script src="js/review.js"></script>
+  <script src="js/people.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>

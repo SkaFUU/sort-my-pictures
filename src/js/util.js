@@ -69,6 +69,19 @@ const Util = (() => {
     return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); };
   }
 
+  // DOM-Element erzeugen: h('div', { class: 'x', onclick: fn }, kind1, kind2 …)
+  function h(tag, attrs = {}, ...kids) {
+    const el = document.createElement(tag);
+    for (const [k, v] of Object.entries(attrs)) {
+      if (k.startsWith('on')) el.addEventListener(k.slice(2), v);
+      else if (k === 'class') el.className = v;
+      else if (k === 'html') el.innerHTML = v;
+      else if (v !== false && v != null) el.setAttribute(k, v === true ? '' : v);
+    }
+    for (const c of kids.flat()) if (c != null && c !== false) el.append(c);
+    return el;
+  }
+
   const fmtBytes = b => b > 1e9 ? `${(b / 1e9).toFixed(1)} GB` : b > 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.round(b / 1e3)} KB`;
 
   // Minimaler IndexedDB-Schluessel/Wert-Speicher (fuer Index-Cache und Ordner-Handles)
@@ -98,6 +111,6 @@ const Util = (() => {
 
   return {
     MONTHS, pad, distKm, dayKey, dayFromKey, addDays, daysBetween, isWeekend, fmtDate, fmtDateTime,
-    dateTokens, fillTemplate, sanitizeSegment, templatePath, fmtCoord, escapeHtml, debounce, fmtBytes, idb,
+    dateTokens, fillTemplate, sanitizeSegment, templatePath, fmtCoord, escapeHtml, debounce, fmtBytes, idb, h,
   };
 })();

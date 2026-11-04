@@ -36,7 +36,45 @@ const Plan = (() => {
     };
   }
 
-  function build(analysis, s) {
+  // Filter aus den Einstellungen -> Funktion item => true/false
+  function makeFilter(s, zones) {
+    const from = s.filterFrom ? Util.dayFromKey(s.filterFrom) : null;
+    const to = s.filterTo ? Util.addDays(Util.dayFromKey(s.filterTo), 1) : null;
+    const mins = t => { const [h, m] = t.split(':').map(Number); return h * 60 + m; };
+    const tFrom = s.filterTimeFrom ? mins(s.filterTimeFrom) : null;
+    const tTo = s.filterTimeTo ? mins(s.filterTimeTo) : null;
+    const wd = s.filterWeekdays || '1111111';
+    const zone = s.filterZone ? zones.find(z => z.id === s.filterZone) : null;
+    const cam = s.filterCamera.trim().toLowerCase();
+    const persons = s.filterPersons.split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+    return it => {
+      if (from && it.date < from) return false;
+      if (to && it.date >= to) return false;
+      if (tFrom != null || tTo != null) {
+        const m = it.date.getHours() * 60 + it.date.getMinutes();
+        const a = tFrom ?? 0, b = tTo ?? 1440;
+        if (a <= b ? (m < a || m > b) : (m < a && m > b)) return false;
+      }
+      if (wd[(it.date.getDay() + 6) % 7] !== '1') return false;
+      if (s.filterType === 'photo' && it.isVideo) return false;
+      if (s.filterType === 'video' && !it.isVideo) return false;
+      if (s.filterGps === 'with' && !it.hasGps) return false;
+      if (s.filterGps === 'without' && it.hasGps) return false;
+      if (zone) {
+        const inside = it.hasGps && Util.distKm(zone.lat, zone.lon, it.lat, it.lon) <= zone.r;
+        if (s.filterZoneMode === 'in' ? !inside : inside) return false;
+      }
+      if (cam && !`${it.make || ''} ${it.model || ''}`.toLowerCase().includes(cam)) return false;
+      if (persons.length && !(it.persons && [...it.persons].some(p => persons.includes(p.toLowerCase())))) return false;
+      return true;
+    };
+  }
+
+  function build(analysis, s, zones = []) {
+    const pass = makeFilter(s, zones);
+    const passed = analysis.items.filter(pass);
+    const passSet = new Set(passed);
+    for (const ev of analysis.events) ev.passCount = ev.items.filter(i => passSet.has(i)).length;
     const ops = [];
     const taken = new Set();
     const rules = parseRules(s.rulesText);
@@ -56,7 +94,7 @@ const Plan = (() => {
     const evDir = new Map();
     const usedEv = new Set();
     for (const ev of analysis.events) {
-      if (ev.kind === 'none') continue;
+      if (ev.kind === 'none' || !ev.passCount) continue;
       const dir = Util.templatePath(s.eventTpl, eventTokens(ev, s));
       let key = dir.join('/').toLowerCase(), n = 2;
       const last = dir[dir.length - 1];
@@ -68,7 +106,7 @@ const Plan = (() => {
     // Duplikate: gleiche Groesse und gleiches Aufnahmedatum
     const seen = new Map();
     const dups = [];
-    for (const it of analysis.items) {
+    for (const it of passed) {
       if (s.dupSkip) {
         const k = `${it.size}|${it.date.getTime()}`;
         if (seen.has(k)) { dups.push({ item: it, original: seen.get(k) }); continue; }
@@ -79,8 +117,16 @@ const Plan = (() => {
       if (rule) add(it, Util.templatePath(s.rulesTpl, { ...tokens, REGEL: rule.folder }), 'rule');
       if (s.monthFolders && !(rule && s.rulesExclusive)) add(it, Util.templatePath(s.monthTpl, tokens), 'month');
       if (it.event && evDir.has(it.event)) add(it, evDir.get(it.event), it.event.kind, it.event);
+      if (s.personFolders && it.persons) {
+        for (const p of [...it.persons].sort()) add(it, Util.templatePath(s.personTpl, { ...tokens, PERSON: p }), 'person');
+      }
     }
-    return { ops, dups, evDir };
+    const byItem = new Map();
+    for (const op of ops) {
+      if (!byItem.has(op.item.id)) byItem.set(op.item.id, []);
+      byItem.get(op.item.id).push(op);
+    }
+    return { ops, dups, evDir, byItem, filtered: analysis.items.length - passed.length };
   }
 
   // Baum fuer die Vorschau: { name, children: Map, files: [] }
@@ -99,5 +145,5 @@ const Plan = (() => {
     return root;
   }
 
-  return { build, tree, eventTokens };
+  return { build, tree, eventTokens, makeFilter };
 })();
