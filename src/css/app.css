@@ -246,3 +246,16 @@ kbd { font-family: ui-monospace, Consolas, monospace; font-size: 11px; border: 1
 #logList { font-family: ui-monospace, Consolas, monospace; font-size: 12.5px; margin-top: 8px; }
 .log { padding: 2px 0; border-bottom: 1px solid #f1f3f5; white-space: pre-wrap; }
 .log.err { color: #c92a2a; }
+
+/* Handy-Dialog */
+#phoneDlg { width: min(620px, 94vw); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; box-shadow: 0 10px 40px rgba(0,0,0,.25); }
+#phoneDlg::backdrop { background: rgba(0,0,0,.35); }
+#phoneDlg h2 { margin: 0 0 10px; font-size: 18px; }
+#phoneDlg ol { padding-left: 20px; line-height: 1.6; }
+.dlg-actions { display: flex; gap: 8px; justify-content: flex-end; margin-top: 14px; }
+.phone-short { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
+.phone-short button.current { border-color: var(--accent); color: var(--accent); font-weight: 600; }
+.phone-path { margin: 6px 0; color: var(--muted); }
+.phone-list { border: 1px solid var(--line); border-radius: 6px; max-height: 300px; overflow: auto; margin-bottom: 6px; }
+.phone-dir { padding: 5px 10px; cursor: pointer; border-bottom: 1px solid var(--bg); }
+.phone-dir:hover { background: #e7f1fb; }

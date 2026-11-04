@@ -24,6 +24,21 @@ Ziel/
 8. **Vorschau**: Den Ordnerbaum mit den endgültigen Dateinamen prüfen.
 9. **Ziel** wählen und **Kopieren** klicken.
 
+## Direkt vom Handy (USB)
+
+Mit **📱 Handy** liest der Fotosortierer Fotos direkt von einem Android-Handy, ohne sie vorher auf den PC zu übertragen. Die Verbindung läuft über ADB per WebUSB (ya-webadb). Das ist lokal zwischen Browser und Handy, es geht nichts ins Internet. Auf dem Handy wird nichts verändert, es wird nur gelesen.
+
+1. Am Handy die Entwickleroptionen freischalten: **Einstellungen → Über das Telefon** → 7× auf **Build-Nummer** tippen.
+2. **Einstellungen → System → Entwickleroptionen → USB-Debugging** einschalten.
+3. Das Handy anstecken, **📱 Handy → Verbinden** klicken, das Gerät auswählen und am Handy „USB-Debugging zulassen?“ bestätigen.
+4. Einen Ordner wählen, z. B. **Kamera** (`DCIM/Camera`) oder WhatsApp.
+
+Für die Metadaten wird nur der Anfang jeder Datei gelesen, das geht schnell. Die Gesichtserkennung, die Bildansicht und das Kopieren holen die ganze Datei. Versteckte Dateien und der Android-Papierkorb (`.trashed-…`) werden übersprungen.
+
+- Wenn adb, Android Studio oder scrcpy läuft, ist das Gerät belegt. Dann vorher `adb kill-server` ausführen.
+- iPhones werden nicht unterstützt, und über WLAN geht es nicht, weil Browser keine direkten Netzwerkverbindungen erlauben.
+- Nach dem Sortieren am besten USB-Debugging wieder ausschalten.
+
 Ein Klick auf ein Bild (Vorschaubild, Kartenpunkt, Datei im Ordnerbaum) öffnet die **Bildansicht**. Sie zeigt das große Bild mit Gesichtsrahmen, Infos, Zielpfaden, eine Mini-Karte und alle Metadaten. `←`/`→` blättert, `Esc` schließt.
 
 Mit dem **Filter** (oben in den Einstellungen) wird nur ein Teil sortiert: nach Zeitraum, Uhrzeit (auch über Mitternacht), Wochentagen, Foto/Video, GPS, Zone, Kamera oder Personen.
@@ -63,7 +78,8 @@ Ohne Ortsnamen bekommen Ordner die Koordinaten (`47.39N_13.72E`) oder den Namen 
 ```
 src/index.html        Oberfläche
 src/js/*.js           Logik (metadata, analyze, plan, copy, map, app …)
-src/vendor/           Leaflet (BSD-2), exifr (MIT), face-api + Modelle (MIT), eingebettet
+src/vendor/           Leaflet (BSD-2), exifr (MIT), face-api + Modelle (MIT), ya-webadb (MIT), eingebettet
+tools/adb-entry.js    Einstieg für das ADB-Bundle (esbuild -> src/vendor/webadb.js)
 tools/build-single.js baut dist/fotosortierer.html (alles in einer Datei)
 tools/vendor.js       aktualisiert src/vendor aus node_modules
 ```

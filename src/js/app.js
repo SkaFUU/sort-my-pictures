@@ -33,7 +33,7 @@
     const b = document.body.classList.contains('busy');
     $('#btnScan').disabled = b || !st.src;
     $('#btnCopy').disabled = b || !st.plan || !st.plan.ops.length;
-    $('#btnSrc').disabled = $('#btnDst').disabled = b;
+    $('#btnSrc').disabled = $('#btnDst').disabled = $('#btnPhone').disabled = b;
   }
   function netState() {
     const on = [st.s.tiles && 'Kartenhintergrund', st.s.geocode && 'Ortsnamen'].filter(Boolean);
@@ -181,6 +181,81 @@
       scan();
     } catch (e) { if (e.name !== 'AbortError') alert(e.message); }
   }
+  // Handy per USB: verbinden, Ordner am Handy waehlen
+  const PKEY = 'fotosortierer.phonePath';
+  const PHONE_SHORTCUTS = [
+    ['📷 Kamera', 'DCIM/Camera'], ['Alle Kamera-Ordner', 'DCIM'], ['Bilder', 'Pictures'], ['Videos', 'Movies'],
+    ['WhatsApp', 'Android/media/com.whatsapp/WhatsApp/Media'],
+  ];
+  async function pickPhone() {
+    const dlg = h('dialog', { id: 'phoneDlg' });
+    document.body.append(dlg);
+    dlg.addEventListener('close', () => dlg.remove());
+    let rel = localStorage.getItem(PKEY) || 'DCIM/Camera';
+
+    const intro = () => {
+      dlg.innerHTML = '';
+      const msg = h('div', { class: 'hint' });
+      dlg.append(
+        h('h2', {}, '📱 Fotos direkt vom Handy (USB)'),
+        h('p', {}, 'Funktioniert mit Android über USB-Debugging. Die Verbindung läuft direkt zwischen Browser und Handy, ohne Internet. Auf dem Handy wird nichts verändert.'),
+        h('ol', {},
+          h('li', {}, 'Am Handy: ', h('b', {}, 'Einstellungen → Über das Telefon'), ' → 7× auf ', h('b', {}, 'Build-Nummer'), ' tippen.'),
+          h('li', {}, h('b', {}, 'Einstellungen → System → Entwickleroptionen'), ' → ', h('b', {}, 'USB-Debugging'), ' einschalten.'),
+          h('li', {}, 'Handy per USB-Kabel anstecken und unten auf ', h('b', {}, 'Verbinden'), ' klicken. Im Browser-Fenster das Handy auswählen.'),
+          h('li', {}, 'Am Handy ', h('b', {}, '„USB-Debugging zulassen?“'), ' bestätigen (am besten „Immer von diesem Computer zulassen“).')),
+        h('p', { class: 'hint' }, 'Tipp: Nach dem Sortieren USB-Debugging wieder ausschalten. iPhones werden nicht unterstützt – dort Fotos zuerst auf den PC übertragen.'),
+        msg,
+        h('div', { class: 'dlg-actions' },
+          h('button', { onclick: () => dlg.close() }, 'Abbrechen'),
+          h('button', { class: 'primary', onclick: async e => {
+            e.target.disabled = true;
+            msg.textContent = 'Verbinde …';
+            try {
+              if (await Phone.connect(true, t => { msg.textContent = t; })) await browse();
+              else msg.textContent = 'Kein Gerät gewählt.';
+            } catch (err) {
+              msg.textContent = err.name === 'NotFoundError' ? 'Kein Gerät gewählt. Ist USB-Debugging eingeschaltet und das Kabel ein Datenkabel?' : 'Fehler: ' + err.message;
+            }
+            e.target.disabled = false;
+          } }, '🔌 Verbinden')));
+    };
+
+    const browse = async () => {
+      dlg.innerHTML = '';
+      let entries;
+      try { entries = await Phone.list(`${Phone.ROOT}/${rel}`.replace(/\/+$/, '')); }
+      catch { entries = null; }
+      const dirs = entries ? entries.filter(e => e.dir) : [];
+      const media = entries ? entries.filter(e => !e.dir && [...Meta.PHOTO, ...Meta.VIDEO].includes(e.name.split('.').pop().toLowerCase())).length : 0;
+      const go = r => { rel = r.replace(/^\/+|\/+$/g, ''); browse(); };
+      dlg.append(
+        h('h2', {}, `📱 ${Phone.deviceName()} – Ordner wählen`),
+        h('div', { class: 'phone-short' }, PHONE_SHORTCUTS.map(([n, p]) => h('button', { class: rel === p ? 'current' : '', onclick: () => go(p) }, n))),
+        h('div', { class: 'phone-path' }, h('code', {}, '/' + rel)),
+        h('div', { class: 'phone-list' },
+          rel ? h('div', { class: 'phone-dir', onclick: () => go(rel.split('/').slice(0, -1).join('/')) }, '⬆ ..') : null,
+          entries ? dirs.map(d => h('div', { class: 'phone-dir', onclick: () => go(`${rel}/${d.name}`) }, '📁 ' + d.name))
+            : h('div', { class: 'hint' }, 'Ordner nicht gefunden.')),
+        h('div', { class: 'hint' }, entries ? `${media} Fotos/Videos direkt in diesem Ordner${st.s.recursive ? ', Unterordner werden mit eingelesen' : ''}.` : ''),
+        h('div', { class: 'dlg-actions' },
+          h('button', { onclick: async () => { await Phone.disconnect(); intro(); } }, 'Trennen'),
+          h('span', { class: 'spacer' }),
+          h('button', { onclick: () => dlg.close() }, 'Abbrechen'),
+          h('button', { class: 'primary', disabled: !entries, onclick: () => {
+            localStorage.setItem(PKEY, rel);
+            st.src = Phone.source(rel);
+            $('#srcName').textContent = st.src.name;
+            dlg.close();
+            updateButtons();
+            scan();
+          } }, 'Diesen Ordner verwenden')));
+    };
+
+    dlg.showModal();
+    if (Phone.connected() || await Phone.connect(false).catch(() => null)) await browse(); else intro();
+  }
+
   async function pickDst() {
     try {
       st.dst = await showDirectoryPicker({ id: 'fs-dst', mode: 'readwrite' });
@@ -422,10 +497,12 @@
     try {
       const f = await it.handle.getFile();
       if (!it.isVideo) {
-        const t = await exifr.thumbnail(f).catch(() => null);
+        const t = await exifr.thumbnail(await Phone.head(f, 128 * 1024)).catch(() => null);
         if (t) return URL.createObjectURL(new Blob([t], { type: 'image/jpeg' }));
       }
-      if (['jpg', 'jpeg', 'png', 'webp', 'mp4', 'mov', 'm4v'].includes(it.ext)) return URL.createObjectURL(f);
+      // Videos vom Handy nicht ganz laden, nur fuer ein Vorschaubild
+      if (f.remote && (it.isVideo || f.size > 30e6)) return null;
+      if (['jpg', 'jpeg', 'png', 'webp', 'mp4', 'mov', 'm4v'].includes(it.ext)) return URL.createObjectURL(await Phone.full(f));
     } catch { /* Datei nicht lesbar */ }
     return null;
   }
@@ -545,6 +622,11 @@
     try { st.faceNames = (await Util.idb.get('faceNames')) || {}; } catch { /* leer */ }
 
     $('#btnSrc').onclick = pickSrc;
+    $('#btnPhone').onclick = pickPhone;
+    $('#btnPhone').hidden = !Phone.supported();
+    Phone.onChange = on => {
+      if (!on && st.src?.isPhone) { log('Handy getrennt – zum Fortsetzen wieder anstecken und erneut starten.', 'err'); st.abort?.abort(); }
+    };
     $('#btnDst').onclick = pickDst;
     $('#btnScan').onclick = scan;
     $('#btnCopy').onclick = copy;

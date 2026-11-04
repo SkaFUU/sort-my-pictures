@@ -81,8 +81,8 @@ const Faces = (() => {
       if (signal?.aborted) break;
       const k = cacheKey(it);
       if (!cache[k]) {
-        try { cache[k] = await detect(await it.handle.getFile(), s); }
-        catch { cache[k] = []; errors++; }
+        try { cache[k] = await detect(await Phone.full(await it.handle.getFile()), s); }
+        catch (e) { if (e.name === 'PhoneError') throw e; cache[k] = []; errors++; }
         if (++sinceSave >= 40) { sinceSave = 0; await Util.idb.set(key, cache).catch(() => {}); }
       }
       found += cache[k].length;

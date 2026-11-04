@@ -53,8 +53,13 @@ const Viewer = (() => {
     stage.innerHTML = '<div class="v-loading">…</div>';
     if (url) { URL.revokeObjectURL(url); url = null; }
 
-    const file = await it.handle.getFile();
+    let file = await it.handle.getFile().catch(e => e);
+    if (file.remote) {
+      stage.innerHTML = `<div class="v-loading">Lade vom Handy … (${fmtBytes(file.size)})</div>`;
+      file = await file.blob().catch(e => e);
+    }
     if (list[idx] !== it) return;  // inzwischen weitergeblaettert
+    if (file instanceof Error) { stage.innerHTML = ''; stage.append(h('div', { class: 'v-loading' }, 'Nicht lesbar: ' + file.message)); return; }
 
     // Bild / Video
     let media;
