@@ -79,6 +79,8 @@ const I18n = (() => {
     'Gesichtserkennung gestartet (lokal, YuNet + SFace, {0} Prozessorkerne gleichzeitig)': 'Face detection started (local, YuNet + SFace, {0} CPU cores in parallel)',
     'Gesichter erkennen … {0} / {1} Fotos · {2} Gesichter · noch ca. {3} min': 'Detecting faces … {0} / {1} photos · {2} faces · about {3} min left',
     'Gesichtserkennung abgebrochen – „Gesichter erkennen“ setzt fort.': 'Face detection cancelled – “Detect faces” continues.',
+    'Zuerst in Schritt 1 „Einlesen“ klicken.': 'First click “Scan” in step 1.',
+    'Zuerst in Schritt 1 eine Quelle wählen und einlesen.': 'First choose and scan a source in step 1.',
     'Gesichtserkennung fertig.': 'Face detection finished.', 'Gesichtserkennung fehlgeschlagen: {0}': 'Face detection failed: {0}',
     'Ziel darf nicht gleich der Quelle sein.': 'The target must not be the same as the source.',
     '{0} Kopien ({1}) nach „{2}“ schreiben?\n\nOriginale bleiben unverändert, vorhandene Dateien werden nicht überschrieben.':

@@ -132,10 +132,11 @@ const Faces = (() => {
     onmessage = async ({ data: m }) => {
       try {
         if (m.type === 'init') {
-          importScripts(m.ortUrl);
+          // ONNX Runtime steckt schon im Worker-Skript; den WebAssembly-Lader hier im Worker als Blob anlegen,
+          // denn per file:// darf ein Worker keine Blob-Adressen der Seite laden
           ort.env.wasm.numThreads = 1;
           ort.env.wasm.wasmBinary = m.wasm;
-          ort.env.wasm.wasmPaths = { mjs: m.mjsUrl };
+          ort.env.wasm.wasmPaths = { mjs: URL.createObjectURL(new Blob([m.mjs], { type: 'text/javascript' })) };
           const opt = { executionProviders: ['wasm'], logSeverityLevel: 3 };
           det = await ort.InferenceSession.create(m.yunet, opt);
           rec = await ort.InferenceSession.create(m.sface, opt);
@@ -180,13 +181,12 @@ const Faces = (() => {
     if (!ready) ready = (async () => {
       const [wasm, yunet, sface] = await Promise.all([gunzip(ORT_WASM.wasm), gunzip(FACE_MODELS.yunet), gunzip(FACE_MODELS.sface)]);
       const blobUrl = (t, type = 'text/javascript') => URL.createObjectURL(new Blob([t], { type }));
-      const ortUrl = blobUrl(ORT_WASM.js), mjsUrl = blobUrl(ORT_WASM.mjs);
-      const url = blobUrl(`(${workerMain})()`);
+      const url = blobUrl(`${ORT_WASM.js}\n;(${workerMain})();`);
       // ein Kern bleibt fuer die Oberflaeche und das Laden der Dateien frei
       const n = Math.max(1, Math.min(6, (navigator.hardwareConcurrency || 2) - 1));
       const started = await Promise.allSettled(Array.from({ length: n }, async () => {
         const p = spawn(url);
-        await p.call({ type: 'init', ortUrl, mjsUrl, wasm, yunet, sface });
+        await p.call({ type: 'init', mjs: ORT_WASM.mjs, wasm, yunet, sface });
         return p;
       }));
       pool = started.filter(r => r.status === 'fulfilled').map(r => r.value);

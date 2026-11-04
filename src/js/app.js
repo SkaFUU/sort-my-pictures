@@ -445,11 +445,15 @@
 
   // ---------------- Gesichter ----------------
   async function scanFaces() {
-    if (!st.items) return;
+    if (!st.items) {
+      const t = st.src ? T('Zuerst in Schritt 1 „Einlesen“ klicken.') : T('Zuerst in Schritt 1 eine Quelle wählen und einlesen.');
+      status(t); alert(t); return;
+    }
     if (!(await ensurePermission(st.src, 'read'))) return;
     st.abort = new AbortController();
     busy(true);
     status(T('Lade Gesichtsmodelle …'), -1);
+    let failed = '';
     try {
       const threads = await Faces.load();
       log(T('Gesichtserkennung gestartet (lokal, YuNet + SFace, {0} Prozessorkerne gleichzeitig)', threads));
@@ -461,8 +465,12 @@
       st.oldFaces = false;
       if (r.namesChanged) Util.idb.set('faceNames', st.faceNames).catch(() => {});
       log(st.abort.signal.aborted ? T('Gesichtserkennung abgebrochen – „Gesichter erkennen“ setzt fort.') : T('Gesichtserkennung fertig.'));
-    } catch (e) { log(T('Gesichtserkennung fehlgeschlagen: {0}', e.message), 'err'); }
-    finally { busy(false); recompute(); People.render(); }
+    } catch (e) {
+      log(T('Gesichtserkennung fehlgeschlagen: {0}', e.message), 'err');
+      showLog(true);
+      failed = T('Gesichtserkennung fehlgeschlagen: {0}', e.message);
+    }
+    finally { busy(false); recompute(); People.render(); if (failed) status(failed); }
   }
 
   // Namen fuer Gesichter setzen (null = Name entfernen, '#ignore' = ignorieren)
