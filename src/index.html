@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fotosortierer</title>
+  <link rel="stylesheet" href="vendor/leaflet.css">
+  <link rel="stylesheet" href="css/app.css">
+</head>
+<body>
+  <header>
+    <h1>📷 Fotosortierer</h1>
+    <div class="dirs">
+      <div class="dir">
+        <button id="btnSrc">📂 Quelle</button>
+        <span id="srcName" class="dirname">–</span>
+        <button id="btnScan" disabled title="Dateien und Metadaten einlesen">Einlesen</button>
+      </div>
+      <span class="arrow">→</span>
+      <div class="dir">
+        <button id="btnDst">📁 Ziel</button>
+        <span id="dstName" class="dirname">–</span>
+        <button id="btnCopy" class="primary" disabled>Kopieren</button>
+      </div>
+    </div>
+    <div id="netState" class="net offline"></div>
+  </header>
+
+  <div id="unsupported" class="banner" hidden>
+    Dieser Browser kann keine lokalen Ordner lesen und schreiben. Bitte <b>Chrome</b>, <b>Edge</b>, <b>Brave</b> oder <b>Opera</b> verwenden.
+  </div>
+
+  <div id="statusbar">
+    <span id="statusText"></span>
+    <progress id="progress" hidden></progress>
+    <button id="btnCancel" hidden>Abbrechen</button>
+  </div>
+
+  <div id="layout">
+    <aside id="settings">
+      <div id="settingsForm"></div>
+      <div class="settings-actions">
+        <button id="btnExport" title="Einstellungen, Zonen und Änderungen als Datei speichern">Exportieren</button>
+        <button id="btnImport">Importieren</button>
+        <button id="btnReset">Standard</button>
+      </div>
+    </aside>
+
+    <main>
+      <nav id="tabs">
+        <button data-tab="map" class="active">🗺 Karte</button>
+        <button data-tab="events">📅 Ereignisse <span id="cntEvents" class="pill"></span></button>
+        <button data-tab="preview">📁 Vorschau</button>
+        <button data-tab="log">📝 Protokoll</button>
+      </nav>
+
+      <section id="tab-map" class="tab active">
+        <div id="map"></div>
+        <div id="legend"></div>
+        <div id="zonePanel">
+          <div class="zone-head">
+            <b>Zonen</b>
+            <button id="btnAddZone" title="Danach auf die Karte klicken">+ Zone</button>
+            <button id="btnFit" title="Alle Punkte zeigen">⤢</button>
+          </div>
+          <div class="hint">Zuhause · Alltagsort (nie Ausflug) · Dienstort (immer Dienstreise) · Benannter Ort (fester Name, auch offline). Mittelpunkt ziehen zum Verschieben.</div>
+          <div id="zoneList"></div>
+        </div>
+      </section>
+
+      <section id="tab-events" class="tab">
+        <div class="toolbar">
+          <select id="fltKind">
+            <option value="">Alle Arten</option>
+            <option value="vac">Urlaube</option>
+            <option value="trip">Ausflüge</option>
+            <option value="work">Dienstreisen</option>
+            <option value="none">Ohne Ordner</option>
+          </select>
+          <select id="fltYear"><option value="">Alle Jahre</option></select>
+          <input id="fltText" type="search" placeholder="Ort suchen …">
+          <span class="spacer"></span>
+          <button id="btnGeocode2" class="online-btn" title="Sendet Koordinaten an OpenStreetMap">🌐 Ortsnamen holen</button>
+          <button id="btnResetOverrides">Änderungen verwerfen</button>
+        </div>
+        <div id="eventDetail" hidden></div>
+        <div class="table-wrap">
+          <table id="eventTable">
+            <thead>
+              <tr>
+                <th>Art</th><th>Ort (bearbeitbar)</th><th>Zeitraum</th><th>Tage</th><th title="Davon Samstag/Sonntag">Sa/So</th>
+                <th>Bilder</th><th>pro Tag</th><th title="Größte Entfernung von zu Hause">Entf.</th><th>Name aus</th><th>Zielordner</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="eventRows"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section id="tab-preview" class="tab">
+        <div id="previewSummary"><div class="hint">Noch nichts eingelesen.</div></div>
+        <div id="previewTree"></div>
+      </section>
+
+      <section id="tab-log" class="tab">
+        <div class="hint">Originale werden nie verändert. Beim Kopieren wird ein Protokoll (CSV) in den Zielordner geschrieben.</div>
+        <div id="logList"></div>
+      </section>
+    </main>
+  </div>
+
+  <script src="vendor/leaflet.js"></script>
+  <script src="vendor/exifr.js"></script>
+  <script src="js/util.js"></script>
+  <script src="js/settings.js"></script>
+  <script src="js/metadata.js"></script>
+  <script src="js/geocode.js"></script>
+  <script src="js/analyze.js"></script>
+  <script src="js/plan.js"></script>
+  <script src="js/copy.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
