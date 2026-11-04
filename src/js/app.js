@@ -1,7 +1,7 @@
 // Oberflaeche und Ablauf
 (() => {
   const $ = sel => document.querySelector(sel);
-  const { escapeHtml: esc, fmtDate, fmtBytes, h } = Util;
+  const { escapeHtml: esc, fmtDate, fmtBytes, h, icon } = Util;
 
   const ZKEY = 'fotosortierer.zones', OKEY = 'fotosortierer.overrides';
   const loadJson = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch { return d; } };
@@ -32,8 +32,27 @@
   function updateButtons() {
     const b = document.body.classList.contains('busy');
     $('#btnScan').disabled = b || !st.src;
-    $('#btnCopy').disabled = b || !st.plan || !st.plan.ops.length;
-    $('#btnSrc').disabled = $('#btnDst').disabled = $('#btnPhone').disabled = b;
+    $('#btnCopy').disabled = $('#btnCopy2').disabled = b || !st.plan || !st.plan.ops.length;
+    for (const id of ['#btnSrc', '#btnDst', '#btnPhone', '#btnFaces', '#btnGeocode']) $(id).disabled = b;
+    updateSteps();
+  }
+
+  // Erledigte Arbeitsschritte im Register abhaken
+  function updateSteps() {
+    const a = st.analysis;
+    const done = {
+      quelle: !!st.items,
+      orte: !!a && (a.homes.length > 0),
+      events: !!a,
+      review: !!a && a.events.some(e => e.passCount) && !a.events.some(e => e.passCount && !e.ok),
+      people: !!st.people && st.people.groups.some(g => g.name),
+      ziel: !!st.copied,
+    };
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('done', !!done[b.dataset.tab]));
+  }
+  function setSrcName() {
+    $('#srcName').textContent = st.src ? '· ' + st.src.name : '';
+    $('#srcInfo').textContent = st.src ? st.src.name + (st.items ? `\n${st.items.length} Dateien · ${st.items.filter(i => i.hasGps).length} mit GPS` : '\nNoch nicht eingelesen.') : 'Noch keine Quelle gewählt.';
   }
   function netState() {
     const on = [st.s.tiles && 'Kartenhintergrund', st.s.geocode && 'Ortsnamen'].filter(Boolean);
@@ -44,29 +63,49 @@
   }
 
   // ---------------- Einstellungen ----------------
+  // Einstellungen je Arbeitsschritt in die Seitenleiste, Haekchen ins Ribbon
   function buildSettings() {
-    const form = $('#settingsForm');
-    form.innerHTML = '';
-    for (const sec of Settings.SCHEMA) {
-      const body = h('div', { class: 'sec-body' });
-      for (const it of sec.items) body.append(settingRow(it));
-      if (sec.section === 'Ortsnamen') {
-        body.append(h('div', { class: 'row' },
-          h('button', { id: 'btnGeocode', class: 'online-btn', onclick: geocode }, '🌐 Fehlende Ortsnamen holen'),
-          h('button', { onclick: () => { if (confirm('Gespeicherte Ortsnamen löschen?')) { Geo.clear(); recompute(); } } }, 'Cache leeren'),
-          h('span', { id: 'geoCacheInfo', class: 'hint' })));
+    for (const box of document.querySelectorAll('.settings[data-sections]')) {
+      box.innerHTML = '';
+      for (const name of box.dataset.sections.split(',')) {
+        const sec = Settings.SCHEMA.find(s => s.section === name);
+        const body = h('div', { class: 'sec-body' });
+        for (const it of sec.items) body.append(settingRow(it));
+        if (sec.section === 'Ortsnamen') {
+          body.append(h('div', { class: 'row' },
+            h('button', { onclick: () => { if (confirm('Gespeicherte Ortsnamen löschen?')) { Geo.clear(); recompute(); } } }, 'Cache leeren'),
+            h('span', { id: 'geoCacheInfo', class: 'hint' })));
+        }
+        const closed = ['Sonderordner', 'Bilder ohne GPS', 'Ortsnamen', 'Karte'].includes(sec.section) || (sec.section === 'Filter' && !filterActive());
+        box.append(h('details', { class: 'sec', open: !closed, 'data-sec': sec.section },
+          h('summary', {}, sec.section,
+            sec.online ? h('span', { class: 'badge-online', title: 'Nutzt das Internet' }, '🌐 online') : null),
+          body));
       }
-      if (sec.section === 'Filter') {
-        body.append(h('div', { class: 'row' }, h('button', { onclick: resetFilter }, 'Filter zurücksetzen')));
+    }
+    for (const box of document.querySelectorAll('.gchecks[data-checks]')) {
+      box.innerHTML = '';
+      for (const key of box.dataset.checks.split(',')) {
+        const it = Settings.byKey[key];
+        const cb = h('input', { type: 'checkbox', 'data-skey': key, checked: !!st.s[key] });
+        cb.onchange = () => setSetting(it, cb.checked);
+        box.append(h('label', { class: 'check', 'data-key': key, title: it.help || '' }, cb, ribbonLabel(it), it.online ? ' 🌐' : ''));
       }
-      const closed = ['Sonderordner', 'Bilder ohne GPS', 'Personen'].includes(sec.section) || (sec.section === 'Filter' && !filterActive());
-      form.append(h('details', { class: 'sec', open: !closed, 'data-sec': sec.section },
-        h('summary', {}, sec.section,
-          sec.section === 'Filter' ? h('span', { id: 'filterBadge', class: 'badge-filter', hidden: !filterActive() }, 'aktiv') : null,
-          sec.online ? h('span', { class: 'badge-online', title: 'Nutzt das Internet' }, '🌐 online') : null),
-        body));
     }
     refreshDeps();
+  }
+  const RIBBON_LABELS = { recursive: 'Unterordner', includePhotos: 'Fotos', includeVideos: 'Videos', geocode: 'Ortsnamen (OSM)',
+    homeAuto: 'Wohnort automatisch', autoDaily: 'Alltagsorte automatisch', vacEnabled: 'Urlaube', tripEnabled: 'Ausflüge',
+    workEnabled: 'Dienstreisen', personFolders: 'Personenordner anlegen', monthFolders: 'Monatsordner', dupSkip: 'Duplikate überspringen', lowerExt: 'Endung klein' };
+  const ribbonLabel = it => RIBBON_LABELS[it.key] || it.label;
+
+  // Wert setzen und alle Eingaben dafuer (Seitenleiste + Ribbon) angleichen
+  function setSetting(it, val) {
+    st.s[it.key] = val;
+    Settings.save(st.s);
+    document.querySelectorAll(`[data-skey="${it.key}"]`).forEach(e => { if (e.type === 'checkbox') e.checked = !!val; else if (e.value !== String(val)) e.value = val; });
+    refreshDeps();
+    onSettingChanged(it);
   }
 
   function settingRow(it) {
@@ -84,6 +123,7 @@
         h('label', {}, h('input', { type: 'checkbox', 'data-i': i, checked: v[i] === '1' }), d)));
     }
     else input = h('input', { type: 'text', id, value: v });
+    if (it.type !== 'weekdays') input.dataset.skey = it.key;
 
     const read = () => it.type === 'bool' ? input.checked
       : it.type === 'num' ? parseFloat(input.value)
@@ -92,16 +132,13 @@
     const apply = () => {
       const val = read();
       if (it.type === 'num' && !Number.isFinite(val)) return;
-      st.s[it.key] = val;
-      Settings.save(st.s);
-      refreshDeps();
-      onSettingChanged(it);
+      setSetting(it, val);
     };
     const deb = Util.debounce(apply, 400);
     const instant = ['bool', 'select', 'zone', 'weekdays', 'date', 'time'].includes(it.type);
     input.addEventListener(instant ? 'change' : 'input', instant ? apply : deb);
 
-    const label = h('label', { for: id }, it.label, it.online ? h('span', { class: 'badge-online' }, '🌐') : null);
+    const label = h('label', { for: id, class: 'lab' }, it.label, it.online ? h('span', { class: 'badge-online' }, '🌐') : null);
     const row = h('div', { class: `row row-${it.type}`, 'data-key': it.key },
       it.type === 'bool' ? [input, label] : [label, input],
       it.help ? h('div', { class: 'hint' }, it.help) : null);
@@ -110,12 +147,12 @@
 
   function refreshDeps() {
     for (const it of Settings.SCHEMA.flatMap(s => s.items)) {
-      const row = document.querySelector(`.row[data-key="${it.key}"]`);
-      if (!row) continue;
       let on = true;
       for (let d = it.dep; d && on; d = Settings.byKey[d]?.dep) on = !!st.s[d];
-      row.classList.toggle('disabled', !on);
-      row.querySelectorAll('input,select,textarea').forEach(e => { e.disabled = !on; });
+      for (const row of document.querySelectorAll(`.row[data-key="${it.key}"], .check[data-key="${it.key}"]`)) {
+        row.classList.toggle(row.classList.contains('check') ? 'dis' : 'disabled', !on);
+        row.querySelectorAll('input,select,textarea').forEach(e => { e.disabled = !on; });
+      }
     }
   }
 
@@ -126,13 +163,14 @@
     Settings.save(st.s);
     buildSettings();
     renderZoneSelect();
+    $('#filterBadge').hidden = true;
     recompute();
   }
 
   function onSettingChanged(it) {
     netState();
-    const fb = $('#filterBadge'); if (fb) fb.hidden = !filterActive();
-    if (it.level === 'map') { MapView.setTiles(st.s.tiles); return; }
+    $('#filterBadge').hidden = !filterActive();
+    if (it.level === 'map') { setTiles(); return; }
     if (it.level === 'faces') { status('Gilt für Fotos, die neu analysiert werden.'); return; }
     if (it.level === 'scan') { if (st.items) status('Geändert: bitte neu einlesen („Einlesen“).'); return; }
     if (it.level === 'date' && st.items) for (const i of st.items) Meta.applyDate(i, st.s);
@@ -153,11 +191,13 @@
     renderEvents();
     renderPreview();
     renderZoneList();
-    if ($('#tab-review').classList.contains('active')) Review.render();
-    if ($('#tab-people').classList.contains('active')) People.render();
+    setSrcName();
+    mapHint();
+    if (curTab === 'review') Review.render();
+    if (curTab === 'people') People.render();
     updateButtons();
     const missing = st.s.geocode ? st.analysis.events.filter(e => !Geo.lookup(e.lat, e.lon)).length : 0;
-    const gb = $('#btnGeocode'); if (gb) gb.textContent = `🌐 Fehlende Ortsnamen holen (${missing})`;
+    $('#btnGeocode span').textContent = st.s.geocode && missing ? `Ortsnamen holen (${missing}) 🌐` : 'Ortsnamen holen 🌐';
     const evs = st.analysis.events.filter(e => e.kind !== 'none' && e.passCount);
     $('#cntEvents').textContent = evs.length;
     const open = st.analysis.events.filter(e => e.passCount && !e.ok).length;
@@ -176,7 +216,8 @@
     try {
       st.src = await showDirectoryPicker({ id: 'fs-src', mode: 'read' });
       await Util.idb.set('srcHandle', st.src);
-      $('#srcName').textContent = st.src.name;
+      st.items = null;
+      setSrcName();
       updateButtons();
       scan();
     } catch (e) { if (e.name !== 'AbortError') alert(e.message); }
@@ -245,7 +286,8 @@
           h('button', { class: 'primary', disabled: !entries, onclick: () => {
             localStorage.setItem(PKEY, rel);
             st.src = Phone.source(rel);
-            $('#srcName').textContent = st.src.name;
+            st.items = null;
+            setSrcName();
             dlg.close();
             updateButtons();
             scan();
@@ -262,6 +304,7 @@
       if (st.src && await st.src.isSameEntry(st.dst)) { alert('Ziel darf nicht gleich der Quelle sein.'); st.dst = null; return; }
       await Util.idb.set('dstHandle', st.dst);
       $('#dstName').textContent = st.dst.name;
+      if (st.plan) renderPreview();
       updateButtons();
     } catch (e) { if (e.name !== 'AbortError') alert(e.message); }
   }
@@ -339,13 +382,14 @@
     if (!confirm(`${st.plan.ops.length} Kopien (${fmtBytes(bytes)}) nach „${st.dst.name}“ schreiben?\n\nOriginale bleiben unverändert, vorhandene Dateien werden nicht überschrieben.`)) return;
     st.abort = new AbortController();
     busy(true);
-    showTab('log');
+    showLog(true);
     log(`Kopieren gestartet: ${st.plan.ops.length} Dateien nach „${st.dst.name}“`);
     try {
       const r = await Copier.run(st.dst, st.plan.ops, p => status(
         `Kopiere … ${p.done} / ${p.total} · ${fmtBytes(p.bytes)} · ${fmtBytes(p.rate)}/s${p.errors ? ` · ${p.errors} Fehler` : ''}`, p.done / p.total), st.abort.signal);
       const msg = `${r.aborted ? 'Abgebrochen' : 'Fertig'}: ${r.copied} kopiert, ${r.skipped} übersprungen (existierten), ${r.errors} Fehler · Protokoll: ${r.logName}`;
       log(msg);
+      if (!r.aborted && !r.errors) st.copied = true;
       for (const l of r.log.filter(l => l.status.startsWith('FEHLER')).slice(0, 50)) log(`  ${l.quelle} → ${l.ziel}: ${l.status}`, 'err');
       status(msg);
     } catch (e) { log('Fehler: ' + e.message, 'err'); status('Fehler: ' + e.message); }
@@ -355,15 +399,53 @@
   function log(text, cls = '') {
     const t = new Date();
     $('#logList').prepend(h('div', { class: 'log ' + cls }, `${Util.pad(t.getHours())}:${Util.pad(t.getMinutes())}:${Util.pad(t.getSeconds())}  ${text}`));
+    if ($('#logPanel').hidden) $('#btnLog').classList.add('new');
+  }
+  function showLog(on = $('#logPanel').hidden) {
+    $('#logPanel').hidden = !on;
+    if (on) $('#btnLog').classList.remove('new');
   }
 
-  // ---------------- Tabs ----------------
+  // ---------------- Arbeitsschritte (Register) ----------------
+  const TABS = ['quelle', 'orte', 'events', 'review', 'people', 'ziel'];
+  const VIEW_OF = { quelle: 'map', orte: 'map', events: 'events', review: 'review', people: 'people', ziel: 'ziel' };
+  let curTab = 'quelle';
   function showTab(name) {
-    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('active', b.dataset.tab === name));
-    document.querySelectorAll('.tab').forEach(t => t.classList.toggle('active', t.id === 'tab-' + name));
-    if (name === 'map') setTimeout(MapView.invalidate, 0);
+    if (name === 'map') name = 'orte';
+    curTab = name;
+    document.body.dataset.tab = name;
+    localStorage.setItem('fotosortierer.tab', name);
+    document.querySelectorAll('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === name));
+    document.querySelectorAll('.rpanel, .pp').forEach(p => p.classList.toggle('on', p.dataset.tab === name));
+    document.querySelectorAll('.view').forEach(v => v.classList.toggle('on', v.dataset.view === VIEW_OF[name]));
+    if (VIEW_OF[name] === 'map') setTimeout(MapView.invalidate, 0);
+    if (name !== 'orte' && MapView.addMode) MapView.setAddMode(false);
+    mapHint();
     if (name === 'review') Review.render();
     if (name === 'people') People.render();
+  }
+  // Am Ende jedes Ribbons: Knopf zum naechsten Schritt
+  function addNextButtons() {
+    const names = { orte: 'Orte', events: 'Ereignisse', review: 'Prüfen', people: 'Personen', ziel: 'Ziel & Kopieren' };
+    TABS.forEach((t, i) => {
+      const next = TABS[i + 1];
+      if (!next) return;
+      $(`.rpanel[data-tab="${t}"]`).append(h('div', { class: 'grp next' },
+        h('div', { class: 'gbody' }, h('button', { class: 'big next-btn', onclick: () => showTab(next) },
+          icon('i-next'), h('span', {}, `Weiter: ${i + 2} ${names[next]}`))),
+        h('div', { class: 'gcap' }, 'Nächster Schritt')));
+    });
+  }
+  // Hinweis oben auf der Karte, was als Naechstes zu tun ist
+  function mapHint() {
+    const el = $('#hint');
+    if (!el) return;
+    let t = '';
+    if (!st.src) t = 'Schritt 1: Oben „Ordner wählen“ oder „Handy (USB)“.';
+    else if (!st.items) t = `Quelle „${st.src.name}“ – oben „Einlesen“ klicken.`;
+    else if (MapView.addMode) t = 'Auf die Karte klicken, um die Zone zu setzen.';
+    else if (curTab === 'quelle' && st.analysis && !st.analysis.withGps) t = 'Keine Bilder mit GPS – Urlaube und Ausflüge können nicht erkannt werden.';
+    el.textContent = VIEW_OF[curTab] === 'map' ? t : '';
   }
 
   // ---------------- Zonen ----------------
@@ -388,18 +470,20 @@
     renderZoneSelect();
     const list = $('#zoneList');
     list.innerHTML = '';
-    if (!st.zones.length) list.append(h('div', { class: 'hint' }, 'Noch keine Zonen. „+ Zone“ und dann auf die Karte klicken.'));
+    if (!st.zones.length) list.append(h('div', { class: 'muted' }, 'Noch keine Zonen. Oben „Zone setzen“ und dann auf die Karte klicken.'));
     for (const z of st.zones) {
       const upd = (k, v) => { z[k] = v; saveZones(); recomputeSoon(); };
       list.append(h('div', { class: 'zone', 'data-zone': z.id },
         h('span', { class: 'dot', style: `background:${MapView.ZONE_COLORS[z.type]}` }),
         h('input', { type: 'text', value: z.name, placeholder: 'Name', oninput: e => upd('name', e.target.value) }),
-        h('select', { onchange: e => upd('type', e.target.value) },
-          Object.entries(MapView.ZONE_TYPES).map(([k, v]) => h('option', { value: k, selected: z.type === k }, v))),
-        h('input', { type: 'number', value: z.r, min: 0.1, step: 0.1, title: 'Radius km', oninput: e => { const v = parseFloat(e.target.value); if (v > 0) upd('r', v); } }),
-        h('span', { class: 'unit' }, 'km'),
-        h('button', { title: 'Auf Karte zeigen', onclick: () => MapView.focus(z.lat, z.lon) }, '⌖'),
-        h('button', { title: 'Löschen', onclick: () => { st.zones = st.zones.filter(x => x !== z); saveZones(); recompute(); } }, '✕')));
+        h('span', {},
+          h('button', { class: 'mini', title: 'Auf Karte zeigen', onclick: () => MapView.focus(z.lat, z.lon) }, icon('i-target')),
+          h('button', { class: 'mini', title: 'Löschen', onclick: () => { st.zones = st.zones.filter(x => x !== z); saveZones(); recompute(); } }, icon('i-trash'))),
+        h('div', { class: 'zrow' },
+          h('select', { onchange: e => upd('type', e.target.value) },
+            Object.entries(MapView.ZONE_TYPES).map(([k, v]) => h('option', { value: k, selected: z.type === k }, v))),
+          h('input', { type: 'number', value: z.r, min: 0.1, step: 0.1, title: 'Radius km', oninput: e => { const v = parseFloat(e.target.value); if (v > 0) upd('r', v); } }),
+          h('span', { class: 'unit' }, 'km'))));
     }
   }
 
@@ -429,7 +513,8 @@
         saveOverrides(); recomputeSoon();
       };
       const dir = st.plan.evDir.get(ev);
-      tb.append(h('tr', { class: `kind-${ev.kind}${st.selected === ev ? ' selected' : ''}` },
+      tb.append(h('tr', { class: `kind-${ev.kind}${st.selected === ev ? ' selected' : ''}`, title: 'Klick: Bilder anzeigen',
+        onclick: e => { if (e.target.closest('input,select,button')) return; st.selected = st.selected === ev ? null : ev; renderEvents(); } },
         h('td', {}, h('span', { class: 'dot', style: `background:${MapView.COLORS[ev.kind]}` }),
           h('select', { onchange: e => setO('kind', e.target.value === ev.autoKind ? null : e.target.value) },
             Object.entries(Analyze.KINDS).map(([k, v]) => h('option', { value: k, selected: ev.kind === k }, v + (k === ev.autoKind ? ' (auto)' : ''))))),
@@ -446,8 +531,7 @@
         h('td', { class: 'path' }, dir ? dir.join('/') : '–'),
         h('td', { class: 'nowrap' },
           h('span', { class: 'ok-mark', title: ev.ok ? 'Im Prüfmodus bestätigt' : 'Noch nicht geprüft' }, ev.ok ? '✓' : ''),
-          h('button', { title: 'Auf Karte zeigen', onclick: () => { showTab('map'); MapView.fitEvent(ev); } }, '🗺'),
-          h('button', { title: 'Bilder anzeigen', onclick: () => { st.selected = ev; renderEvents(); } }, '🖼'))));
+          h('button', { class: 'mini', title: 'Auf Karte zeigen', onclick: () => { showTab('orte'); MapView.fitEvent(ev); } }, icon('i-pin')))));
     }
     renderDetail();
   }
@@ -463,7 +547,7 @@
     box.append(h('div', { class: 'detail-head' },
       h('b', {}, `${ev.place} · ${fmtDate(ev.start)}${ev.days > 1 ? ' – ' + fmtDate(ev.end) : ''}`),
       h('span', { class: 'hint' }, ' Häkchen entfernen = Bild nicht in diesem Ereignis-Ordner (bleibt im Monatsordner).'),
-      h('button', { onclick: () => { st.selected = null; renderEvents(); } }, 'Schließen')));
+      h('button', { class: 'mini', title: 'Schließen', onclick: () => { st.selected = null; renderEvents(); } }, icon('i-cancel'))));
     const grid = h('div', { class: 'thumbs' });
     const all = [...ev.items, ...ev.excludedItems].sort((a, b) => a.date - b.date);
     for (const it of all.slice(0, 300)) {
@@ -574,7 +658,7 @@
         if (j.zones) { st.zones = j.zones; saveZones(); }
         if (j.overrides) { st.overrides = j.overrides; saveOverrides(); }
         if (j.faceNames) { st.faceNames = j.faceNames; Util.idb.set('faceNames', st.faceNames).catch(() => {}); }
-        buildSettings(); netState(); MapView.setTiles(st.s.tiles); recompute();
+        buildSettings(); netState(); setTiles(); recompute();
       } catch (e) { alert('Datei ungültig: ' + e.message); }
     };
     inp.click();
@@ -582,7 +666,7 @@
   function resetConfig() {
     if (!confirm('Alle Einstellungen auf Standard zurücksetzen? (Zonen und manuelle Änderungen bleiben)')) return;
     st.s = Settings.defaults(); Settings.save(st.s);
-    buildSettings(); netState(); MapView.setTiles(st.s.tiles); recompute();
+    buildSettings(); netState(); setTiles(); recompute();
   }
   function resetOverrides() {
     if (!confirm('Alle manuellen Änderungen in der Ereignisliste verwerfen?')) return;
@@ -590,22 +674,53 @@
   }
 
   // ---------------- Start ----------------
+  function setTiles() {
+    MapView.setTiles(st.s.tiles);
+    document.querySelectorAll('[data-tiles]').forEach(b => b.classList.toggle('sel', (b.dataset.tiles === '1') === !!st.s.tiles));
+  }
+
+  // Seitenleiste: ein-/ausklappen und Breite ziehen (wird gemerkt)
+  function initProps() {
+    const props = $('#props'), grip = $('#propsGrip'), tog = $('#togProps');
+    const w = parseInt(localStorage.getItem('fotosortierer.propsW'));
+    if (w) props.style.width = w + 'px';
+    const setHidden = hide => {
+      props.classList.toggle('hide', hide); grip.classList.toggle('hide', hide);
+      tog.textContent = hide ? '‹' : '›';
+      localStorage.setItem('fotosortierer.propsHide', hide ? '1' : '');
+      setTimeout(MapView.invalidate, 0);
+    };
+    setHidden(!!localStorage.getItem('fotosortierer.propsHide'));
+    tog.onclick = () => setHidden(!props.classList.contains('hide'));
+    grip.onpointerdown = e => {
+      grip.setPointerCapture(e.pointerId); grip.classList.add('drag');
+      const x0 = e.clientX, w0 = props.offsetWidth;
+      grip.onpointermove = ev => { props.style.width = Math.max(240, Math.min(700, w0 - (ev.clientX - x0))) + 'px'; MapView.invalidate(); };
+      grip.onpointerup = () => {
+        grip.onpointermove = grip.onpointerup = null; grip.classList.remove('drag');
+        localStorage.setItem('fotosortierer.propsW', props.offsetWidth);
+      };
+    };
+  }
+
   async function start() {
     if (!fsSupported) $('#unsupported').hidden = false;
+    addNextButtons();
     buildSettings();
     netState();
     MapView.init($('#map'), {
       onAddZone: addZone,
-      onAddMode: on => $('#btnAddZone').classList.toggle('active', on),
+      onAddMode: on => { $('#btnAddZone').classList.toggle('on', on); mapHint(); },
       onZoneMoved: (z, lat, lon) => { z.lat = lat; z.lon = lon; saveZones(); recompute(); },
-      onZoneClick: z => document.querySelector(`[data-zone="${z.id}"] input`)?.focus(),
+      onZoneClick: z => { showTab('orte'); document.querySelector(`[data-zone="${z.id}"] input`)?.focus(); },
       onPointClick: it => {
         const list = it.event ? it.event.items : st.analysis.items.filter(i => i.day === it.day);
         Viewer.open(list, list.indexOf(it));
       },
     });
-    MapView.setTiles(st.s.tiles);
+    setTiles();
     renderZoneList();
+    initProps();
 
     // Kontext fuer Bildansicht, Pruefmodus und Personen
     const appCtx = {
@@ -614,12 +729,12 @@
       opsOf: it => st.plan?.byItem.get(it.id) || [],
       facesOf: it => Faces.facesOf(it, st.faceCache),
       openEvent: ev => { st.selected = ev; showTab('events'); renderEvents(); },
-      showEventOnMap: ev => { showTab('map'); MapView.fitEvent(ev); },
+      showEventOnMap: ev => { showTab('orte'); MapView.fitEvent(ev); },
+      get tab() { return curTab; },
     };
     Viewer.init(appCtx);
     Review.init(appCtx);
     People.init(appCtx);
-    try { st.faceNames = (await Util.idb.get('faceNames')) || {}; } catch { /* leer */ }
 
     $('#btnSrc').onclick = pickSrc;
     $('#btnPhone').onclick = pickPhone;
@@ -629,32 +744,40 @@
     };
     $('#btnDst').onclick = pickDst;
     $('#btnScan').onclick = scan;
-    $('#btnCopy').onclick = copy;
+    $('#btnCopy').onclick = $('#btnCopy2').onclick = copy;
     $('#btnCancel').onclick = () => st.abort?.abort();
-    $('#btnAddZone').onclick = () => MapView.setAddMode(!MapView.addMode);
+    $('#btnAddZone').onclick = () => { showTab('orte'); MapView.setAddMode(!MapView.addMode); };
     $('#btnFit').onclick = () => MapView.fitAll(st.analysis);
+    document.querySelectorAll('[data-tiles]').forEach(b => { b.onclick = () => setSetting(Settings.byKey.tiles, b.dataset.tiles === '1'); });
+    $('#btnGeocode').onclick = geocode;
     $('#btnExport').onclick = exportConfig;
     $('#btnImport').onclick = importConfig;
     $('#btnReset').onclick = resetConfig;
     $('#btnResetOverrides').onclick = resetOverrides;
-    $('#btnGeocode2').onclick = geocode;
+    $('#btnFilterReset').onclick = resetFilter;
+    $('#filterBadge').hidden = !filterActive();
+    $('#btnLog').onclick = () => showLog();
+    $('#btnLogClose').onclick = () => showLog(false);
     for (const id of ['#fltKind', '#fltYear']) $(id).onchange = renderEvents;
     $('#fltText').oninput = Util.debounce(renderEvents, 200);
     document.querySelectorAll('#tabs button').forEach(b => { b.onclick = () => showTab(b.dataset.tab); });
     $('#legend').innerHTML = [['vac', 'Urlaub'], ['trip', 'Ausflug'], ['work', 'Dienstreise'], ['home', 'Zuhause / Alltag'], ['other', 'Sonstige']]
       .map(([k, n]) => `<span><i style="background:${MapView.COLORS[k]}"></i>${n}</span>`).join('');
+    showTab(TABS.includes(localStorage.getItem('fotosortierer.tab')) ? localStorage.getItem('fotosortierer.tab') : 'quelle');
 
     updateButtons();
     status('Quelle wählen, um zu beginnen.');
+    try { st.faceNames = (await Util.idb.get('faceNames')) || {}; } catch { /* leer */ }
     // Zuletzt verwendete Ordner wiederherstellen (Zugriff muss per Klick erneut erlaubt werden)
     if (fsSupported) {
       try {
         st.src = await Util.idb.get('srcHandle') || null;
         st.dst = await Util.idb.get('dstHandle') || null;
       } catch { /* kein Zugriff auf IndexedDB */ }
-      if (st.src) $('#srcName').textContent = st.src.name;
       if (st.dst) $('#dstName').textContent = st.dst.name;
     }
+    setSrcName();
+    mapHint();
     updateButtons();
     status(st.src ? `Quelle „${st.src.name}“ – „Einlesen“ klicken.` : 'Quelle wählen, um zu beginnen.');
   }

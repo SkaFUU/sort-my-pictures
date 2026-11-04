@@ -82,6 +82,17 @@ const Util = (() => {
     return el;
   }
 
+  // Icon aus dem SVG-Sprite in index.html
+  function icon(name, cls = 'ic') {
+    const NS = 'http://www.w3.org/2000/svg';
+    const s = document.createElementNS(NS, 'svg');
+    s.setAttribute('class', cls);
+    const u = document.createElementNS(NS, 'use');
+    u.setAttribute('href', '#' + name);
+    s.append(u);
+    return s;
+  }
+
   const fmtBytes = b => b > 1e9 ? `${(b / 1e9).toFixed(1)} GB` : b > 1e6 ? `${(b / 1e6).toFixed(1)} MB` : `${Math.round(b / 1e3)} KB`;
 
   // Minimaler IndexedDB-Schluessel/Wert-Speicher (fuer Index-Cache und Ordner-Handles)
@@ -111,6 +122,6 @@ const Util = (() => {
 
   return {
     MONTHS, pad, distKm, dayKey, dayFromKey, addDays, daysBetween, isWeekend, fmtDate, fmtDateTime,
-    dateTokens, fillTemplate, sanitizeSegment, templatePath, fmtCoord, escapeHtml, debounce, fmtBytes, idb, h,
+    dateTokens, fillTemplate, sanitizeSegment, templatePath, fmtCoord, escapeHtml, debounce, fmtBytes, idb, h, icon,
   };
 })();

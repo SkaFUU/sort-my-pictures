@@ -14,15 +14,20 @@ Ziel/
 
 ## Benutzung
 
-1. `fotosortierer.html` in **Chrome, Edge, Brave oder Opera** öffnen. Firefox und Safari können keine lokalen Ordner schreiben.
-2. **Quelle** wählen. Die Dateien werden eingelesen: Aufnahmedatum und GPS aus EXIF bzw. aus den MP4/MOV-Metadaten.
-3. In den Einstellungen links Parameter anpassen. Die Vorschau aktualisiert sich sofort.
-4. **Karte**: Zonen anlegen (Zuhause, Alltagsort, Dienstort, Benannter Ort).
-5. **Ereignisse**: Art und Ortsname je Ereignis ändern. Mit 🖼 lassen sich einzelne Bilder aus einem Ereignis herausnehmen.
-6. **Prüfen**: Ereignisse nacheinander durchklicken, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `Enter` übernimmt den Vorschlag, `←`/`→` blättert.
-7. **Personen** (optional): Gesichter erkennen, Gruppen benennen (gleicher Name = zusammenführen) und Fehler mit ✕ entfernen. Damit lassen sich Personenordner anlegen und Personen filtern.
-8. **Vorschau**: Den Ordnerbaum mit den endgültigen Dateinamen prüfen.
-9. **Ziel** wählen und **Kopieren** klicken.
+Öffne `fotosortierer.html` in **Chrome, Edge, Brave oder Opera**. Firefox und Safari können keine lokalen Ordner schreiben.
+
+Die Oberfläche führt Schritt für Schritt durch die Register von links nach rechts:
+
+- Jedes Register hat oben ein Ribbon mit den Aktionen und rechts eine Seitenleiste mit den zugehörigen Einstellungen.
+- **Weiter** führt zum nächsten Schritt.
+- Erledigte Schritte bekommen ein ✓.
+
+1. **Quelle:** Wähle einen Ordner oder **Handy (USB)** und klicke auf **Einlesen**. Aufnahmedatum und GPS kommen aus EXIF bzw. aus den MP4/MOV-Metadaten.
+2. **Orte:** Lege auf der Karte Zonen an (Zuhause, Alltagsort, Dienstort, Benannter Ort). Optional holst du dir hier Ortsnamen und den Kartenhintergrund von OpenStreetMap (🌐).
+3. **Ereignisse:** Ändere Art und Ortsname je Ereignis. Ein Klick auf eine Zeile zeigt die Bilder, dort lassen sich einzelne Bilder herausnehmen.
+4. **Prüfen:** Klicke die Ereignisse nacheinander durch, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `Enter` übernimmt den Vorschlag, `←`/`→` blättert.
+5. **Personen** (optional): Lass die Gesichter erkennen und benenne die Gruppen (gleicher Name = zusammenführen). Fehltreffer entfernst du mit ✕.
+6. **Ziel & Kopieren:** Lege Ordnerstruktur, Dateinamen und Filter fest und prüfe den Ordnerbaum. Dann wählst du das **Ziel** und klickst **Kopieren**.
 
 ## Direkt vom Handy (USB)
 

@@ -8,84 +8,154 @@
   <link rel="stylesheet" href="css/app.css">
 </head>
 <body>
+<svg width="0" height="0" style="position:absolute">
+  <symbol id="i-logo" viewBox="0 0 24 24"><path d="M3 8a2 2 0 0 1 2-2h2.5L9 4h6l1.5 2H19a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.5"/></symbol>
+  <symbol id="i-folder" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></symbol>
+  <symbol id="i-phone" viewBox="0 0 24 24"><rect x="7" y="2.5" width="10" height="19" rx="2"/><path d="M11 18.5h2"/></symbol>
+  <symbol id="i-scan" viewBox="0 0 24 24"><path d="M20 11a8 8 0 0 0-14.5-4.5M4 13a8 8 0 0 0 14.5 4.5"/><path d="M5 3v4h4M19 21v-4h-4"/></symbol>
+  <symbol id="i-import" viewBox="0 0 24 24"><path d="M12 15V3M7 8l5-5 5 5"/><path d="M4 17v3h16v-3"/></symbol>
+  <symbol id="i-export" viewBox="0 0 24 24"><path d="M12 3v12M7 10l5 5 5-5"/><path d="M4 17v3h16v-3"/></symbol>
+  <symbol id="i-reset" viewBox="0 0 24 24"><path d="M4 4v6h6"/><path d="M4.6 10A8 8 0 1 1 6 17"/></symbol>
+  <symbol id="i-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><circle cx="12" cy="12" r="2"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3"/></symbol>
+  <symbol id="i-fit" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/><circle cx="12" cy="12" r="2.5"/></symbol>
+  <symbol id="i-map" viewBox="0 0 24 24"><path d="M3 6l6-3 6 3 6-3v15l-6 3-6-3-6 3z"/><path d="M9 3v15M15 6v15"/></symbol>
+  <symbol id="i-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18M3 15h18M9 3v18M15 3v18" opacity=".6"/></symbol>
+  <symbol id="i-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></symbol>
+  <symbol id="i-vac" viewBox="0 0 24 24"><circle cx="12" cy="10" r="4"/><path d="M12 2.5v2M5.6 4.6L7 6M2.5 10h2M19.5 10h2M17 6l1.4-1.4"/><path d="M3 19c3-2 6-2 9 0s6 2 9 0"/></symbol>
+  <symbol id="i-trip" viewBox="0 0 24 24"><path d="M2 20L9 8l4 6 3-4 6 10z"/><path d="M7.4 11.5L9 13l1.6-1.6"/></symbol>
+  <symbol id="i-work" viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="2"/><path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M3 13h18"/></symbol>
+  <symbol id="i-none" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M6.5 17.5l11-11"/></symbol>
+  <symbol id="i-check" viewBox="0 0 24 24"><path d="M4 12.5l5 5L20 6.5"/></symbol>
+  <symbol id="i-prev" viewBox="0 0 24 24"><path d="M15 5l-7 7 7 7"/></symbol>
+  <symbol id="i-next" viewBox="0 0 24 24"><path d="M9 5l7 7-7 7"/></symbol>
+  <symbol id="i-faces" viewBox="0 0 24 24"><path d="M3 8V5a2 2 0 0 1 2-2h3M16 3h3a2 2 0 0 1 2 2v3M21 16v3a2 2 0 0 1-2 2h-3M8 21H5a2 2 0 0 1-2-2v-3"/><circle cx="12" cy="10" r="3"/><path d="M7 18a5 5 0 0 1 10 0"/></symbol>
+  <symbol id="i-dest" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 13h6M12.5 10.5L15 13l-2.5 2.5"/></symbol>
+  <symbol id="i-copy" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></symbol>
+  <symbol id="i-filter" viewBox="0 0 24 24"><path d="M3 5h18l-7 8v6l-4 2v-8z"/></symbol>
+  <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
+  <symbol id="i-log" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 7h3"/></symbol>
+  <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></symbol>
+  <symbol id="i-cancel" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
+</svg>
+
+<div id="app">
   <header>
-    <h1>📷 Fotosortierer</h1>
-    <div class="dirs">
-      <div class="dir">
-        <button id="btnSrc">📂 Quelle</button>
-        <button id="btnPhone" hidden title="Fotos direkt vom Android-Handy per USB lesen (lokal, nur lesend)">📱 Handy</button>
-        <span id="srcName" class="dirname">–</span>
-        <button id="btnScan" disabled title="Dateien und Metadaten einlesen">Einlesen</button>
+    <div id="qat">
+      <span class="logo"><svg class="ic"><use href="#i-logo"/></svg></span>
+      <span id="docTitle">Fotosortierer <span class="fld" id="srcName"></span></span>
+      <button id="btnCopy" class="qbtn primary" disabled title="Alle geplanten Kopien in den Zielordner schreiben"><svg class="ic"><use href="#i-copy"/></svg><span class="qtxt">Kopieren</span></button>
+      <span class="grow"></span>
+      <span id="netState" class="net offline"></span>
+    </div>
+    <nav id="tabs">
+      <button data-tab="quelle"><span class="step">1</span>Quelle</button>
+      <button data-tab="orte"><span class="step">2</span>Orte</button>
+      <button data-tab="events"><span class="step">3</span>Ereignisse <span id="cntEvents" class="pill"></span></button>
+      <button data-tab="review"><span class="step">4</span>Prüfen <span id="cntReview" class="pill pill-open"></span></button>
+      <button data-tab="people"><span class="step">5</span>Personen <i class="opt">optional</i></button>
+      <button data-tab="ziel"><span class="step">6</span>Ziel &amp; Kopieren</button>
+    </nav>
+    <div id="ribbon">
+      <!-- 1 Quelle -->
+      <div class="rpanel" data-tab="quelle">
+        <div class="grp"><div class="gbody">
+          <button class="big c-file" id="btnSrc"><svg class="ic"><use href="#i-folder"/></svg><span>Ordner wählen</span></button>
+          <button class="big c-file" id="btnPhone" hidden title="Fotos direkt vom Android-Handy per USB lesen (lokal, nur lesend)"><svg class="ic"><use href="#i-phone"/></svg><span>Handy (USB)</span></button>
+          <button class="big c-file" id="btnScan" disabled title="Dateien und Metadaten einlesen"><svg class="ic"><use href="#i-scan"/></svg><span>Einlesen</span></button>
+        </div><div class="gcap">Quelle</div></div>
+        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="recursive,includePhotos,includeVideos"></div></div><div class="gcap">Dateien</div></div>
+        <div class="grp"><div class="gbody">
+          <button class="big c-view" id="btnExport" title="Einstellungen, Zonen und Änderungen als Datei speichern"><svg class="ic"><use href="#i-export"/></svg><span>Exportieren</span></button>
+          <button class="big c-view" id="btnImport"><svg class="ic"><use href="#i-import"/></svg><span>Importieren</span></button>
+          <button class="big c-del" id="btnReset"><svg class="ic"><use href="#i-reset"/></svg><span>Standard</span></button>
+        </div><div class="gcap">Einstellungen</div></div>
       </div>
-      <span class="arrow">→</span>
-      <div class="dir">
-        <button id="btnDst">📁 Ziel</button>
-        <span id="dstName" class="dirname">–</span>
-        <button id="btnCopy" class="primary" disabled>Kopieren</button>
+      <!-- 2 Orte -->
+      <div class="rpanel" data-tab="orte">
+        <div class="grp"><div class="gbody">
+          <button class="big c-zone" id="btnAddZone" title="Danach auf die Karte klicken"><svg class="ic"><use href="#i-target"/></svg><span>Zone setzen</span></button>
+          <button class="big c-view" id="btnFit"><svg class="ic"><use href="#i-fit"/></svg><span>Alle zeigen</span></button>
+        </div><div class="gcap">Zonen</div></div>
+        <div class="grp"><div class="gbody">
+          <button class="big c-view" data-tiles="0"><svg class="ic"><use href="#i-grid"/></svg><span>Ohne Karte</span></button>
+          <button class="big c-online" data-tiles="1" title="Lädt Kacheln von tile.openstreetmap.org"><svg class="ic"><use href="#i-map"/></svg><span>OpenStreet­Map 🌐</span></button>
+        </div><div class="gcap">Kartenhintergrund</div></div>
+        <div class="grp"><div class="gbody">
+          <button class="big c-online" id="btnGeocode" title="Sendet einen Koordinatenpunkt pro Ereignis an nominatim.openstreetmap.org"><svg class="ic"><use href="#i-globe"/></svg><span>Ortsnamen holen 🌐</span></button>
+          <div class="gchecks" data-checks="geocode,homeAuto,autoDaily"></div>
+        </div><div class="gcap">Erkennung</div></div>
+      </div>
+      <!-- 3 Ereignisse -->
+      <div class="rpanel" data-tab="events">
+        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="vacEnabled,tripEnabled,workEnabled"></div></div><div class="gcap">Erkennen</div></div>
+        <div class="grp"><div class="gbody"><div class="rf">
+          <label for="fltKind">Art</label>
+          <select id="fltKind">
+            <option value="">Alle</option><option value="vac">Urlaube</option><option value="trip">Ausflüge</option>
+            <option value="work">Dienstreisen</option><option value="none">Ohne Ordner</option>
+          </select>
+          <label for="fltYear">Jahr</label><select id="fltYear"><option value="">Alle Jahre</option></select>
+          <label for="fltText">Ort</label><input id="fltText" type="search" placeholder="suchen …">
+        </div></div><div class="gcap">Anzeigen</div></div>
+        <div class="grp"><div class="gbody">
+          <button class="big c-del" id="btnResetOverrides"><svg class="ic"><use href="#i-reset"/></svg><span>Änderungen verwerfen</span></button>
+        </div><div class="gcap">Bearbeiten</div></div>
+      </div>
+      <!-- 4 Pruefen -->
+      <div class="rpanel" data-tab="review">
+        <div class="grp"><div class="gbody">
+          <button class="big c-vac rv-k" data-kind="vac"><svg class="ic"><use href="#i-vac"/></svg><span><kbd>1</kbd> Urlaub</span></button>
+          <button class="big c-trip rv-k" data-kind="trip"><svg class="ic"><use href="#i-trip"/></svg><span><kbd>2</kbd> Ausflug</span></button>
+          <button class="big c-work rv-k" data-kind="work"><svg class="ic"><use href="#i-work"/></svg><span><kbd>3</kbd> Dienstreise</span></button>
+          <button class="big c-none rv-k" data-kind="none"><svg class="ic"><use href="#i-none"/></svg><span><kbd>4</kbd> Kein Ordner</span></button>
+        </div><div class="gcap">Art wählen</div></div>
+        <div class="grp"><div class="gbody">
+          <button class="big c-ok" id="rvAccept"><svg class="ic"><use href="#i-check"/></svg><span>Vorschlag OK <kbd>Enter</kbd></span></button>
+          <button class="big c-view" id="rvPrev"><svg class="ic"><use href="#i-prev"/></svg><span>Zurück <kbd>←</kbd></span></button>
+          <button class="big c-view" id="rvNext"><svg class="ic"><use href="#i-next"/></svg><span>Überspringen <kbd>→</kbd></span></button>
+          <button class="big c-zone" id="rvMap"><svg class="ic"><use href="#i-pin"/></svg><span>Auf Karte</span></button>
+        </div><div class="gcap">Ereignis</div></div>
+        <div class="grp"><div class="gbody"><div class="rf">
+          <label for="rvOpen">Nur ungeprüfte</label><input id="rvOpen" type="checkbox" checked>
+          <label for="rvOrder">Reihenfolge</label>
+          <select id="rvOrder"><option value="unsure">unsichere zuerst</option><option value="date">nach Datum</option></select>
+        </div></div><div class="gcap">Anzeigen</div></div>
+      </div>
+      <!-- 5 Personen -->
+      <div class="rpanel" data-tab="people">
+        <div class="grp"><div class="gbody">
+          <button class="big c-face" id="btnFaces" title="Läuft komplett lokal im Browser"><svg class="ic"><use href="#i-faces"/></svg><span>Gesichter erkennen</span></button>
+          <button class="big c-del" id="btnFacesReset"><svg class="ic"><use href="#i-reset"/></svg><span>Namen zurücksetzen</span></button>
+        </div><div class="gcap">Erkennung (lokal)</div></div>
+        <div class="grp"><div class="gbody"><div class="gchecks">
+          <label class="check"><input id="pplSmall" type="checkbox"> kleine Gruppen zeigen</label>
+        </div></div><div class="gcap">Anzeigen</div></div>
+        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="personFolders"></div></div><div class="gcap">Ordner</div></div>
+      </div>
+      <!-- 6 Ziel -->
+      <div class="rpanel" data-tab="ziel">
+        <div class="grp"><div class="gbody">
+          <button class="big c-dest" id="btnDst"><svg class="ic"><use href="#i-dest"/></svg><span>Ziel wählen</span></button>
+          <button class="big c-ok" id="btnCopy2" disabled><svg class="ic"><use href="#i-copy"/></svg><span>Kopieren</span></button>
+        </div><div class="gcap">Ziel</div></div>
+        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="monthFolders,dupSkip,lowerExt"></div></div><div class="gcap">Struktur</div></div>
+        <div class="grp"><div class="gbody">
+          <button class="big c-view" id="btnFilterReset" title="Alle Filter zurücksetzen"><svg class="ic"><use href="#i-filter"/></svg><span>Filter zurücksetzen</span></button>
+        </div><div class="gcap">Filter <span id="filterBadge" class="badge-filter" hidden>aktiv</span></div></div>
       </div>
     </div>
-    <div id="netState" class="net offline"></div>
   </header>
 
-  <div id="unsupported" class="banner" hidden>
-    Dieser Browser kann keine lokalen Ordner lesen und schreiben. Bitte <b>Chrome</b>, <b>Edge</b>, <b>Brave</b> oder <b>Opera</b> verwenden.
-  </div>
-
-  <div id="statusbar">
-    <span id="statusText"></span>
-    <progress id="progress" hidden></progress>
-    <button id="btnCancel" hidden>Abbrechen</button>
-  </div>
-
-  <div id="layout">
-    <aside id="settings">
-      <div id="settingsForm"></div>
-      <div class="settings-actions">
-        <button id="btnExport" title="Einstellungen, Zonen und Änderungen als Datei speichern">Exportieren</button>
-        <button id="btnImport">Importieren</button>
-        <button id="btnReset">Standard</button>
-      </div>
-    </aside>
-
-    <main>
-      <nav id="tabs">
-        <button data-tab="map" class="active">🗺 Karte</button>
-        <button data-tab="events">📅 Ereignisse <span id="cntEvents" class="pill"></span></button>
-        <button data-tab="review">✅ Prüfen <span id="cntReview" class="pill pill-open"></span></button>
-        <button data-tab="people">🙂 Personen</button>
-        <button data-tab="preview">📁 Vorschau</button>
-        <button data-tab="log">📝 Protokoll</button>
-      </nav>
-
-      <section id="tab-map" class="tab active">
+  <div id="main">
+    <div id="center">
+      <!-- Karte: Schritte 1 und 2 -->
+      <section class="view" data-view="map">
         <div id="map"></div>
         <div id="legend"></div>
-        <div id="zonePanel">
-          <div class="zone-head">
-            <b>Zonen</b>
-            <button id="btnAddZone" title="Danach auf die Karte klicken">+ Zone</button>
-            <button id="btnFit" title="Alle Punkte zeigen">⤢</button>
-          </div>
-          <div class="hint">Zuhause · Alltagsort (nie Ausflug) · Dienstort (immer Dienstreise) · Benannter Ort (fester Name, auch offline). Mittelpunkt ziehen zum Verschieben.</div>
-          <div id="zoneList"></div>
-        </div>
+        <div id="hint"></div>
       </section>
-
-      <section id="tab-events" class="tab">
-        <div class="toolbar">
-          <select id="fltKind">
-            <option value="">Alle Arten</option>
-            <option value="vac">Urlaube</option>
-            <option value="trip">Ausflüge</option>
-            <option value="work">Dienstreisen</option>
-            <option value="none">Ohne Ordner</option>
-          </select>
-          <select id="fltYear"><option value="">Alle Jahre</option></select>
-          <input id="fltText" type="search" placeholder="Ort suchen …">
-          <span class="spacer"></span>
-          <button id="btnGeocode2" class="online-btn" title="Sendet Koordinaten an OpenStreetMap">🌐 Ortsnamen holen</button>
-          <button id="btnResetOverrides">Änderungen verwerfen</button>
-        </div>
+      <!-- Schritt 3 -->
+      <section class="view" data-view="events">
         <div id="eventDetail" hidden></div>
         <div class="table-wrap">
           <table id="eventTable">
@@ -99,44 +169,98 @@
           </table>
         </div>
       </section>
-
-      <section id="tab-review" class="tab">
-        <div class="toolbar">
-          <label><input id="rvOpen" type="checkbox" checked> nur ungeprüfte</label>
-          <select id="rvOrder">
-            <option value="unsure">unsichere zuerst</option>
-            <option value="date">nach Datum</option>
-          </select>
-          <span id="rvProgress" class="hint"></span>
-          <span class="spacer"></span>
-          <span class="hint">Tasten: <kbd>1</kbd>–<kbd>4</kbd> wählen · <kbd>Enter</kbd> Vorschlag übernehmen · <kbd>←</kbd> <kbd>→</kbd> blättern</span>
-        </div>
-        <div id="rvCard"></div>
-      </section>
-
-      <section id="tab-people" class="tab">
-        <div class="toolbar">
-          <button id="btnFaces" class="primary" title="Läuft komplett lokal im Browser">🙂 Gesichter erkennen (lokal)</button>
-          <label><input id="pplSmall" type="checkbox"> kleine Gruppen zeigen</label>
-          <span class="spacer"></span>
-          <button id="btnFacesReset">Namen zurücksetzen</button>
-        </div>
-        <div id="pplInfo" class="hint pad"></div>
+      <!-- Schritt 4 -->
+      <section class="view" data-view="review"><div id="rvCard"></div></section>
+      <!-- Schritt 5 -->
+      <section class="view" data-view="people">
+        <div id="pplInfo" class="muted pad"></div>
         <datalist id="personNames"></datalist>
         <div id="pplGroups"></div>
       </section>
-
-      <section id="tab-preview" class="tab">
-        <div id="previewSummary"><div class="hint">Noch nichts eingelesen.</div></div>
+      <!-- Schritt 6 -->
+      <section class="view" data-view="ziel">
+        <div id="previewSummary"><div class="muted">Noch nichts eingelesen.</div></div>
         <div id="previewTree"></div>
       </section>
+      <button id="togProps" class="paneTog" title="Seitenleiste ein-/ausblenden">›</button>
+    </div>
 
-      <section id="tab-log" class="tab">
-        <div class="hint">Originale werden nie verändert. Beim Kopieren wird ein Protokoll (CSV) in den Zielordner geschrieben.</div>
-        <div id="logList"></div>
-      </section>
-    </main>
+    <div id="propsGrip" title="Ziehen ändert die Breite"></div>
+    <aside id="props">
+      <div class="pp" data-tab="quelle">
+        <h2>Quelle</h2>
+        <div class="info" id="srcInfo">Noch keine Quelle gewählt.</div>
+        <div id="unsupported" class="muted warn" hidden>Dieser Browser kann keine lokalen Ordner lesen und schreiben. Bitte <b>Chrome</b>, <b>Edge</b>, <b>Brave</b> oder <b>Opera</b> verwenden.</div>
+        <ul class="muted">
+          <li><b>Ordner wählen</b>: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.</li>
+          <li><b>Handy (USB)</b>: direkt vom Android-Handy, ohne vorher zu übertragen.</li>
+          <li>Originale werden nur gelesen, nie verändert.</li>
+        </ul>
+        <div class="settings" data-sections="Quelle"></div>
+      </div>
+      <div class="pp" data-tab="orte">
+        <h2>Zonen</h2>
+        <div id="zoneList"></div>
+        <ul class="muted">
+          <li><b>Zuhause</b> – Mittelpunkt für alle Entfernungen.</li>
+          <li><b>Alltagsort</b> – Arbeit, Familie: zählt nie als Ausflug.</li>
+          <li><b>Dienstort</b> – Fahrten dorthin sind immer Dienstreisen.</li>
+          <li><b>Benannter Ort</b> – fester Ordnername, auch offline.</li>
+          <li>Mittelpunkt auf der Karte ziehen zum Verschieben.</li>
+        </ul>
+        <div class="settings" data-sections="Wohnort,Alltagsorte,Ortsnamen,Karte"></div>
+      </div>
+      <div class="pp" data-tab="events">
+        <h2>Ereignisse</h2>
+        <ul class="muted">
+          <li>Art und Ortsname je Zeile ändern – leer = automatisch.</li>
+          <li><svg class="ic sm"><use href="#i-pin"/></svg> zeigt das Ereignis auf der Karte, Klick auf die Zeile zeigt die Bilder.</li>
+          <li>In den Bildern das Häkchen entfernen = nicht in diesem Ereignis-Ordner.</li>
+        </ul>
+        <div class="settings" data-sections="Urlaub,Ausflug,Dienstreise,Bilder ohne GPS"></div>
+      </div>
+      <div class="pp" data-tab="review">
+        <h2>Prüfen</h2>
+        <div class="info" id="rvProgress">–</div>
+        <ul class="muted">
+          <li>Ereignisse einzeln durchgehen, unsichere (knapp an einer Regelgrenze) zuerst.</li>
+          <li>Tasten <kbd>1</kbd>–<kbd>4</kbd> wählen die Art, <kbd>Enter</kbd> übernimmt den Vorschlag, <kbd>←</kbd> <kbd>→</kbd> blättern.</li>
+          <li>Geprüfte Ereignisse bekommen in der Liste ein ✓.</li>
+        </ul>
+      </div>
+      <div class="pp" data-tab="people">
+        <h2>Personen</h2>
+        <ul class="muted">
+          <li>Läuft komplett lokal, es wird nichts hochgeladen.</li>
+          <li>Namen eintippen – gleicher Name führt Gruppen zusammen.</li>
+          <li>„Alle“ zeigt jedes Gesicht, ✕ entfernt Fehltreffer.</li>
+          <li>Kann jederzeit abgebrochen werden, ein neuer Start setzt fort.</li>
+        </ul>
+        <div class="settings" data-sections="Personen"></div>
+      </div>
+      <div class="pp" data-tab="ziel">
+        <h2>Ziel</h2>
+        <div class="info" id="dstName">Noch kein Zielordner gewählt.</div>
+        <ul class="muted">
+          <li>Es wird nur kopiert. Vorhandene Dateien werden nie überschrieben, ein zweiter Lauf überspringt sie.</li>
+          <li>Im Ziel entsteht ein Protokoll <i>_protokoll_….csv</i>.</li>
+        </ul>
+        <div class="settings" data-sections="Ordner & Dateinamen,Filter,Sonderordner"></div>
+      </div>
+    </aside>
   </div>
+
+  <div id="logPanel" hidden>
+    <div class="log-head"><b>Protokoll</b><button class="mini" id="btnLogClose" title="Schließen"><svg class="ic"><use href="#i-cancel"/></svg></button></div>
+    <div id="logList"></div>
+  </div>
+  <footer id="statusbar">
+    <span id="statusText"></span>
+    <progress id="progress" hidden></progress>
+    <button id="btnCancel" class="qbtn" hidden><svg class="ic"><use href="#i-cancel"/></svg>Abbrechen</button>
+    <button id="btnLog" class="qbtn" title="Protokoll anzeigen"><svg class="ic"><use href="#i-log"/></svg>Protokoll</button>
+  </footer>
+</div>
 
   <script src="vendor/leaflet.js"></script>
   <script src="vendor/exifr.js"></script>

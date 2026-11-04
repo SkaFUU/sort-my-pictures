@@ -35,8 +35,13 @@ const Review = (() => {
     app = appCtx;
     $('#rvOpen').onchange = () => { pos = 0; render(); };
     $('#rvOrder').onchange = () => { pos = 0; render(); };
+    document.querySelectorAll('.rv-k').forEach(b => { b.onclick = () => choose(b.dataset.kind); });
+    $('#rvAccept').onclick = () => choose(null);
+    $('#rvPrev').onclick = () => { pos = Math.max(0, pos - 1); render(); };
+    $('#rvNext').onclick = () => { pos++; render(); };
+    $('#rvMap').onclick = () => { const ev = current(); if (ev) app.showEventOnMap(ev); };
     document.addEventListener('keydown', e => {
-      if (!$('#tab-review').classList.contains('active') || !$('#viewer').hidden) return;
+      if (app.tab !== 'review' || !$('#viewer').hidden || document.querySelector('dialog[open]')) return;
       if (e.target.matches?.('input,select,textarea')) { if (e.key === 'Enter') e.target.blur(); return; }
       const c = CHOICES.find(x => x[1] === e.key);
       if (c) { e.preventDefault(); choose(c[0]); }
@@ -46,10 +51,22 @@ const Review = (() => {
     });
   }
 
+  const current = () => { const q = queue(); return q[Math.min(pos, q.length - 1)]; };
+
+  // Ribbon-Knoepfe: aktuelle Art markieren, Vorschlag kennzeichnen
+  function ribbon(ev) {
+    document.querySelectorAll('.rv-k').forEach(b => {
+      b.disabled = !ev;
+      b.classList.toggle('sel', !!ev && ev.kind === b.dataset.kind);
+      b.querySelector('.sug')?.remove();
+      if (ev && ev.autoKind === b.dataset.kind) b.append(h('span', { class: 'sug' }, 'Vorschlag'));
+    });
+    for (const id of ['#rvAccept', '#rvPrev', '#rvNext', '#rvMap']) $(id).disabled = !ev;
+  }
+
   // Auswahl speichern; kind = null bedeutet: aktuelle Art bestaetigen
   function choose(kind) {
-    const q = queue();
-    const ev = q[Math.min(pos, q.length - 1)];
+    const ev = current();
     if (!ev) return;
     const o = { ...(app.st.overrides.events[ev.id] || {}) };
     const k = kind || ev.kind;
@@ -69,15 +86,16 @@ const Review = (() => {
     const box = $('#rvCard');
     box.innerHTML = '';
     const a = app.st.analysis;
-    if (!a) { box.append(h('div', { class: 'hint' }, 'Zuerst einen Quellordner einlesen.')); return; }
+    if (!a) { ribbon(null); box.append(h('div', { class: 'empty' }, 'Zuerst in Schritt 1 eine Quelle einlesen.')); return; }
     const all = a.events.filter(e => e.passCount > 0);
     const done = all.filter(e => e.ok).length;
     $('#rvProgress').textContent = `${done} von ${all.length} geprüft`;
     const q = queue();
-    if (!q.length) { box.append(h('div', { class: 'rv-done' }, '✓ Alles geprüft.')); return; }
+    if (!q.length) { ribbon(null); box.append(h('div', { class: 'rv-done' }, all.length ? '✓ Alles geprüft.' : 'Keine Ereignisse gefunden.')); return; }
     pos = Math.min(pos, q.length - 1);
     const ev = q[pos];
     if (currentId !== ev.id) { currentId = ev.id; }
+    ribbon(ev);
 
     const s = app.st.s;
     const unsure = certainty(ev, s) < 0.25;
@@ -89,20 +107,13 @@ const Review = (() => {
           `${ev.days > 1 ? `${fmtDate(ev.start)} – ${fmtDate(ev.end)}` : fmtDate(ev.start)} · ${ev.days} ${ev.days > 1 ? 'Tage' : 'Tag'}` +
           ` · ${ev.weekendDays} Sa/So · ${ev.items.length} Bilder · ${ev.perDay.toFixed(1)}/Tag · bis ${Math.round(ev.maxKm)} km`)),
       h('div', { class: 'rv-reason' + (unsure ? ' unsure' : '') },
-        'Vorschlag: ', h('b', {}, Analyze.KINDS[ev.autoKind]), ` – ${ev.reason}`,
+        'Vorschlag: ', h('span', { class: `rv-kind k-${ev.autoKind}` }, Analyze.KINDS[ev.autoKind]), ` – ${ev.reason}`,
         unsure ? h('span', { class: 'rv-flag' }, 'knapp an der Grenze') : null,
         ev.ok ? h('span', { class: 'rv-ok' }, `✓ geprüft: ${Analyze.KINDS[ev.kind]}`) : null),
-      h('div', { class: 'rv-choices' }, CHOICES.map(([k, key, label]) =>
-        h('button', { class: `rv-choice kind-${k}${ev.kind === k ? ' current' : ''}`, onclick: () => choose(k) },
-          h('kbd', {}, key), ' ', label, k === ev.autoKind ? h('small', {}, ' Vorschlag') : null))),
       h('div', { class: 'rv-row' },
-        h('label', { for: 'rvName' }, 'Ortsname '),
+        h('label', { for: 'rvName' }, 'Ortsname'),
         h('input', { id: 'rvName', type: 'text', value: ev.place }),
-        h('span', { class: 'spacer' }),
-        h('button', { onclick: () => { pos = Math.max(0, pos - 1); render(); } }, '← Zurück'),
-        h('button', { onclick: () => { pos++; render(); } }, 'Überspringen →'),
-        h('button', { class: 'primary', onclick: () => choose(null) }, '✓ Übernehmen (Enter)'),
-        h('button', { title: 'Auf der Karte zeigen', onclick: () => app.showEventOnMap(ev) }, '🗺')));
+        h('span', { class: 'muted' }, 'Art oben im Ribbon wählen oder Taste 1–4.')));
 
     const grid = h('div', { class: 'thumbs rv-thumbs' });
     const items = ev.items;
