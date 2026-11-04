@@ -30,7 +30,7 @@ The interface guides you step by step through the tabs from left to right:
 - **Next** takes you to the next step.
 - Finished steps get a ✓.
 
-1. **Source:** Choose a folder or **Phone (USB)** and click **Scan**. Date taken and GPS come from EXIF or from the MP4/MOV metadata.
+1. **Source:** Choose a folder (network drives work too) and click **Scan**. Copy photos from a phone to the PC first, e.g. with a USB cable in Explorer. Date taken and GPS come from EXIF or from the MP4/MOV metadata.
 2. **Places:** Add zones on the map (Home, Everyday place, Work place, Named place). Optionally get place names and the map background from OpenStreetMap (🌐).
 3. **Events:** Change type and place name per event. Clicking a row shows its pictures, where you can take single pictures out. This is also where you create **custom categories** (see below).
 4. **Review:** Go through the events one by one, uncertain ones first. Keys `1`–`4` choose holiday, day trip, business trip or no folder, `5`–`9` your custom categories. `Enter` accepts the suggestion, `←`/`→` browse.
@@ -87,19 +87,6 @@ Editing groups:
 - **Review** shows a person’s automatically assigned faces, least certain first: ✓ confirms.
 - **✓ Done** puts a person small at the top to keep the overview clear. You can still drag faces onto it. “Hide finished people” hides them completely.
 
-## Directly from the phone (USB)
-
-**Phone (USB)** reads photos directly from an Android phone without transferring them to the PC first. The connection uses ADB over WebUSB (ya-webadb), locally between browser and phone. Nothing is changed on the phone.
-
-1. Enable the developer options on the phone: **Settings → About phone** → tap **Build number** 7 times.
-2. Switch on **Settings → System → Developer options → USB debugging**.
-3. Connect the phone, click **Phone (USB) → Connect**, choose the device and confirm “Allow USB debugging?” on the phone.
-4. Choose a folder, e.g. **Camera** (`DCIM/Camera`) or WhatsApp.
-
-- If adb, Android Studio or scrcpy is running, the device is busy. Run `adb kill-server` first.
-- iPhones are not supported. Wi-Fi does not work because browsers do not allow direct network connections.
-- Switch USB debugging off again after sorting.
-
 ## Local and online
 
 By default everything runs **offline**. Two features use the internet. They are marked with 🌐 and off by default:
@@ -125,11 +112,10 @@ Without place names, folders get the coordinates (`47.39N_13.72E`) or the name o
 src/index.html        user interface
 src/js/*.js           logic (metadata, analyze, plan, copy, map, faces, people, app …)
 src/js/i18n.js        language: texts are German in the code (T('…')), English translations here
-src/vendor/           Leaflet (BSD-2), exifr (MIT), onnxruntime-web (MIT), YuNet (MIT), SFace (Apache 2.0), ya-webadb (MIT), embedded
+src/vendor/           Leaflet (BSD-2), exifr (MIT), onnxruntime-web (MIT), YuNet (MIT), SFace (Apache 2.0), embedded
 tools/build-single.js builds dist/sort-my-pictures.html (everything in one file)
 tools/vendor.js       updates src/vendor from node_modules, downloads the face models once from the OpenCV Model Zoo
 tools/i18n-check.js   checks that every German text has an English translation
-tools/adb-entry.js    entry point for the ADB bundle (esbuild -> src/vendor/webadb.js)
 ```
 
 ```

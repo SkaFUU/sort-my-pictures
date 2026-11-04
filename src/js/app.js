@@ -33,7 +33,7 @@
     const b = document.body.classList.contains('busy');
     $('#btnScan').disabled = b || !st.src;
     $('#btnCopy').disabled = $('#btnCopy2').disabled = b || !st.plan || !st.plan.ops.length;
-    for (const id of ['#btnSrc', '#btnDst', '#btnPhone', '#btnFaces', '#btnGeocode']) $(id).disabled = b;
+    for (const id of ['#btnSrc', '#btnDst', '#btnFaces', '#btnGeocode']) $(id).disabled = b;
     document.querySelectorAll('[data-lang]').forEach(x => { x.disabled = b; });
     updateSteps();
   }
@@ -328,78 +328,6 @@
       scan();
     } catch (e) { if (e.name !== 'AbortError') alert(e.message); }
   }
-  // Handy per USB: verbinden, Ordner am Handy waehlen
-  const PKEY = 'fotosortierer.phonePath';
-  const PHONE_SHORTCUTS = [
-    ['📷 Kamera', 'DCIM/Camera'], ['Alle Kamera-Ordner', 'DCIM'], ['Bilder', 'Pictures'], ['Videos', 'Movies'],
-    ['WhatsApp', 'Android/media/com.whatsapp/WhatsApp/Media'],
-  ];
-  async function pickPhone() {
-    const dlg = h('dialog', { id: 'phoneDlg' });
-    document.body.append(dlg);
-    dlg.addEventListener('close', () => dlg.remove());
-    let rel = localStorage.getItem(PKEY) || 'DCIM/Camera';
-
-    const intro = () => {
-      dlg.innerHTML = '';
-      const msg = h('div', { class: 'hint' });
-      dlg.append(
-        h('h2', {}, T('📱 Fotos direkt vom Handy (USB)')),
-        h('p', {}, T('Funktioniert mit Android über USB-Debugging. Die Verbindung läuft direkt zwischen Browser und Handy, ohne Internet. Auf dem Handy wird nichts verändert.')),
-        h('ol', { html: T('<li>Am Handy: <b>Einstellungen → Über das Telefon</b> → 7× auf <b>Build-Nummer</b> tippen.</li><li><b>Einstellungen → System → Entwickleroptionen</b> → <b>USB-Debugging</b> einschalten.</li><li>Handy per USB-Kabel anstecken und unten auf <b>Verbinden</b> klicken. Im Browser-Fenster das Handy auswählen.</li><li>Am Handy <b>„USB-Debugging zulassen?“</b> bestätigen (am besten „Immer von diesem Computer zulassen“).</li>') }),
-        h('p', { class: 'hint' }, T('Tipp: Nach dem Sortieren USB-Debugging wieder ausschalten. iPhones werden nicht unterstützt – dort Fotos zuerst auf den PC übertragen.')),
-        msg,
-        h('div', { class: 'dlg-actions' },
-          h('button', { onclick: () => dlg.close() }, T('Abbrechen')),
-          h('button', { class: 'primary', onclick: async e => {
-            e.target.disabled = true;
-            msg.textContent = T('Verbinde …');
-            try {
-              if (await Phone.connect(true, t => { msg.textContent = t; })) await browse();
-              else msg.textContent = T('Kein Gerät gewählt.');
-            } catch (err) {
-              msg.textContent = err.name === 'NotFoundError' ? T('Kein Gerät gewählt. Ist USB-Debugging eingeschaltet und das Kabel ein Datenkabel?') : T('Fehler: {0}', err.message);
-            }
-            e.target.disabled = false;
-          } }, '🔌 ' + T('Verbinden'))));
-    };
-
-    const browse = async () => {
-      dlg.innerHTML = '';
-      let entries;
-      try { entries = await Phone.list(`${Phone.ROOT}/${rel}`.replace(/\/+$/, '')); }
-      catch { entries = null; }
-      const dirs = entries ? entries.filter(e => e.dir) : [];
-      const media = entries ? entries.filter(e => !e.dir && [...Meta.PHOTO, ...Meta.VIDEO].includes(e.name.split('.').pop().toLowerCase())).length : 0;
-      const go = r => { rel = r.replace(/^\/+|\/+$/g, ''); browse(); };
-      dlg.append(
-        h('h2', {}, `📱 ${Phone.deviceName()} – ${T('Ordner wählen')}`),
-        h('div', { class: 'phone-short' }, PHONE_SHORTCUTS.map(([n, p]) => h('button', { class: rel === p ? 'current' : '', onclick: () => go(p) }, T(n)))),
-        h('div', { class: 'phone-path' }, h('code', {}, '/' + rel)),
-        h('div', { class: 'phone-list' },
-          rel ? h('div', { class: 'phone-dir', onclick: () => go(rel.split('/').slice(0, -1).join('/')) }, '⬆ ..') : null,
-          entries ? dirs.map(d => h('div', { class: 'phone-dir', onclick: () => go(`${rel}/${d.name}`) }, '📁 ' + d.name))
-            : h('div', { class: 'hint' }, T('Ordner nicht gefunden.'))),
-        h('div', { class: 'hint' }, entries ? T('{0} Fotos/Videos direkt in diesem Ordner', media) + (st.s.recursive ? T(', Unterordner werden mit eingelesen') : '') + '.' : ''),
-        h('div', { class: 'dlg-actions' },
-          h('button', { onclick: async () => { await Phone.disconnect(); intro(); } }, T('Trennen')),
-          h('span', { class: 'spacer' }),
-          h('button', { onclick: () => dlg.close() }, T('Abbrechen')),
-          h('button', { class: 'primary', disabled: !entries, onclick: () => {
-            localStorage.setItem(PKEY, rel);
-            st.src = Phone.source(rel);
-            st.items = null;
-            setSrcName();
-            dlg.close();
-            updateButtons();
-            scan();
-          } }, T('Diesen Ordner verwenden'))));
-    };
-
-    dlg.showModal();
-    if (Phone.connected() || await Phone.connect(false).catch(() => null)) await browse(); else intro();
-  }
-
   async function pickDst() {
     try {
       st.dst = await showDirectoryPicker({ id: 'fs-dst', mode: 'readwrite' });
@@ -556,7 +484,7 @@
     const el = $('#hint');
     if (!el) return;
     let t = '';
-    if (!st.src) t = T('Schritt 1: Oben „Ordner wählen“ oder „Handy (USB)“.');
+    if (!st.src) t = T('Schritt 1: Oben „Ordner wählen“.');
     else if (!st.items) t = T('Quelle „{0}“ – oben „Einlesen“ klicken.', st.src.name);
     else if (MapView.addMode) t = T('Auf die Karte klicken, um die Zone zu setzen.');
     else if (curTab === 'quelle' && st.analysis && !st.analysis.withGps) t = T('Keine Bilder mit GPS – Urlaube und Ausflüge können nicht erkannt werden.');
@@ -698,12 +626,10 @@
     try {
       const f = await it.handle.getFile();
       if (!it.isVideo) {
-        const t = await exifr.thumbnail(await Phone.head(f, 128 * 1024)).catch(() => null);
+        const t = await exifr.thumbnail(f).catch(() => null);
         if (t) return URL.createObjectURL(new Blob([t], { type: 'image/jpeg' }));
       }
-      // Videos vom Handy nicht ganz laden, nur fuer ein Vorschaubild
-      if (f.remote && (it.isVideo || f.size > 30e6)) return null;
-      if (['jpg', 'jpeg', 'png', 'webp', 'mp4', 'mov', 'm4v'].includes(it.ext)) return URL.createObjectURL(await Phone.full(f));
+      if (['jpg', 'jpeg', 'png', 'webp', 'mp4', 'mov', 'm4v'].includes(it.ext)) return URL.createObjectURL(f);
     } catch { /* Datei nicht lesbar */ }
     return null;
   }
@@ -882,11 +808,6 @@
     initProps();
 
     $('#btnSrc').onclick = pickSrc;
-    $('#btnPhone').onclick = pickPhone;
-    $('#btnPhone').hidden = !Phone.supported();
-    Phone.onChange = on => {
-      if (!on && st.src?.isPhone) { log(T('Handy getrennt – zum Fortsetzen wieder anstecken und erneut starten.'), 'err'); st.abort?.abort(); }
-    };
     $('#btnDst').onclick = pickDst;
     $('#btnScan').onclick = scan;
     $('#btnCopy').onclick = $('#btnCopy2').onclick = copy;

@@ -34,7 +34,6 @@ lit(/const RIBBON_LABELS = \{([\s\S]*?)\};/);
 lit(/const names = \{([^}]*)\}/);
 lit(/const CAT_FROM = \[([\s\S]*?)\];/);
 lit(/const CAT_WEEK = \[([\s\S]*?)\];/);
-lit(/const PHONE_SHORTCUTS = \[([\s\S]*?)\];/);
 lit(/\['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'\]/.test(app) ? /(\['Mo', 'Di', 'Mi', 'Do', 'Fr', 'Sa', 'So'\])/ : /$^/);
 lit(/\{ (weekend: 'mit Wochenende'[^}]*)\}/, fs.readFileSync(path.join(src, 'js', 'analyze.js'), 'utf8'));
 lit(/const ZONE_LABELS = \{([^}]*)\}/, fs.readFileSync(path.join(src, 'js', 'map.js'), 'utf8'));

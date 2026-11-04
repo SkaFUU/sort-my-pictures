@@ -60,11 +60,6 @@ const Viewer = (() => {
     if (url) { URL.revokeObjectURL(url); url = null; }
 
     let file = await it.handle.getFile().catch(e => e);
-    if (file.remote) {
-      stage.innerHTML = '';
-      stage.append(h('div', { class: 'v-loading' }, T('Lade vom Handy … ({0})', fmtBytes(file.size))));
-      file = await file.blob().catch(e => e);
-    }
     if (list[idx] !== it) return;  // inzwischen weitergeblaettert
     if (file instanceof Error) { stage.innerHTML = ''; stage.append(h('div', { class: 'v-loading' }, T('Nicht lesbar: {0}', file.message))); return; }
 

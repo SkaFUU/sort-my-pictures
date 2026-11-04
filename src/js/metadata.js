@@ -149,9 +149,7 @@ const Meta = (() => {
         const key = `${f.path}|${file.size}|${file.lastModified}`;
         let meta = cache[key];
         if (!meta) {
-          // Vom Handy nur den Dateianfang holen (EXIF steht bei JPEG vorne), HEIC ganz
-          const photo = () => (['heic', 'heif'].includes(f.ext) ? Phone.full(file) : Phone.head(file, 128 * 1024));
-          try { meta = isVideo ? await videoMeta(file) : await photoMeta(await photo()); } catch (e) { if (e.name === 'PhoneError') throw e; meta = {}; }
+          try { meta = isVideo ? await videoMeta(file) : await photoMeta(file); } catch { meta = {}; }
         }
         newCache[key] = meta;
         items.push({

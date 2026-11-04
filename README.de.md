@@ -30,7 +30,7 @@ Die Oberfläche führt Schritt für Schritt durch die Register von links nach re
 - **Weiter** führt zum nächsten Schritt.
 - Erledigte Schritte bekommen ein ✓.
 
-1. **Quelle:** Wähle einen Ordner oder **Handy (USB)** und klicke auf **Einlesen**. Aufnahmedatum und GPS kommen aus EXIF bzw. aus den MP4/MOV-Metadaten.
+1. **Quelle:** Wähle einen Ordner (auch Netzlaufwerk) und klicke auf **Einlesen**. Fotos vom Handy vorher auf den PC kopieren, z. B. per USB-Kabel im Explorer. Aufnahmedatum und GPS kommen aus EXIF bzw. aus den MP4/MOV-Metadaten.
 2. **Orte:** Lege auf der Karte Zonen an (Zuhause, Alltagsort, Dienstort, Benannter Ort). Optional holst du dir hier Ortsnamen und den Kartenhintergrund von OpenStreetMap (🌐).
 3. **Ereignisse:** Ändere Art und Ortsname je Ereignis. Ein Klick auf eine Zeile zeigt die Bilder, dort lassen sich einzelne Bilder herausnehmen. Hier legst du auch **eigene Kategorien** an (siehe unten).
 4. **Prüfen:** Klicke die Ereignisse nacheinander durch, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `5`–`9` deine eigenen Kategorien. `Enter` übernimmt den Vorschlag, `←`/`→` blättert.
@@ -87,19 +87,6 @@ Gruppen bearbeiten:
 - **Prüfen** zeigt die automatisch zugeordneten Gesichter einer Person, die unsichersten zuerst: ✓ bestätigt.
 - **✓ Fertig** legt eine Person klein oben ab, damit die Übersicht frei bleibt. Man kann weiter Gesichter darauf ziehen. „Fertige Personen ausblenden“ blendet sie ganz aus.
 
-## Direkt vom Handy (USB)
-
-Mit **Handy (USB)** werden Fotos direkt von einem Android-Handy gelesen, ohne sie vorher auf den PC zu übertragen. Die Verbindung läuft über ADB per WebUSB (ya-webadb), lokal zwischen Browser und Handy. Auf dem Handy wird nichts verändert.
-
-1. Am Handy die Entwickleroptionen freischalten: **Einstellungen → Über das Telefon** → 7× auf **Build-Nummer** tippen.
-2. **Einstellungen → System → Entwickleroptionen → USB-Debugging** einschalten.
-3. Das Handy anstecken, **Handy (USB) → Verbinden** klicken, das Gerät auswählen und am Handy „USB-Debugging zulassen?“ bestätigen.
-4. Einen Ordner wählen, z. B. **Kamera** (`DCIM/Camera`) oder WhatsApp.
-
-- Wenn adb, Android Studio oder scrcpy läuft, ist das Gerät belegt. Dann vorher `adb kill-server` ausführen.
-- iPhones werden nicht unterstützt. Über WLAN geht es nicht, weil Browser keine direkten Netzwerkverbindungen erlauben.
-- Nach dem Sortieren am besten USB-Debugging wieder ausschalten.
-
 ## Lokal und online
 
 Standardmäßig läuft alles **offline**. Zwei Funktionen nutzen das Internet. Sie sind in der Oberfläche mit 🌐 gekennzeichnet und standardmäßig aus:
@@ -125,11 +112,10 @@ Ohne Ortsnamen bekommen Ordner die Koordinaten (`47.39N_13.72E`) oder den Namen 
 src/index.html        Oberfläche
 src/js/*.js           Logik (metadata, analyze, plan, copy, map, faces, people, app …)
 src/js/i18n.js        Sprache: Texte stehen deutsch im Code (T('…')), englische Übersetzungen hier
-src/vendor/           Leaflet (BSD-2), exifr (MIT), onnxruntime-web (MIT), YuNet (MIT), SFace (Apache 2.0), ya-webadb (MIT), eingebettet
+src/vendor/           Leaflet (BSD-2), exifr (MIT), onnxruntime-web (MIT), YuNet (MIT), SFace (Apache 2.0), eingebettet
 tools/build-single.js baut dist/sort-my-pictures.html (alles in einer Datei)
 tools/vendor.js       aktualisiert src/vendor aus node_modules, lädt die Gesichtsmodelle einmal aus dem OpenCV Model Zoo
 tools/i18n-check.js   prüft, ob jeder deutsche Text eine englische Übersetzung hat
-tools/adb-entry.js    Einstieg für das ADB-Bundle (esbuild -> src/vendor/webadb.js)
 ```
 
 ```

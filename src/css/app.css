@@ -323,17 +323,7 @@ body.dragging-faces .pcard, body.dragging-faces .chip { border-style:dashed; }
 
 /* ---------- Handy-Dialog ---------- */
 dialog { background:var(--panel); color:var(--fg); }
-#phoneDlg { width:min(620px, 94vw); border:1px solid #000; border-radius:10px; padding:18px 20px; box-shadow:0 10px 40px rgba(0,0,0,.6); }
-#phoneDlg::backdrop { background:rgba(0,0,0,.55); }
-#phoneDlg h2 { margin:0 0 10px; font-size:16px; text-transform:none; letter-spacing:0; color:var(--fg); }
-#phoneDlg ol { padding-left:20px; line-height:1.6; }
 .dlg-actions { display:flex; gap:8px; justify-content:flex-end; margin-top:14px; }
-.phone-short { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:8px; }
-.phone-short button.current { box-shadow:inset 0 -2px 0 var(--tab); background:#4a5058; }
-.phone-path { margin:6px 0; color:var(--muted); }
-.phone-list { border:1px solid var(--line); border-radius:6px; max-height:300px; overflow:auto; margin-bottom:6px; background:var(--bg); }
-.phone-dir { padding:5px 10px; cursor:pointer; border-bottom:1px solid var(--panel); }
-.phone-dir:hover { background:var(--sel); }
 
 @media (max-width:800px) {
   #main { flex-direction:column; }

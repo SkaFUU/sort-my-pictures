@@ -258,8 +258,8 @@ const Faces = (() => {
       while (next < todo.length && !signal?.aborted && !fatal) {
         const it = todo[next++];
         const k = cacheKey(it);
-        try { cache[k] = await detect(await Phone.full(await it.handle.getFile()), s); }
-        catch (e) { if (e.name === 'PhoneError') { fatal = e; return; } cache[k] = []; errors++; }
+        try { cache[k] = await detect(await it.handle.getFile(), s); }
+        catch { cache[k] = []; errors++; }
         if (carryNames(it, old[k], cache[k], names)) namesChanged = true;
         found += cache[k].length;
         done++; fresh++;

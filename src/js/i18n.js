@@ -5,8 +5,7 @@ const I18n = (() => {
     // --- Oberflaeche: Register, Ribbon, Seitenleiste ---
     'Quelle': 'Source', 'Orte': 'Places', 'Ereignisse': 'Events', 'Prüfen': 'Review', 'Personen': 'People', 'Ziel & Kopieren': 'Target & copy',
     'Kopieren': 'Copy', 'Alle geplanten Kopien in den Zielordner schreiben': 'Write all planned copies to the target folder',
-    'Ordner wählen': 'Choose folder', 'Handy (USB)': 'Phone (USB)', 'Einlesen': 'Scan', 'Dateien und Metadaten einlesen': 'Read files and metadata',
-    'Fotos direkt vom Android-Handy per USB lesen (lokal, nur lesend)': 'Read photos directly from an Android phone via USB (local, read-only)',
+    'Ordner wählen': 'Choose folder','Einlesen': 'Scan', 'Dateien und Metadaten einlesen': 'Read files and metadata',
     'Dateien': 'Files', 'Exportieren': 'Export', 'Importieren': 'Import', 'Standard': 'Defaults', 'Einstellungen': 'Settings',
     'Einstellungen, Zonen und Änderungen als Datei speichern': 'Save settings, zones and changes to a file',
     'Zone setzen': 'Add zone', 'Danach auf die Karte klicken': 'Then click on the map', 'Alle zeigen': 'Show all', 'Zonen': 'Zones',
@@ -32,7 +31,6 @@ const I18n = (() => {
     'Dieser Browser kann keine lokalen Ordner lesen und schreiben. Bitte <b>Chrome</b>, <b>Edge</b>, <b>Brave</b> oder <b>Opera</b> verwenden.':
       'This browser cannot read and write local folders. Please use <b>Chrome</b>, <b>Edge</b>, <b>Brave</b> or <b>Opera</b>.',
     '<b>Ordner wählen</b>: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.': '<b>Choose folder</b>: a folder with photos and videos on the PC, network drives work too.',
-    '<b>Handy (USB)</b>: direkt vom Android-Handy, ohne vorher zu übertragen.': '<b>Phone (USB)</b>: directly from an Android phone, no need to transfer first.',
     'Originale werden nur gelesen, nie verändert.': 'Originals are only read, never changed.',
     '<b>Zuhause</b> – Mittelpunkt für alle Entfernungen.': '<b>Home</b> – centre for all distances.',
     '<b>Alltagsort</b> – Arbeit, Familie: zählt nie als Ausflug.': '<b>Everyday place</b> – work, family: never counts as a day trip.',
@@ -90,12 +88,11 @@ const I18n = (() => {
     'Abgebrochen': 'Cancelled', 'Fertig': 'Done', 'Fehler: {0}': 'Error: {0}',
     'kopiert': 'copied', 'existiert – übersprungen': 'exists – skipped', 'Größe stimmt nicht': 'Size does not match', 'FEHLER: {0}': 'ERROR: {0}',
     'Quelle;Ziel;Status': 'Source;Target;Status', 'protokoll': 'log',
-    'Schritt 1: Oben „Ordner wählen“ oder „Handy (USB)“.': 'Step 1: “Choose folder” or “Phone (USB)” at the top.',
+    'Schritt 1: Oben „Ordner wählen“.': 'Step 1: “Choose folder” at the top.',
     'Quelle „{0}“ – oben „Einlesen“ klicken.': 'Source “{0}” – click “Scan” at the top.',
     'Quelle „{0}“ – „Einlesen“ klicken.': 'Source “{0}” – click “Scan”.', 'Quelle wählen, um zu beginnen.': 'Choose a source to begin.',
     'Auf die Karte klicken, um die Zone zu setzen.': 'Click on the map to place the zone.',
     'Keine Bilder mit GPS – Urlaube und Ausflüge können nicht erkannt werden.': 'No pictures with GPS – holidays and day trips cannot be detected.',
-    'Handy getrennt – zum Fortsetzen wieder anstecken und erneut starten.': 'Phone disconnected – plug it in again and restart to continue.',
     'Datei ungültig: {0}': 'Invalid file: {0}',
     'Alle Einstellungen auf Standard zurücksetzen? (Zonen, eigene Kategorien und manuelle Änderungen bleiben)': 'Reset all settings to defaults? (Zones, custom categories and manual changes are kept)',
     'Alle manuellen Änderungen in der Ereignisliste verwerfen?': 'Discard all manual changes in the event list?',
@@ -178,29 +175,13 @@ const I18n = (() => {
 
     // --- Bildansicht ---
     'Vorheriges (←)': 'Previous (←)', 'Nächstes (→)': 'Next (→)', 'Schließen (Esc)': 'Close (Esc)', 'Alle Metadaten': 'All metadata',
-    'Lade vom Handy … ({0})': 'Loading from phone … ({0})', 'Nicht lesbar: {0}': 'Not readable: {0}', 'Keine Vorschau für dieses Format': 'No preview for this format',
+'Nicht lesbar: {0}': 'Not readable: {0}', 'Keine Vorschau für dieses Format': 'No preview for this format',
     'Pfad': 'Path', 'Größe': 'Size', 'Aufnahme': 'Taken', 'Kamera': 'Camera', 'Standort': 'Location', '{0} km von zu Hause': '{0} km from home', 'kein GPS': 'no GPS',
     '{0} Gesicht(er), unbenannt': '{0} face(s), unnamed', 'wird nicht kopiert (Filter/Duplikat)': 'not copied (filter/duplicate)', 'Ereignis öffnen': 'Open event',
     'Lese …': 'Reading …', 'Videos: nur Datum und GPS werden ausgelesen.': 'Videos: only date and GPS are read.', 'Keine Metadaten gefunden.': 'No metadata found.',
     '[{0} Bytes]': '[{0} bytes]', '[{0} Werte]': '[{0} values]', '… ({0} Zeichen)': '… ({0} characters)',
 
-    // --- Handy ---
-    'Handy': 'Phone', 'Handy nicht verbunden': 'Phone not connected',
-    'Das Handy wird gerade von einem anderen Programm verwendet (z. B. adb, Android Studio, scrcpy). Dort trennen oder „adb kill-server“ ausführen.':
-      'The phone is being used by another program (e.g. adb, Android Studio, scrcpy). Disconnect it there or run “adb kill-server”.',
-    'Am Handy „USB-Debugging zulassen?“ bestätigen …': 'Confirm “Allow USB debugging?” on the phone …',
-    '📷 Kamera': '📷 Camera', 'Alle Kamera-Ordner': 'All camera folders', 'Bilder': 'Pictures',
-    '📱 Fotos direkt vom Handy (USB)': '📱 Photos directly from the phone (USB)',
-    'Funktioniert mit Android über USB-Debugging. Die Verbindung läuft direkt zwischen Browser und Handy, ohne Internet. Auf dem Handy wird nichts verändert.':
-      'Works with Android via USB debugging. The connection runs directly between browser and phone, without the internet. Nothing is changed on the phone.',
-    '<li>Am Handy: <b>Einstellungen → Über das Telefon</b> → 7× auf <b>Build-Nummer</b> tippen.</li><li><b>Einstellungen → System → Entwickleroptionen</b> → <b>USB-Debugging</b> einschalten.</li><li>Handy per USB-Kabel anstecken und unten auf <b>Verbinden</b> klicken. Im Browser-Fenster das Handy auswählen.</li><li>Am Handy <b>„USB-Debugging zulassen?“</b> bestätigen (am besten „Immer von diesem Computer zulassen“).</li>':
-      '<li>On the phone: <b>Settings → About phone</b> → tap <b>Build number</b> 7 times.</li><li><b>Settings → System → Developer options</b> → switch on <b>USB debugging</b>.</li><li>Connect the phone with a USB cable and click <b>Connect</b> below. Choose the phone in the browser window.</li><li>Confirm <b>“Allow USB debugging?”</b> on the phone (best with “Always allow from this computer”).</li>',
-    'Tipp: Nach dem Sortieren USB-Debugging wieder ausschalten. iPhones werden nicht unterstützt – dort Fotos zuerst auf den PC übertragen.':
-      'Tip: switch USB debugging off again after sorting. iPhones are not supported – transfer the photos to the PC first.',
-    'Verbinde …': 'Connecting …', 'Kein Gerät gewählt.': 'No device chosen.',
-    'Kein Gerät gewählt. Ist USB-Debugging eingeschaltet und das Kabel ein Datenkabel?': 'No device chosen. Is USB debugging on and is the cable a data cable?',
-    'Verbinden': 'Connect', 'Ordner nicht gefunden.': 'Folder not found.', '{0} Fotos/Videos direkt in diesem Ordner': '{0} photos/videos directly in this folder',
-    ', Unterordner werden mit eingelesen': ', subfolders are included', 'Trennen': 'Disconnect', 'Diesen Ordner verwenden': 'Use this folder',
+'Bilder': 'Pictures',
 
     // --- Einstellungen: Abschnitte ---
     'Ordner & Dateinamen': 'Folders & file names', 'Wohnort': 'Home', 'Alltagsorte': 'Everyday places', 'Bilder ohne GPS': 'Pictures without GPS', 'Karte': 'Map',
