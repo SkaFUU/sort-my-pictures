@@ -24,10 +24,32 @@ Die Oberfläche führt Schritt für Schritt durch die Register von links nach re
 
 1. **Quelle:** Wähle einen Ordner oder **Handy (USB)** und klicke auf **Einlesen**. Aufnahmedatum und GPS kommen aus EXIF bzw. aus den MP4/MOV-Metadaten.
 2. **Orte:** Lege auf der Karte Zonen an (Zuhause, Alltagsort, Dienstort, Benannter Ort). Optional holst du dir hier Ortsnamen und den Kartenhintergrund von OpenStreetMap (🌐).
-3. **Ereignisse:** Ändere Art und Ortsname je Ereignis. Ein Klick auf eine Zeile zeigt die Bilder, dort lassen sich einzelne Bilder herausnehmen.
-4. **Prüfen:** Klicke die Ereignisse nacheinander durch, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `Enter` übernimmt den Vorschlag, `←`/`→` blättert.
-5. **Personen** (optional): Lass die Gesichter erkennen und benenne die Gruppen (gleicher Name = zusammenführen). Fehltreffer entfernst du mit ✕.
+3. **Ereignisse:** Ändere Art und Ortsname je Ereignis. Ein Klick auf eine Zeile zeigt die Bilder, dort lassen sich einzelne Bilder herausnehmen. Hier legst du auch **eigene Kategorien** an (siehe unten).
+4. **Prüfen:** Klicke die Ereignisse nacheinander durch, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `5`–`9` deine eigenen Kategorien. `Enter` übernimmt den Vorschlag, `←`/`→` blättert.
+5. **Personen** (optional): Lass die Gesichter erkennen und benenne die Gruppen (gleicher Name = zusammenführen). **Prüfen** bei einer Person zeigt die automatisch zugeordneten Gesichter, die unsichersten zuerst: ✓ bestätigt, ✕ entfernt Fehltreffer.
 6. **Ziel & Kopieren:** Lege Ordnerstruktur, Dateinamen und Filter fest und prüfe den Ordnerbaum. Dann wählst du das **Ziel** und klickst **Kopieren**.
+
+Oben rechts schaltest du mit **DE | EN** die Sprache um (wie im AOG Feldeditor). Beim ersten Start richtet sie sich nach dem Browser. Ordnernamen, die du nicht geändert hast, werden mit umgestellt (Urlaube → Holidays).
+
+## Eigene Kategorien
+
+Neben Urlaub, Ausflug und Dienstreise kannst du eigene Kategorien mit eigenen Regeln und eigenem Ordner anlegen: **3 Ereignisse → Neue Kategorie** oder in der Seitenleiste unter **Eigene Kategorien**, auch aus Vorlagen (Fernreise, Wochenendtrip, Skiurlaub, Sommerurlaub, Wanderungen).
+
+Eine Kategorie übernimmt erkannte Ereignisse, die zu allen ihren Bedingungen passen. Leere Felder bedeuten „egal“.
+
+| Bedingung | Beispiel |
+|---|---|
+| Gilt für | nur Urlaube, nur Ausflüge, nur Dienstreisen oder alle |
+| Entfernung von zu Hause | ab 800 km |
+| Dauer | 2–3 Tage |
+| Mindestens Bilder | 20 |
+| Wochentage | mit Wochenende, nur am Wochenende, nur Werktage |
+| Monate | Dezember–März |
+| Zone | in einer Zone von der Karte |
+| Ort enthält | „Italien“ |
+| Personen | auf den Fotos ist „Anna“ |
+
+Die Reihenfolge der Liste zählt: Die erste passende Kategorie gewinnt, mit ▲▼ verschiebst du sie. Im Ordner-Muster steht die Kategorie als `{KAT}`, ihre Farbe erscheint auf der Karte.
 
 ## Direkt vom Handy (USB)
 
@@ -50,12 +72,19 @@ Mit dem **Filter** (oben in den Einstellungen) wird nur ein Teil sortiert: nach 
 
 ## Gesichtserkennung
 
-Sie läuft komplett lokal im Browser (face-api / TensorFlow.js). Die Modelle sind in der HTML-Datei eingebettet, deshalb ist sie ca. 10 MB groß.
+Sie läuft komplett lokal im Browser, mit ONNX Runtime Web und zwei Modellen aus dem OpenCV Model Zoo:
 
-- Pro Foto dauert die Erkennung etwa 0,2–0,8 s, bei 5000 Fotos also 15–60 Minuten. Mit Grafikkarte geht es schneller.
+- **YuNet** (MIT) findet die Gesichter und fünf Merkpunkte (Augen, Nase, Mundwinkel). Damit wird jedes Gesicht gerade ausgerichtet.
+- **SFace** (Apache 2.0) berechnet daraus 128 Merkmale zum Wiedererkennen.
+
+Laufzeit und Modelle sind in der HTML-Datei eingebettet, deshalb ist sie ca. 19 MB groß. Es wird nichts nachgeladen.
+
+- Die Erkennung läuft in mehreren Web Workern gleichzeitig, einer je Prozessorkern. Auf einem 6-Kern-Rechner sind es etwa 0,04 s pro Foto, bei 5000 Fotos also 3–4 Minuten.
 - Der Lauf kann jederzeit abgebrochen werden. Ein neuer Start setzt dort fort, und die Ergebnisse bleiben im Browser gespeichert.
-- Benannte Gesichter bilden feste Gruppen. Neue Gesichter werden der ähnlichsten Gruppe zugeordnet (gestrichelt = automatisch).
-- Die „Ähnlichkeit“ in den Einstellungen steuert, wie streng gruppiert wird.
+- Benannte Gesichter bilden feste Gruppen. Neue Gesichter werden der ähnlichsten Gruppe zugeordnet (gestrichelt = automatisch). Gute, frontale Gesichter werden zuerst eingeordnet, danach wird in zwei Runden nachsortiert.
+- Die „Ähnlichkeit“ in den Einstellungen steuert, wie streng gruppiert wird. Werden Personen vermischt, stellst du einen kleineren Wert ein. Wird eine Person auf viele Gruppen verteilt, einen größeren.
+- Kleine Kinder, die sich über die Jahre stark verändern, werden auch mit diesem Modell oft vermischt.
+- Ergebnisse der früheren Erkennung (face-api) werden nicht weiterverwendet. Beim neuen Lauf werden vergebene Namen auf die Gesichter an derselben Stelle übertragen.
 
 Die Originale werden nur gelesen. Vorhandene Dateien im Ziel werden nie überschrieben, ein zweiter Lauf überspringt sie. Einstellungen, Zonen und Änderungen bleiben im Browser gespeichert und lassen sich als JSON exportieren.
 
@@ -83,14 +112,18 @@ Ohne Ortsnamen bekommen Ordner die Koordinaten (`47.39N_13.72E`) oder den Namen 
 ```
 src/index.html        Oberfläche
 src/js/*.js           Logik (metadata, analyze, plan, copy, map, app …)
-src/vendor/           Leaflet (BSD-2), exifr (MIT), face-api + Modelle (MIT), ya-webadb (MIT), eingebettet
+src/js/i18n.js        Sprache: Texte stehen deutsch im Code (T('…')), englische Übersetzungen hier
+src/vendor/           Leaflet (BSD-2), exifr (MIT), onnxruntime-web (MIT), YuNet (MIT), SFace (Apache 2.0), ya-webadb (MIT), eingebettet
 tools/adb-entry.js    Einstieg für das ADB-Bundle (esbuild -> src/vendor/webadb.js)
 tools/build-single.js baut dist/fotosortierer.html (alles in einer Datei)
-tools/vendor.js       aktualisiert src/vendor aus node_modules
+tools/vendor.js       aktualisiert src/vendor aus node_modules, lädt die Gesichtsmodelle einmal aus dem OpenCV Model Zoo
+tools/i18n-check.js   prüft, ob jeder deutsche Text eine englische Übersetzung hat
 ```
 
 ```
 npm install          # nur zum Aktualisieren der Bibliotheken nötig
+npm run vendor       # src/vendor neu erzeugen
+node tools/i18n-check.js
 npm run build        # -> dist/fotosortierer.html
 ```
 

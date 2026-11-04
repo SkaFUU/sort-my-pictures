@@ -28,21 +28,21 @@ const Copier = (() => {
         if (signal?.aborted) return;
         const op = ops[next++];
         const rel = [...op.dir, op.name].join('/');
-        let status = 'kopiert';
+        let status = T('kopiert'), err = false;
         try {
           const dir = await getDir(op.dir);
-          if (await exists(dir, op.name)) { status = 'existiert – übersprungen'; skipped++; }
+          if (await exists(dir, op.name)) { status = T('existiert – übersprungen'); skipped++; }
           else {
             const src = await op.item.handle.getFile();
             const fh = await dir.getFileHandle(op.name, { create: true });
             const w = await fh.createWritable();
             await src.stream().pipeTo(w);
             const check = await fh.getFile();
-            if (check.size !== src.size) throw new Error('Größe stimmt nicht');
+            if (check.size !== src.size) throw new Error(T('Größe stimmt nicht'));
             bytes += src.size; copied++;
           }
-        } catch (e) { status = 'FEHLER: ' + (e.message || e.name); errors++; }
-        log.push({ quelle: op.item.path, ziel: rel, status });
+        } catch (e) { status = T('FEHLER: {0}', e.message || e.name); err = true; errors++; }
+        log.push({ quelle: op.item.path, ziel: rel, status, err });
         done++;
         const secs = (Date.now() - t0) / 1000;
         onProgress?.({ done, total, copied, skipped, errors, bytes, rate: bytes / Math.max(secs, 1) });
@@ -51,9 +51,9 @@ const Copier = (() => {
     await Promise.all(Array.from({ length: 4 }, worker));
 
     // Protokoll in den Zielordner schreiben
-    const csv = 'Quelle;Ziel;Status\n' + log.map(l => [l.quelle, l.ziel, l.status].map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\n');
+    const csv = T('Quelle;Ziel;Status') + '\n' + log.map(l => [l.quelle, l.ziel, l.status].map(v => `"${String(v).replace(/"/g, '""')}"`).join(';')).join('\n');
     const stamp = new Date();
-    const fname = `_protokoll_${Util.dayKey(stamp)}_${Util.pad(stamp.getHours())}-${Util.pad(stamp.getMinutes())}-${Util.pad(stamp.getSeconds())}.csv`;
+    const fname = `_${T('protokoll')}_${Util.dayKey(stamp)}_${Util.pad(stamp.getHours())}-${Util.pad(stamp.getMinutes())}-${Util.pad(stamp.getSeconds())}.csv`;
     try {
       const fh = await targetRoot.getFileHandle(fname, { create: true });
       const w = await fh.createWritable();

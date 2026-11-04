@@ -132,7 +132,7 @@ const Meta = (() => {
   // Alle Dateien lesen (parallel), bereits bekannte aus dem Cache
   async function scan(dirHandle, s, onProgress, signal) {
     const exts = [...(s.includePhotos ? PHOTO : []), ...(s.includeVideos ? VIDEO : [])];
-    const files = await listFiles(dirHandle, { recursive: s.recursive, exts }, n => onProgress?.(`Suche Dateien … ${n}`));
+    const files = await listFiles(dirHandle, { recursive: s.recursive, exts }, n => onProgress?.(T('Suche Dateien … {0}', n)));
     const cacheKey = 'cache:' + dirHandle.name;
     let cache = {};
     try { cache = (await Util.idb.get(cacheKey)) || {}; } catch { /* ohne Cache weiter */ }
@@ -159,7 +159,7 @@ const Meta = (() => {
           size: file.size, mtime: file.lastModified, ...meta,
           hasGps: Number.isFinite(meta.lat),
         });
-        if (++done % 25 === 0 || done === files.length) onProgress?.(`Lese Metadaten … ${done} / ${files.length}`);
+        if (++done % 25 === 0 || done === files.length) onProgress?.(T('Lese Metadaten … {0} / {1}', done, files.length));
       }
     }
     await Promise.all(Array.from({ length: 8 }, worker));

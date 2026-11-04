@@ -26,7 +26,8 @@ const Util = (() => {
   const addDays = (d, n) => new Date(d.getFullYear(), d.getMonth(), d.getDate() + n);
   const daysBetween = (a, b) => Math.round((dayFromKey(dayKey(b)) - dayFromKey(dayKey(a))) / 864e5);
   const isWeekend = d => d.getDay() === 0 || d.getDay() === 6;
-  const fmtDate = d => `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
+  // Deutsch 04.11.2026, Englisch 2026-11-04 (eindeutig fuer UK und US)
+  const fmtDate = d => I18n.lang === 'en' ? dayKey(d) : `${pad(d.getDate())}.${pad(d.getMonth() + 1)}.${d.getFullYear()}`;
   const fmtDateTime = d => `${fmtDate(d)} ${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
 
   // Platzhalter fuer ein Datum, optional mit Praefix (z.B. "E" fuer Enddatum)
@@ -38,6 +39,7 @@ const Util = (() => {
       [prefix + 'MMMM']: (MONTHS[lang] || MONTHS['de-AT'])[d.getMonth()],
       [prefix + 'DD']: pad(d.getDate()),
       [prefix + 'WT']: (WEEKDAYS[lang] || WEEKDAYS['de-AT'])[d.getDay()],
+      [prefix + 'DOW']: (WEEKDAYS[lang] || WEEKDAYS['de-AT'])[d.getDay()],
       [prefix + 'hh']: pad(d.getHours()),
       [prefix + 'mm']: pad(d.getMinutes()),
       [prefix + 'ss']: pad(d.getSeconds()),

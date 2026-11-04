@@ -9,8 +9,9 @@ const Geo = (() => {
 
   function format(g, s) {
     const tpl = g.country && g.country === s.homeCountry ? s.placeTplHome : s.placeTpl;
-    return Util.fillTemplate(tpl, { LAND: g.country || '', STADT: g.town || '', REGION: g.state || '' })
-      .replace(/^[_\s-]+|[_\s-]+$/g, '') || 'Unbekannt';
+    const c = g.country || '', t = g.town === 'Unbekannt' ? T('Unbekannt') : g.town || '', r = g.state || '';
+    return Util.fillTemplate(tpl, { LAND: c, COUNTRY: c, STADT: t, TOWN: t, REGION: r })
+      .replace(/^[_\s-]+|[_\s-]+$/g, '') || T('Unbekannt');
   }
 
   async function fetchOne(lat, lon, s) {
@@ -33,7 +34,7 @@ const Geo = (() => {
     let n = 0, errors = 0;
     for (const e of todo) {
       if (signal?.aborted) break;
-      onProgress?.(`Ortsnamen (online) … ${++n} / ${todo.length}`);
+      onProgress?.(T('Ortsnamen (online) … {0} / {1}', ++n, todo.length));
       try { cache[k(e.lat, e.lon)] = await fetchOne(e.lat, e.lon, s); }
       catch { errors++; }
       localStorage.setItem(KEY, JSON.stringify(cache));

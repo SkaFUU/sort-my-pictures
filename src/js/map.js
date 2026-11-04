@@ -1,8 +1,11 @@
 // Kartenansicht (Leaflet). Kacheln nur online und nur wenn eingeschaltet.
 const MapView = (() => {
-  const COLORS = { vac: '#e8590c', trip: '#2f9e44', work: '#1971c2', none: '#868e96', home: '#ae3ec9', other: '#495057' };
+  // Farben der Ereignis-Arten kommen aus Analyze.kind(); hier nur Punkte ohne Ereignis
+  const COLORS = { home: '#ae3ec9', other: '#495057' };
+  const color = k => COLORS[k] || Analyze.kind(k).color;
   const ZONE_COLORS = { home: '#ae3ec9', ignore: '#868e96', work: '#1971c2', named: '#f08c00' };
-  const ZONE_TYPES = { home: 'Zuhause', ignore: 'Alltagsort (kein Ausflug)', work: 'Dienstort', named: 'Benannter Ort' };
+  const ZONE_LABELS = { home: 'Zuhause', ignore: 'Alltagsort (kein Ausflug)', work: 'Dienstort', named: 'Benannter Ort' };
+  const ZONE_TYPES = new Proxy(ZONE_LABELS, { get: (o, k) => (k in o ? T(o[k]) : undefined) });
 
   let map, tiles, pointLayer, overlayLayer, zoneLayer, addMode = false, cb = {};
 
@@ -22,7 +25,7 @@ const MapView = (() => {
   function setTiles(on) {
     if (on && !tiles) {
       tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19, attribution: '&copy; OpenStreetMap-Mitwirkende',
+        maxZoom: 19, attribution: '&copy; ' + T('OpenStreetMap-Mitwirkende'),
       }).addTo(map);
     } else if (!on && tiles) { map.removeLayer(tiles); tiles = null; }
     map.getContainer().classList.toggle('no-tiles', !on);
@@ -42,23 +45,23 @@ const MapView = (() => {
       if (!it.hasGps) continue;
       const kind = it.event ? it.event.kind : (it.near ? 'home' : 'other');
       L.circleMarker([it.lat, it.lon], {
-        renderer: canvas, radius: it.event ? 4 : 3, weight: 0, fillOpacity: it.event ? 0.8 : 0.35, fillColor: COLORS[kind],
+        renderer: canvas, radius: it.event ? 4 : 3, weight: 0, fillOpacity: it.event ? 0.8 : 0.35, fillColor: color(kind),
       }).bindTooltip(`${Util.escapeHtml(it.name)}<br>${Util.fmtDateTime(it.date)}${it.event ? '<br><b>' + Util.escapeHtml(it.event.place) + '</b>' : ''}`)
         .on('click', () => cb.onPointClick?.(it))
         .addTo(pointLayer);
     }
     for (const h of analysis.homes.filter(h => h.auto)) {
       L.circle([h.lat, h.lon], { radius: h.r * 1000, color: COLORS.home, weight: 2, fill: false, dashArray: '6 4' })
-        .bindTooltip(`Wohnort (automatisch, ${h.days} Tage)`).addTo(overlayLayer);
+        .bindTooltip(T('Wohnort (automatisch, {0} Tage)', h.days)).addTo(overlayLayer);
     }
     for (const d of analysis.autoDaily) {
       L.circle([d.lat, d.lon], { radius: d.r * 1000, color: ZONE_COLORS.ignore, weight: 2, fillOpacity: 0.1, dashArray: '4 4' })
         .bindPopup(() => {
           const div = document.createElement('div');
-          div.innerHTML = `<b>Alltagsort (automatisch)</b><br>${d.days} Tage<br>`;
+          div.innerHTML = `<b>${T('Alltagsort (automatisch)')}</b><br>${T('{0} Tage', d.days)}<br>`;
           const b = document.createElement('button');
-          b.textContent = 'Als Zone übernehmen';
-          b.onclick = () => { map.closePopup(); cb.onAddZone?.(d.lat, d.lon, { type: 'ignore', r: d.r, name: 'Alltagsort' }); };
+          b.textContent = T('Als Zone übernehmen');
+          b.onclick = () => { map.closePopup(); cb.onAddZone?.(d.lat, d.lon, { type: 'ignore', r: d.r, name: T('Alltagsort') }); };
           div.append(b);
           return div;
         }).addTo(overlayLayer);
@@ -93,5 +96,5 @@ const MapView = (() => {
   const focus = (lat, lon, zoom = 12) => map.setView([lat, lon], zoom);
   const invalidate = () => map && map.invalidateSize();
 
-  return { init, setTiles, setAddMode, render, renderZones, fitAll, fitEvent, focus, invalidate, COLORS, ZONE_TYPES, ZONE_COLORS, get addMode() { return addMode; } };
+  return { init, setTiles, setAddMode, render, renderZones, fitAll, fitEvent, focus, invalidate, COLORS, color, ZONE_TYPES, ZONE_LABELS, ZONE_COLORS, get addMode() { return addMode; } };
 })();

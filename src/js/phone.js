@@ -9,10 +9,10 @@ const Phone = (() => {
 
   const supported = () => !!navigator.usb && typeof WebAdb !== 'undefined';
   const connected = () => !!adb;
-  const deviceName = () => device?.name || 'Handy';
+  const deviceName = () => device?.name || T('Handy');
 
   class PhoneError extends Error { constructor(m) { super(m); this.name = 'PhoneError'; } }
-  const need = () => { if (!adb) throw new PhoneError('Handy nicht verbunden'); return adb; };
+  const need = () => { if (!adb) throw new PhoneError(T('Handy nicht verbunden')); return adb; };
 
   // Verbinden; interactive = Geraeteauswahl des Browsers zeigen (braucht einen Klick)
   async function connect(interactive, onStatus) {
@@ -25,11 +25,11 @@ const Phone = (() => {
     try { connection = await dev.connect(); }
     catch (e) {
       if (e instanceof WebAdb.AdbDaemonWebUsbDevice.DeviceBusyError) {
-        throw new PhoneError('Das Handy wird gerade von einem anderen Programm verwendet (z. B. adb, Android Studio, scrcpy). Dort trennen oder „adb kill-server“ ausführen.');
+        throw new PhoneError(T('Das Handy wird gerade von einem anderen Programm verwendet (z. B. adb, Android Studio, scrcpy). Dort trennen oder „adb kill-server“ ausführen.'));
       }
       throw e;
     }
-    onStatus?.('Am Handy „USB-Debugging zulassen?“ bestätigen …');
+    onStatus?.(T('Am Handy „USB-Debugging zulassen?“ bestätigen …'));
     const transport = await WebAdb.AdbDaemonTransport.authenticate({
       serial: dev.serial, connection, credentialStore: new WebAdb.AdbWebCredentialStore('Fotosortierer'),
     });

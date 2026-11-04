@@ -42,6 +42,12 @@ kbd { font-family:ui-monospace,Consolas,monospace; font-size:10.5px; border:1px 
 .net { font-size:12px; padding:3px 10px; border-radius:12px; font-weight:600; cursor:help; white-space:nowrap; }
 .net.offline { background:rgba(52,199,89,.15); color:var(--ok); }
 .net.online { background:rgba(255,149,0,.18); color:var(--online); }
+/* Sprache DE | EN wie im Feldeditor */
+.lang { display:flex; flex:none; }
+.lang button { margin:0; padding:3px 7px; font-size:12px; border-radius:0; background:#1d2024; color:var(--muted); }
+.lang button:first-child { border-radius:5px 0 0 5px; }
+.lang button:last-child { border-radius:0 5px 5px 0; }
+.lang button.on { background:#3c4148; color:var(--fg); font-weight:600; }
 
 /* ---------- Register = Arbeitsschritte ---------- */
 #tabs { display:flex; gap:2px; padding:0 8px; background:var(--top); overflow-x:auto; scrollbar-width:none; }
@@ -209,6 +215,28 @@ td .dot { margin-right:6px; }
 .pcard .face img { width:72px; height:72px; border-radius:4px; display:block; cursor:pointer; object-fit:cover; }
 .pcard .face.auto img { outline:2px dashed var(--warn); outline-offset:-2px; }
 .pcard .face button { position:absolute; top:1px; right:1px; padding:0 4px; font-size:11px; line-height:16px; }
+.pcard .face button.ok { right:auto; left:1px; background:var(--tab); color:#000; }
+.pcard .hint { margin:4px 0 2px; }
+
+/* ---------- Eigene Kategorien ---------- */
+.cat { border:1px solid var(--line); border-radius:8px; padding:6px; margin:8px 0; background:var(--panel); }
+.cat.off { opacity:.55; }
+.cat-head { display:flex; align-items:center; gap:4px; }
+.cat-head .cat-name { flex:1; min-width:0; font-weight:600; }
+.cat-head input[type=color] { width:28px; height:26px; padding:1px; border-radius:5px; cursor:pointer; }
+.cat-head .mini { padding:2px 6px; }
+.cat-grid { display:grid; grid-template-columns:auto 1fr; gap:4px 8px; align-items:center; margin-top:6px; font-size:12.5px; }
+.cat-grid > label { color:var(--muted); }
+.cat-grid input[type=text], .cat-grid select { width:100%; min-width:0; padding:3px 6px; }
+.cat-grid .range { display:flex; align-items:center; gap:4px; }
+.cat-grid .range input { width:70px; padding:3px 6px; }
+.cat-grid > input[type=number] { width:70px; padding:3px 6px; }
+.cat .months { display:flex; flex-wrap:wrap; gap:2px; }
+.cat .months label { display:flex; flex-direction:column; align-items:center; font-size:10px; color:var(--muted); width:26px; }
+.cat .months input { margin:0; }
+.cat > .hint { margin-top:4px; }
+.cat-add { display:flex; gap:6px; }
+.cat-add select { flex:1; min-width:0; }
 .pcard-foot { display:flex; align-items:center; gap:5px; margin-top:6px; flex-wrap:wrap; }
 .pcard-foot input { flex:1; min-width:110px; padding:3px 6px; }
 .pcard-foot .hint { margin:0; }

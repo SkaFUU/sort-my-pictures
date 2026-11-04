@@ -35,6 +35,7 @@
   <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></symbol>
   <symbol id="i-log" viewBox="0 0 24 24"><path d="M6 3h9l4 4v14H6z"/><path d="M9 11h7M9 15h7M9 7h3"/></symbol>
   <symbol id="i-pin" viewBox="0 0 24 24"><path d="M12 21s-6-5.5-6-11a6 6 0 0 1 12 0c0 5.5-6 11-6 11z"/><circle cx="12" cy="10" r="2.2"/></symbol>
+  <symbol id="i-tag" viewBox="0 0 24 24"><path d="M3 12V4a1 1 0 0 1 1-1h8l9 9-9 9z"/><circle cx="7.5" cy="7.5" r="1.5"/></symbol>
   <symbol id="i-cancel" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></symbol>
 </svg>
 
@@ -46,6 +47,7 @@
       <button id="btnCopy" class="qbtn primary" disabled title="Alle geplanten Kopien in den Zielordner schreiben"><svg class="ic"><use href="#i-copy"/></svg><span class="qtxt">Kopieren</span></button>
       <span class="grow"></span>
       <span id="netState" class="net offline"></span>
+      <div class="lang"><button data-lang="de" title="Deutsch">DE</button><button data-lang="en" title="English">EN</button></div>
     </div>
     <nav id="tabs">
       <button data-tab="quelle"><span class="step">1</span>Quelle</button>
@@ -90,25 +92,20 @@
         <div class="grp"><div class="gbody"><div class="gchecks" data-checks="vacEnabled,tripEnabled,workEnabled"></div></div><div class="gcap">Erkennen</div></div>
         <div class="grp"><div class="gbody"><div class="rf">
           <label for="fltKind">Art</label>
-          <select id="fltKind">
-            <option value="">Alle</option><option value="vac">Urlaube</option><option value="trip">Ausflüge</option>
-            <option value="work">Dienstreisen</option><option value="none">Ohne Ordner</option>
-          </select>
+          <select id="fltKind"></select>
           <label for="fltYear">Jahr</label><select id="fltYear"><option value="">Alle Jahre</option></select>
           <label for="fltText">Ort</label><input id="fltText" type="search" placeholder="suchen …">
         </div></div><div class="gcap">Anzeigen</div></div>
+        <div class="grp"><div class="gbody">
+          <button class="big c-zone" id="btnAddCat" title="Eigene Kategorie mit eigenen Regeln und eigenem Ordner"><svg class="ic"><use href="#i-tag"/></svg><span>Neue Kategorie</span></button>
+        </div><div class="gcap">Kategorien</div></div>
         <div class="grp"><div class="gbody">
           <button class="big c-del" id="btnResetOverrides"><svg class="ic"><use href="#i-reset"/></svg><span>Änderungen verwerfen</span></button>
         </div><div class="gcap">Bearbeiten</div></div>
       </div>
       <!-- 4 Pruefen -->
       <div class="rpanel" data-tab="review">
-        <div class="grp"><div class="gbody">
-          <button class="big c-vac rv-k" data-kind="vac"><svg class="ic"><use href="#i-vac"/></svg><span><kbd>1</kbd> Urlaub</span></button>
-          <button class="big c-trip rv-k" data-kind="trip"><svg class="ic"><use href="#i-trip"/></svg><span><kbd>2</kbd> Ausflug</span></button>
-          <button class="big c-work rv-k" data-kind="work"><svg class="ic"><use href="#i-work"/></svg><span><kbd>3</kbd> Dienstreise</span></button>
-          <button class="big c-none rv-k" data-kind="none"><svg class="ic"><use href="#i-none"/></svg><span><kbd>4</kbd> Kein Ordner</span></button>
-        </div><div class="gcap">Art wählen</div></div>
+        <div class="grp"><div class="gbody" id="rvKinds" data-noi18n></div><div class="gcap">Art wählen</div></div>
         <div class="grp"><div class="gbody">
           <button class="big c-ok" id="rvAccept"><svg class="ic"><use href="#i-check"/></svg><span>Vorschlag OK <kbd>Enter</kbd></span></button>
           <button class="big c-view" id="rvPrev"><svg class="ic"><use href="#i-prev"/></svg><span>Zurück <kbd>←</kbd></span></button>
@@ -150,13 +147,13 @@
     <div id="center">
       <!-- Karte: Schritte 1 und 2 -->
       <section class="view" data-view="map">
-        <div id="map"></div>
-        <div id="legend"></div>
+        <div id="map" data-noi18n></div>
+        <div id="legend" data-noi18n></div>
         <div id="hint"></div>
       </section>
       <!-- Schritt 3 -->
       <section class="view" data-view="events">
-        <div id="eventDetail" hidden></div>
+        <div id="eventDetail" data-noi18n hidden></div>
         <div class="table-wrap">
           <table id="eventTable">
             <thead>
@@ -165,22 +162,22 @@
                 <th>Bilder</th><th>pro Tag</th><th title="Größte Entfernung von zu Hause">Entf.</th><th>Name aus</th><th>Zielordner</th><th></th>
               </tr>
             </thead>
-            <tbody id="eventRows"></tbody>
+            <tbody id="eventRows" data-noi18n></tbody>
           </table>
         </div>
       </section>
       <!-- Schritt 4 -->
-      <section class="view" data-view="review"><div id="rvCard"></div></section>
+      <section class="view" data-view="review"><div id="rvCard" data-noi18n></div></section>
       <!-- Schritt 5 -->
       <section class="view" data-view="people">
         <div id="pplInfo" class="muted pad"></div>
         <datalist id="personNames"></datalist>
-        <div id="pplGroups"></div>
+        <div id="pplGroups" data-noi18n></div>
       </section>
       <!-- Schritt 6 -->
       <section class="view" data-view="ziel">
         <div id="previewSummary"><div class="muted">Noch nichts eingelesen.</div></div>
-        <div id="previewTree"></div>
+        <div id="previewTree" data-noi18n></div>
       </section>
       <button id="togProps" class="paneTog" title="Seitenleiste ein-/ausblenden">›</button>
     </div>
@@ -190,22 +187,22 @@
       <div class="pp" data-tab="quelle">
         <h2>Quelle</h2>
         <div class="info" id="srcInfo">Noch keine Quelle gewählt.</div>
-        <div id="unsupported" class="muted warn" hidden>Dieser Browser kann keine lokalen Ordner lesen und schreiben. Bitte <b>Chrome</b>, <b>Edge</b>, <b>Brave</b> oder <b>Opera</b> verwenden.</div>
+        <div id="unsupported" class="muted warn" hidden data-i18n-html>Dieser Browser kann keine lokalen Ordner lesen und schreiben. Bitte <b>Chrome</b>, <b>Edge</b>, <b>Brave</b> oder <b>Opera</b> verwenden.</div>
         <ul class="muted">
-          <li><b>Ordner wählen</b>: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.</li>
-          <li><b>Handy (USB)</b>: direkt vom Android-Handy, ohne vorher zu übertragen.</li>
+          <li data-i18n-html><b>Ordner wählen</b>: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.</li>
+          <li data-i18n-html><b>Handy (USB)</b>: direkt vom Android-Handy, ohne vorher zu übertragen.</li>
           <li>Originale werden nur gelesen, nie verändert.</li>
         </ul>
         <div class="settings" data-sections="Quelle"></div>
       </div>
       <div class="pp" data-tab="orte">
         <h2>Zonen</h2>
-        <div id="zoneList"></div>
+        <div id="zoneList" data-noi18n></div>
         <ul class="muted">
-          <li><b>Zuhause</b> – Mittelpunkt für alle Entfernungen.</li>
-          <li><b>Alltagsort</b> – Arbeit, Familie: zählt nie als Ausflug.</li>
-          <li><b>Dienstort</b> – Fahrten dorthin sind immer Dienstreisen.</li>
-          <li><b>Benannter Ort</b> – fester Ordnername, auch offline.</li>
+          <li data-i18n-html><b>Zuhause</b> – Mittelpunkt für alle Entfernungen.</li>
+          <li data-i18n-html><b>Alltagsort</b> – Arbeit, Familie: zählt nie als Ausflug.</li>
+          <li data-i18n-html><b>Dienstort</b> – Fahrten dorthin sind immer Dienstreisen.</li>
+          <li data-i18n-html><b>Benannter Ort</b> – fester Ordnername, auch offline.</li>
           <li>Mittelpunkt auf der Karte ziehen zum Verschieben.</li>
         </ul>
         <div class="settings" data-sections="Wohnort,Alltagsorte,Ortsnamen,Karte"></div>
@@ -214,26 +211,26 @@
         <h2>Ereignisse</h2>
         <ul class="muted">
           <li>Art und Ortsname je Zeile ändern – leer = automatisch.</li>
-          <li><svg class="ic sm"><use href="#i-pin"/></svg> zeigt das Ereignis auf der Karte, Klick auf die Zeile zeigt die Bilder.</li>
+          <li data-i18n-html><svg class="ic sm"><use href="#i-pin"/></svg> zeigt das Ereignis auf der Karte, Klick auf die Zeile zeigt die Bilder.</li>
           <li>In den Bildern das Häkchen entfernen = nicht in diesem Ereignis-Ordner.</li>
         </ul>
-        <div class="settings" data-sections="Urlaub,Ausflug,Dienstreise,Bilder ohne GPS"></div>
+        <div class="settings" data-sections="Urlaub,Ausflug,Dienstreise,Eigene Kategorien,Bilder ohne GPS"></div>
       </div>
       <div class="pp" data-tab="review">
         <h2>Prüfen</h2>
         <div class="info" id="rvProgress">–</div>
         <ul class="muted">
           <li>Ereignisse einzeln durchgehen, unsichere (knapp an einer Regelgrenze) zuerst.</li>
-          <li>Tasten <kbd>1</kbd>–<kbd>4</kbd> wählen die Art, <kbd>Enter</kbd> übernimmt den Vorschlag, <kbd>←</kbd> <kbd>→</kbd> blättern.</li>
+          <li data-i18n-html>Tasten <kbd>1</kbd>–<kbd>9</kbd> wählen die Art, <kbd>Enter</kbd> übernimmt den Vorschlag, <kbd>←</kbd> <kbd>→</kbd> blättern.</li>
           <li>Geprüfte Ereignisse bekommen in der Liste ein ✓.</li>
         </ul>
       </div>
       <div class="pp" data-tab="people">
         <h2>Personen</h2>
         <ul class="muted">
-          <li>Läuft komplett lokal, es wird nichts hochgeladen.</li>
+          <li>Läuft komplett lokal, es wird nichts hochgeladen. Nutzt alle Prozessorkerne.</li>
           <li>Namen eintippen – gleicher Name führt Gruppen zusammen.</li>
-          <li>„Alle“ zeigt jedes Gesicht, ✕ entfernt Fehltreffer.</li>
+          <li>„Prüfen“ zeigt automatisch zugeordnete Gesichter, unsicherste zuerst: ✓ bestätigt, ✕ entfernt Fehltreffer.</li>
           <li>Kann jederzeit abgebrochen werden, ein neuer Start setzt fort.</li>
         </ul>
         <div class="settings" data-sections="Personen"></div>
@@ -243,7 +240,7 @@
         <div class="info" id="dstName">Noch kein Zielordner gewählt.</div>
         <ul class="muted">
           <li>Es wird nur kopiert. Vorhandene Dateien werden nie überschrieben, ein zweiter Lauf überspringt sie.</li>
-          <li>Im Ziel entsteht ein Protokoll <i>_protokoll_….csv</i>.</li>
+          <li data-i18n-html>Im Ziel entsteht ein Protokoll <i>_protokoll_….csv</i>.</li>
         </ul>
         <div class="settings" data-sections="Ordner & Dateinamen,Filter,Sonderordner"></div>
       </div>
@@ -252,7 +249,7 @@
 
   <div id="logPanel" hidden>
     <div class="log-head"><b>Protokoll</b><button class="mini" id="btnLogClose" title="Schließen"><svg class="ic"><use href="#i-cancel"/></svg></button></div>
-    <div id="logList"></div>
+    <div id="logList" data-noi18n></div>
   </div>
   <footer id="statusbar">
     <span id="statusText"></span>
@@ -264,9 +261,10 @@
 
   <script src="vendor/leaflet.js"></script>
   <script src="vendor/exifr.js"></script>
-  <script src="vendor/face-api.js"></script>
+  <script src="vendor/ort-wasm.js"></script>
   <script src="vendor/face-models.js"></script>
   <script src="vendor/webadb.js"></script>
+  <script src="js/i18n.js"></script>
   <script src="js/util.js"></script>
   <script src="js/phone.js"></script>
   <script src="js/settings.js"></script>

@@ -13,26 +13,29 @@ const Plan = (() => {
     }).filter(Boolean);
   }
 
+  // Platzhalter gibt es deutsch und englisch ({TYP} = {TYPE} …)
   function itemTokens(it, s) {
     const base = it.name.replace(/\.[^.]+$/, '');
+    const typ = it.isVideo ? s.videoWord : s.photoWord;
     return {
       ...Util.dateTokens(it.date, s.lang),
       NAME: base,
-      TYP: it.isVideo ? s.videoWord : s.photoWord,
-      KAMERA: it.model || '',
+      TYP: typ, TYPE: typ,
+      KAMERA: it.model || '', CAMERA: it.model || '',
     };
   }
 
   function eventTokens(ev, s) {
-    const folders = { vac: s.vacFolder, trip: s.tripFolder, work: s.workFolder };
+    const kat = Analyze.kind(ev.kind).folder || '';
+    const coord = Util.fmtCoord(ev.lat, ev.lon);
     return {
       ...Util.dateTokens(ev.start, s.lang),
       ...Util.dateTokens(ev.end, s.lang, 'E'),
-      KAT: folders[ev.kind] || '',
-      ORT: ev.place,
-      KOORD: Util.fmtCoord(ev.lat, ev.lon),
-      TAGE: String(ev.days),
-      ANZ: String(ev.items.length),
+      KAT: kat, CAT: kat,
+      ORT: ev.place, PLACE: ev.place,
+      KOORD: coord, COORD: coord,
+      TAGE: String(ev.days), DAYS: String(ev.days),
+      ANZ: String(ev.items.length), COUNT: String(ev.items.length),
     };
   }
 
@@ -114,7 +117,7 @@ const Plan = (() => {
       }
       const tokens = itemTokens(it, s);
       const rule = rules.find(r => r.re.test(it.name));
-      if (rule) add(it, Util.templatePath(s.rulesTpl, { ...tokens, REGEL: rule.folder }), 'rule');
+      if (rule) add(it, Util.templatePath(s.rulesTpl, { ...tokens, REGEL: rule.folder, RULE: rule.folder }), 'rule');
       if (s.monthFolders && !(rule && s.rulesExclusive)) add(it, Util.templatePath(s.monthTpl, tokens), 'month');
       if (it.event && evDir.has(it.event)) add(it, evDir.get(it.event), it.event.kind, it.event);
       if (s.personFolders && it.persons) {

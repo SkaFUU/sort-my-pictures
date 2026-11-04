@@ -3,20 +3,26 @@ const Viewer = (() => {
   const { h, fmtDateTime, fmtBytes } = Util;
   let app, list = [], idx = 0, url = null, map = null, marker = null, tiles = null, root;
 
-  function init(appCtx) {
-    app = appCtx;
+  function build() {
+    root?.remove();
     root = h('div', { id: 'viewer', hidden: true },
       h('div', { class: 'v-main', onclick: e => { if (e.target.classList.contains('v-main')) close(); } },
-        h('button', { class: 'v-nav v-prev', title: 'Vorheriges (←)', onclick: () => go(-1) }, '‹'),
+        h('button', { class: 'v-nav v-prev', title: T('Vorheriges (←)'), onclick: () => go(-1) }, '‹'),
         h('div', { class: 'v-stage' }),
-        h('button', { class: 'v-nav v-next', title: 'Nächstes (→)', onclick: () => go(1) }, '›'),
+        h('button', { class: 'v-nav v-next', title: T('Nächstes (→)'), onclick: () => go(1) }, '›'),
         h('div', { class: 'v-counter' })),
       h('aside', { class: 'v-side' },
-        h('div', { class: 'v-head' }, h('b', { class: 'v-title' }), h('button', { title: 'Schließen (Esc)', onclick: close }, '✕')),
+        h('div', { class: 'v-head' }, h('b', { class: 'v-title' }), h('button', { title: T('Schließen (Esc)'), onclick: close }, '✕')),
         h('div', { class: 'v-info' }),
         h('div', { id: 'vMap' }),
-        h('details', { class: 'v-meta', open: true }, h('summary', {}, 'Alle Metadaten'), h('div', { class: 'v-meta-body' }))));
+        h('details', { class: 'v-meta', open: true }, h('summary', {}, T('Alle Metadaten')), h('div', { class: 'v-meta-body' }))));
     document.body.append(root);
+    map = marker = tiles = null;
+  }
+
+  function init(appCtx) {
+    app = appCtx;
+    build();
     document.addEventListener('keydown', e => {
       if (root.hidden || e.target.matches?.('input,select,textarea')) return;
       if (e.key === 'ArrowLeft') go(-1);
@@ -55,11 +61,12 @@ const Viewer = (() => {
 
     let file = await it.handle.getFile().catch(e => e);
     if (file.remote) {
-      stage.innerHTML = `<div class="v-loading">Lade vom Handy … (${fmtBytes(file.size)})</div>`;
+      stage.innerHTML = '';
+      stage.append(h('div', { class: 'v-loading' }, T('Lade vom Handy … ({0})', fmtBytes(file.size))));
       file = await file.blob().catch(e => e);
     }
     if (list[idx] !== it) return;  // inzwischen weitergeblaettert
-    if (file instanceof Error) { stage.innerHTML = ''; stage.append(h('div', { class: 'v-loading' }, 'Nicht lesbar: ' + file.message)); return; }
+    if (file instanceof Error) { stage.innerHTML = ''; stage.append(h('div', { class: 'v-loading' }, T('Nicht lesbar: {0}', file.message))); return; }
 
     // Bild / Video
     let media;
@@ -72,7 +79,7 @@ const Viewer = (() => {
         const t = await exifr.thumbnail(file).catch(() => null);
         if (t) url = URL.createObjectURL(new Blob([t], { type: 'image/jpeg' }));
       }
-      media = url ? h('img', { src: url }) : h('div', { class: 'v-loading' }, 'Keine Vorschau für dieses Format');
+      media = url ? h('img', { src: url }) : h('div', { class: 'v-loading' }, T('Keine Vorschau für dieses Format'));
     }
     const wrap = h('div', { class: 'v-wrap' }, media);
     // Gesichtsrahmen mit Namen
@@ -92,19 +99,21 @@ const Viewer = (() => {
     const persons = it.persons ? [...it.persons] : [];
     const home = app.st.analysis?.homes[0];
     const rows = [
-      ['Pfad', it.path],
-      ['Größe', fmtBytes(it.size)],
-      ['Aufnahme', `${fmtDateTime(it.date)} (${it.dateSrc})`],
-      ['Kamera', [it.make, it.model].filter(Boolean).join(' ') || '–'],
-      ['Standort', it.hasGps ? `${it.lat.toFixed(5)}, ${it.lon.toFixed(5)}${home ? ` · ${Util.distKm(home.lat, home.lon, it.lat, it.lon).toFixed(1)} km von zu Hause` : ''}` : 'kein GPS'],
-      ['Ereignis', ev ? `${Analyze.KINDS[ev.kind]}: ${ev.place}` : '–'],
-      ['Personen', persons.length ? persons.join(', ') : (faces.length ? `${faces.length} Gesicht(er), unbenannt` : '–')],
-      ['Ziel', ops.length ? ops.map(o => [...o.dir, o.name].join('/')).join('\n') : 'wird nicht kopiert (Filter/Duplikat)'],
+      [T('Pfad'), it.path],
+      [T('Größe'), fmtBytes(it.size)],
+      [T('Aufnahme'), `${fmtDateTime(it.date)} (${T(it.dateSrc)})`],
+      [T('Kamera'), [it.make, it.model].filter(Boolean).join(' ') || '–'],
+      [T('Standort'), it.hasGps
+        ? `${it.lat.toFixed(5)}, ${it.lon.toFixed(5)}` + (home ? ' · ' + T('{0} km von zu Hause', Util.distKm(home.lat, home.lon, it.lat, it.lon).toFixed(1)) : '')
+        : T('kein GPS')],
+      [T('Ereignis'), ev ? `${Analyze.kind(ev.kind).label}: ${ev.place}` : '–'],
+      [T('Personen'), persons.length ? persons.join(', ') : (faces.length ? T('{0} Gesicht(er), unbenannt', faces.length) : '–')],
+      [T('Ziel'), ops.length ? ops.map(o => [...o.dir, o.name].join('/')).join('\n') : T('wird nicht kopiert (Filter/Duplikat)')],
     ];
     const info = root.querySelector('.v-info');
     info.innerHTML = '';
     info.append(h('table', {}, rows.map(([k, v]) => h('tr', {}, h('th', {}, k), h('td', {}, v)))));
-    if (ev) info.append(h('button', { onclick: () => { close(); app.openEvent(ev); } }, 'Ereignis öffnen'));
+    if (ev) info.append(h('button', { onclick: () => { close(); app.openEvent(ev); } }, T('Ereignis öffnen')));
 
     // Karte
     const mapEl = root.querySelector('#vMap');
@@ -118,7 +127,8 @@ const Viewer = (() => {
 
     // Alle Metadaten
     const body = root.querySelector('.v-meta-body');
-    body.innerHTML = '<div class="hint">Lese …</div>';
+    body.innerHTML = '';
+    body.append(h('div', { class: 'hint' }, T('Lese …')));
     let meta = null;
     if (!it.isVideo) {
       meta = await exifr.parse(file, {
@@ -128,7 +138,7 @@ const Viewer = (() => {
     }
     if (list[idx] !== it) return;
     body.innerHTML = '';
-    if (!meta) { body.append(h('div', { class: 'hint' }, it.isVideo ? 'Videos: nur Datum und GPS werden ausgelesen.' : 'Keine Metadaten gefunden.')); return; }
+    if (!meta) { body.append(h('div', { class: 'hint' }, T(it.isVideo ? 'Videos: nur Datum und GPS werden ausgelesen.' : 'Keine Metadaten gefunden.'))); return; }
     for (const [group, vals] of Object.entries(meta)) {
       if (!vals || typeof vals !== 'object') continue;
       body.append(h('div', { class: 'v-group' }, group.toUpperCase()));
@@ -139,11 +149,19 @@ const Viewer = (() => {
   function fmtVal(v) {
     if (v == null) return '';
     if (typeof v.getTime === 'function') return fmtDateTime(v);
-    if (v instanceof Uint8Array || ArrayBuffer.isView(v)) return `[${v.length} Bytes]`;
-    if (Array.isArray(v)) return v.length > 12 ? `[${v.length} Werte]` : v.map(fmtVal).join(', ');
+    if (v instanceof Uint8Array || ArrayBuffer.isView(v)) return T('[{0} Bytes]', v.length);
+    if (Array.isArray(v)) return v.length > 12 ? T('[{0} Werte]', v.length) : v.map(fmtVal).join(', ');
     const s = typeof v === 'object' ? JSON.stringify(v) : String(v);
-    return s.length > 160 ? `${s.slice(0, 160)}… (${s.length} Zeichen)` : s;
+    return s.length > 160 ? s.slice(0, 160) + T('… ({0} Zeichen)', s.length) : s;
   }
 
-  return { init, open, close };
+  // nach Sprachwechsel neu aufbauen
+  function relang() {
+    const wasOpen = !root.hidden;
+    map?.remove();
+    build();
+    if (wasOpen && list.length) open(list, idx);
+  }
+
+  return { init, open, close, relang };
 })();

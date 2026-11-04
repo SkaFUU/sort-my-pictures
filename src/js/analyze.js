@@ -1,13 +1,71 @@
-// Erkennung von Wohnort, Alltagsorten, Urlauben, Ausfluegen und Dienstreisen
+// Erkennung von Wohnort, Alltagsorten, Urlauben, Ausfluegen, Dienstreisen und eigenen Kategorien
 const Analyze = (() => {
   const { distKm, dayKey, dayFromKey, addDays, daysBetween, isWeekend } = Util;
 
-  const KINDS = {
-    vac: 'Urlaub',
-    trip: 'Ausflug',
-    work: 'Dienstreise',
-    none: '– kein Ordner –',
-  };
+  // Arten von Ereignissen: eingebaute + eigene Kategorien (Einstellung customCats) + "kein Ordner"
+  const BUILTIN = [
+    { id: 'vac', label: 'Urlaub', plural: 'Urlaube', icon: 'i-vac', color: '#e8590c', folderKey: 'vacFolder', key: '1' },
+    { id: 'trip', label: 'Ausflug', plural: 'Ausflüge', icon: 'i-trip', color: '#2f9e44', folderKey: 'tripFolder', key: '2' },
+    { id: 'work', label: 'Dienstreise', plural: 'Dienstreisen', icon: 'i-work', color: '#1971c2', folderKey: 'workFolder', key: '3' },
+  ];
+  const NONE = { id: 'none', label: '– kein Ordner –', plural: 'Ohne Ordner', icon: 'i-none', color: '#868e96', key: '4' };
+  let current = [];
+
+  function kinds(s) {
+    const list = BUILTIN.map(k => ({ ...k, label: T(k.label), plural: T(k.plural), folder: s[k.folderKey] }));
+    (s.customCats || []).filter(c => c.on !== false).forEach((c, i) => list.push({
+      id: 'c:' + c.id, label: c.name || T('Kategorie {0}', i + 1), plural: c.name || T('Kategorie {0}', i + 1),
+      icon: 'i-tag', color: c.color || '#f08c00', folder: c.folder || c.name || 'Kategorie', custom: c, key: i < 5 ? String(i + 5) : '',
+    }));
+    list.push({ ...NONE, label: T(NONE.label), plural: T(NONE.plural), folder: '' });
+    return list;
+  }
+  const kind = id => current.find(k => k.id === id) || { ...NONE, id, label: id, folder: '' };
+
+  // Passt ein Ereignis zu einer eigenen Kategorie?
+  function matches(c, ev, zones) {
+    const num = v => v === '' || v == null || !Number.isFinite(+v) ? null : +v;
+    if (c.from && c.from !== 'any' && ev.kind !== c.from) return false;
+    const kmMin = num(c.kmMin), kmMax = num(c.kmMax), dMin = num(c.daysMin), dMax = num(c.daysMax), pMin = num(c.picsMin);
+    if (kmMin != null && ev.maxKm < kmMin) return false;
+    if (kmMax != null && ev.maxKm > kmMax) return false;
+    if (dMin != null && ev.days < dMin) return false;
+    if (dMax != null && ev.days > dMax) return false;
+    if (pMin != null && ev.items.length < pMin) return false;
+    if (c.week === 'weekend' && !ev.weekendDays) return false;
+    if (c.week === 'onlyweekend' && ev.weekendDays < ev.days) return false;
+    if (c.week === 'workdays' && ev.weekendDays) return false;
+    if (c.months && /0/.test(c.months)) {
+      // irgendein Tag des Ereignisses liegt in einem gewaehlten Monat
+      let hit = false;
+      for (let d = dayFromKey(dayKey(ev.start)), i = 0; i < ev.days && !hit; i++, d = addDays(d, 1)) hit = c.months[d.getMonth()] === '1';
+      if (!hit) return false;
+    }
+    if (c.zone) {
+      const z = zones.find(x => x.id === c.zone);
+      if (!z || ev.far.filter(p => distKm(z.lat, z.lon, p.lat, p.lon) <= z.r).length <= ev.far.length / 2) return false;
+    }
+    if (c.place && !ev.place.toLowerCase().includes(c.place.trim().toLowerCase())) return false;
+    const persons = (c.persons || '').split(',').map(x => x.trim().toLowerCase()).filter(Boolean);
+    if (persons.length && !ev.items.some(it => it.persons && [...it.persons].some(p => persons.includes(p.toLowerCase())))) return false;
+    return true;
+  }
+
+  // Kurzbeschreibung der Bedingungen fuer die Begruendung
+  function describe(c) {
+    const p = [];
+    if (c.from && c.from !== 'any') p.push(T('aus {0}', T(BUILTIN.find(b => b.id === c.from)?.plural || c.from)));
+    if (c.kmMin !== '' && c.kmMin != null) p.push(T('ab {0} km', c.kmMin));
+    if (c.kmMax !== '' && c.kmMax != null) p.push(T('bis {0} km', c.kmMax));
+    if (c.daysMin !== '' && c.daysMin != null) p.push(T('ab {0} Tage', c.daysMin));
+    if (c.daysMax !== '' && c.daysMax != null) p.push(T('bis {0} Tage', c.daysMax));
+    if (c.week && c.week !== 'any') p.push(T({ weekend: 'mit Wochenende', onlyweekend: 'nur Wochenende', workdays: 'nur Werktage' }[c.week]));
+    if (c.months && /0/.test(c.months)) p.push(T('Monate {0}', [...c.months].map((v, i) => v === '1' ? i + 1 : null).filter(Boolean).join(',')));
+    if (c.zone) p.push(T('in Zone'));
+    if (c.place) p.push(T('Ort enthält „{0}“', c.place));
+    if (c.persons) p.push(T('mit {0}', c.persons));
+    return p.join(', ');
+  }
 
   // Haeufigste 0.01-Grad-Zellen nach Anzahl verschiedener Tage
   function cells(pts) {
@@ -40,6 +98,7 @@ const Analyze = (() => {
   const zoneHit = (zones, p) => zones.find(z => distKm(z.lat, z.lon, p.lat, p.lon) <= z.r);
 
   function run(items, s, zones, overrides) {
+    current = kinds(s);
     const sorted = [...items].sort((a, b) => a.date - b.date);
     for (const it of sorted) { it.day = dayKey(it.date); it.event = null; it.near = false; it.dHome = null; }
     const gps = sorted.filter(i => i.hasGps);
@@ -89,8 +148,8 @@ const Analyze = (() => {
       ev.weekendDays = we;
       ev.perDay = members.length / ev.days;
       ev.reason = kind === 'vac'
-        ? `${ev.days} Tage, bis ${Math.round(ev.maxKm)} km von zu Hause`
-        : `${far.length} Bilder außerhalb, bis ${Math.round(ev.maxKm)} km von zu Hause`;
+        ? T('{0} Tage, bis {1} km von zu Hause', ev.days, Math.round(ev.maxKm))
+        : T('{0} Bilder außerhalb, bis {1} km von zu Hause', far.length, Math.round(ev.maxKm));
       for (const m of members) m.event = ev;
       events.push(ev);
     };
@@ -143,9 +202,9 @@ const Analyze = (() => {
     for (const ev of events) {
       const named = zoneHit(zones.filter(z => z.type === 'named' || z.type === 'work'), ev);
       const geo = s.geocode ? Geo.lookup(ev.lat, ev.lon) : null;
-      if (named && named.name) { ev.place = named.name; ev.placeSrc = 'Zone'; }
+      if (named && named.name) { ev.place = named.name; ev.placeSrc = T('Zone'); }
       else if (geo) { ev.place = Geo.format(geo, s); ev.placeSrc = 'OpenStreetMap'; }
-      else { ev.place = Util.fmtCoord(ev.lat, ev.lon); ev.placeSrc = 'Koordinaten'; }
+      else { ev.place = Util.fmtCoord(ev.lat, ev.lon); ev.placeSrc = T('Koordinaten'); }
     }
 
     // --- Dienstreisen ---
@@ -155,10 +214,10 @@ const Analyze = (() => {
         const inWork = ev.far.filter(p => zoneHit(workZones, p)).length > ev.far.length / 2;
         const byRule = ev.kind === 'vac' && s.workRuleEnabled &&
           (!s.workNoWeekend || ev.weekendDays === 0) && ev.perDay < s.workMaxPerDay;
-        if (inWork) { ev.kind = ev.autoKind = 'work'; ev.reason = 'liegt in einer Zone „Dienstort“'; ev.byZone = true; }
+        if (inWork) { ev.kind = ev.autoKind = 'work'; ev.reason = T('liegt in einer Zone „Dienstort“'); ev.byZone = true; }
         else if (byRule) {
           ev.kind = ev.autoKind = 'work';
-          ev.reason = `Regel: ${s.workNoWeekend ? 'nur Werktage, ' : ''}${ev.perDay.toFixed(1)} Bilder/Tag (Grenze ${s.workMaxPerDay})`;
+          ev.reason = T('Regel: {0}{1} Bilder/Tag (Grenze {2})', s.workNoWeekend ? T('nur Werktage, ') : '', ev.perDay.toFixed(1), s.workMaxPerDay);
         }
       }
       if (s.workSamePlace) {
@@ -166,18 +225,28 @@ const Analyze = (() => {
         for (const ev of events) {
           if (ev.kind === 'trip' && places.has(ev.place) && !isWeekend(ev.start)) {
             ev.kind = ev.autoKind = 'work';
-            ev.reason = 'Werktag am selben Ort wie andere Dienstreisen';
+            ev.reason = T('Werktag am selben Ort wie andere Dienstreisen');
           }
         }
       }
+    }
+
+    // --- Eigene Kategorien: die erste passende in der Reihenfolge der Liste gewinnt ---
+    const cats = current.filter(k => k.custom);
+    for (const ev of events) {
+      const k = cats.find(c => matches(c.custom, ev, zones));
+      if (!k) continue;
+      const why = describe(k.custom);
+      ev.kind = ev.autoKind = k.id;
+      ev.reason = T('Eigene Kategorie „{0}“', k.label) + (why ? ` (${why})` : '');
     }
 
     // --- Manuelle Aenderungen aus der Vorschau ---
     for (const ev of events) {
       const o = overrides.events?.[ev.id];
       if (!o) continue;
-      if (o.kind) ev.kind = o.kind;
-      if (o.name) { ev.place = o.name; ev.placeSrc = 'manuell'; }
+      if (o.kind && current.some(k => k.id === o.kind)) ev.kind = o.kind;  // geloeschte Kategorie: Vorschlag gilt
+      if (o.name) { ev.place = o.name; ev.placeSrc = T('manuell'); }
       ev.ok = !!o.ok;
     }
     for (const ev of events) if (ev.kind === 'none') for (const m of ev.items) m.event = null;
@@ -185,5 +254,5 @@ const Analyze = (() => {
     return { items: sorted, homes, autoDaily, events, withGps: gps.length };
   }
 
-  return { run, KINDS };
+  return { run, kinds, kind, get current() { return current; }, BUILTIN };
 })();
