@@ -14,6 +14,7 @@ Ziel/
     Ausflüge/05_Mai_Wien/…
     Dienstreisen/01_Jänner_Linz/…
     Personen/Anna/…                                ← optional, per Gesichtserkennung
+  _karte.html                                      ← interaktive Karte: Fotos nach Standort suchen
   _protokoll_2026-11-04_12-00-00.csv
 ```
 
@@ -44,6 +45,16 @@ Ein Klick auf ein Bild (Vorschaubild, Kartenpunkt, Datei im Ordnerbaum) öffnet 
 Mit dem **Filter** wird nur ein Teil sortiert: nach Zeitraum, Uhrzeit (auch über Mitternacht), Wochentagen, Foto/Video, GPS, Zone, Kamera oder Personen.
 
 Die Originale werden nur gelesen. Vorhandene Dateien im Ziel werden nie überschrieben, ein zweiter Lauf überspringt sie. Einstellungen, Zonen und Änderungen bleiben im Browser gespeichert und lassen sich als JSON exportieren.
+
+## Karte im Zielordner
+
+Nach dem Kopieren liegt im Ziel **`_karte.html`**, abschaltbar unter „Karte (_karte.html)“. Mit **Karte speichern** lässt sie sich auch ohne erneutes Kopieren schreiben.
+
+- Doppelklick öffnet sie in jedem Browser, auch offline und ohne dieses Programm.
+- Alle Fotos mit Standort sind Punkte auf der Karte. Rechts stehen die Fotos des sichtbaren Ausschnitts: hineinzoomen = nach Ort suchen.
+- Filter nach Jahr, Ereignis und Person. Ein Klick öffnet die Großansicht, `←`/`→` blättert.
+- Die Fotos werden direkt aus den sortierten Ordnern geladen. Vorschaubilder liegen im Ordner `_karte`. Die Karte funktioniert also nur, solange sie im Zielordner neben den Fotos liegt (der ganze Ordner darf aber verschoben oder auf eine Festplatte kopiert werden).
+- Der Kartenhintergrund (OpenStreetMap 🌐) lässt sich dort ein- und ausschalten.
 
 ## Eigene Kategorien
 

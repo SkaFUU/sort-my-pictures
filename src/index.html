@@ -133,8 +133,9 @@
         <div class="grp"><div class="gbody">
           <button class="big c-dest" id="btnDst"><svg class="ic"><use href="#i-dest"/></svg><span>Ziel wählen</span></button>
           <button class="big c-ok" id="btnCopy2" disabled><svg class="ic"><use href="#i-copy"/></svg><span>Kopieren</span></button>
+          <button class="big c-zone" id="btnMapExport" disabled title="Interaktive Karte mit allen kopierten Fotos ins Ziel schreiben (_karte.html)"><svg class="ic"><use href="#i-map"/></svg><span>Karte speichern</span></button>
         </div><div class="gcap">Ziel</div></div>
-        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="monthFolders,dupSkip,lowerExt"></div></div><div class="gcap">Struktur</div></div>
+        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="monthFolders,dupSkip,lowerExt,mapExport"></div></div><div class="gcap">Struktur</div></div>
         <div class="grp"><div class="gbody">
           <button class="big c-view" id="btnFilterReset" title="Alle Filter zurücksetzen"><svg class="ic"><use href="#i-filter"/></svg><span>Filter zurücksetzen</span></button>
         </div><div class="gcap">Filter <span id="filterBadge" class="badge-filter" hidden>aktiv</span></div></div>
@@ -241,7 +242,7 @@
         <div class="info" id="dstName">Noch kein Zielordner gewählt.</div>
         <ul class="muted">
           <li>Es wird nur kopiert. Vorhandene Dateien werden nie überschrieben, ein zweiter Lauf überspringt sie.</li>
-          <li data-i18n-html>Im Ziel entsteht ein Protokoll <i>_protokoll_….csv</i>.</li>
+          <li data-i18n-html>Im Ziel entsteht ein Protokoll <i>_protokoll_….csv</i> und eine Karte <i>_karte.html</i> zum Suchen nach Standort.</li>
         </ul>
         <div class="settings" data-sections="Ordner & Dateinamen,Filter,Sonderordner"></div>
       </div>
@@ -261,6 +262,7 @@
 </div>
 
   <script src="vendor/leaflet.js"></script>
+  <script src="vendor/leaflet-src.js"></script>
   <script src="vendor/exifr.js"></script>
   <script src="vendor/ort-wasm.js"></script>
   <script src="vendor/face-models.js"></script>
@@ -272,6 +274,7 @@
   <script src="js/analyze.js"></script>
   <script src="js/plan.js"></script>
   <script src="js/copy.js"></script>
+  <script src="js/mapexport.js"></script>
   <script src="js/map.js"></script>
   <script src="js/faces.js"></script>
   <script src="js/viewer.js"></script>

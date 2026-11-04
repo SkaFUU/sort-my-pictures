@@ -46,6 +46,8 @@ const Settings = (() => {
       { key: 'videoWord', label: 'Wort für {TYP} bei Videos', type: 'text', def: 'Videos' },
       { key: 'dupSkip', label: 'Duplikate überspringen', type: 'bool', def: true,
         help: 'Gleiche Dateigröße und gleiches Aufnahmedatum gilt als Duplikat.' },
+      { key: 'mapExport', label: 'Interaktive Karte ins Ziel schreiben', type: 'bool', def: true,
+        help: 'Nach dem Kopieren entsteht im Ziel _karte.html: Fotos nach Standort suchen, auch offline und ohne dieses Programm. Vorschaubilder kommen in den Ordner _karte.' },
     ]},
     { section: 'Wohnort', items: [
       { key: 'homeAuto', label: 'Automatisch erkennen', type: 'bool', def: true,

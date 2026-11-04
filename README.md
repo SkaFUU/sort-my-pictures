@@ -14,6 +14,7 @@ Target/
     Day trips/05_May_Vienna/…
     Business trips/01_January_Linz/…
     People/Anna/…                                    ← optional, via face recognition
+  _map.html                                        ← interactive map: find photos by location
   _log_2026-11-04_12-00-00.csv
 ```
 
@@ -44,6 +45,16 @@ Clicking a picture (thumbnail, map point, file in the folder tree) opens the **v
 With the **filter** only part of the pictures is sorted: by period, time of day (also across midnight), weekdays, photo/video, GPS, zone, camera or people.
 
 Originals are only read. Existing files in the target are never overwritten, a second run skips them. Settings, zones and changes are stored in the browser and can be exported as JSON.
+
+## Map in the target folder
+
+After copying, the target contains **`_map.html`** (can be switched off with “Map (_map.html)”). **Save map** writes it without copying again.
+
+- Double-click opens it in any browser, also offline and without this program.
+- All photos with a location are points on the map. On the right you see the photos of the visible area: zoom in = search by place.
+- Filter by year, event and person. A click opens the large view, `←`/`→` browse.
+- Photos are loaded directly from the sorted folders, thumbnails live in the folder `_map`. So the map only works while it stays in the target folder next to the photos (the whole folder may be moved or copied to another drive).
+- The map background (OpenStreetMap 🌐) can be switched on and off there.
 
 ## Custom categories
 

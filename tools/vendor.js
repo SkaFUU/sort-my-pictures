@@ -17,6 +17,13 @@ for (const [from, to] of files) {
   console.log(`${from} -> ${to}`);
 }
 
+// Leaflet zusaetzlich als Text: wird in die exportierte Karte (_karte.html im Ziel) eingebettet
+fs.writeFileSync(path.join(root, 'src/vendor/leaflet-src.js'),
+  '// Generiert von tools/vendor.js – Leaflet (BSD-2) als Text fuer die exportierte Karte\nconst LEAFLET_SRC = ' + JSON.stringify({
+    js: fs.readFileSync(path.join(root, 'node_modules/leaflet/dist/leaflet.js'), 'utf8'),
+    css: fs.readFileSync(path.join(root, 'node_modules/leaflet/dist/leaflet.css'), 'utf8'),
+  }) + ';\n');
+
 // ONNX Runtime Web (MIT): Skript direkt, die WebAssembly-Laufzeit gzip-komprimiert als Base64,
 // damit die HTML-Datei ohne Nachladen funktioniert (auch per file://)
 const zlib = require('zlib');

@@ -32,7 +32,7 @@
   function updateButtons() {
     const b = document.body.classList.contains('busy');
     $('#btnScan').disabled = b || !st.src;
-    $('#btnCopy').disabled = $('#btnCopy2').disabled = b || !st.plan || !st.plan.ops.length;
+    $('#btnCopy').disabled = $('#btnCopy2').disabled = $('#btnMapExport').disabled = b || !st.plan || !st.plan.ops.length;
     for (const id of ['#btnSrc', '#btnDst', '#btnFaces', '#btnGeocode']) $(id).disabled = b;
     document.querySelectorAll('[data-lang]').forEach(x => { x.disabled = b; });
     updateSteps();
@@ -101,7 +101,7 @@
   }
   const RIBBON_LABELS = { recursive: 'Unterordner', includePhotos: 'Fotos', includeVideos: 'Videos', geocode: 'Ortsnamen (OSM)',
     homeAuto: 'Wohnort automatisch', autoDaily: 'Alltagsorte automatisch', vacEnabled: 'Urlaube', tripEnabled: 'Ausflüge',
-    workEnabled: 'Dienstreisen', personFolders: 'Personenordner anlegen', monthFolders: 'Monatsordner', dupSkip: 'Duplikate überspringen', lowerExt: 'Endung klein' };
+    workEnabled: 'Dienstreisen', personFolders: 'Personenordner anlegen', monthFolders: 'Monatsordner', dupSkip: 'Duplikate überspringen', lowerExt: 'Endung klein', mapExport: 'Karte (_karte.html)' };
   const ribbonLabel = it => T(RIBBON_LABELS[it.key] || it.label);
 
   // Wert setzen und alle Eingaben dafuer (Seitenleiste + Ribbon) angleichen
@@ -434,8 +434,27 @@
       if (!r.aborted && !r.errors) st.copied = true;
       for (const l of r.log.filter(l => l.err).slice(0, 50)) log(`  ${l.quelle} → ${l.ziel}: ${l.status}`, 'err');
       status(msg);
+      if (!r.aborted && st.s.mapExport) await exportMap(new Set(r.log.filter(l => l.err).map(l => l.ziel)));
     } catch (e) { log(T('Fehler: {0}', e.message), 'err'); status(T('Fehler: {0}', e.message)); }
     finally { busy(false); }
+  }
+
+  // Interaktive Karte ins Ziel schreiben (nach dem Kopieren oder per Knopf)
+  async function exportMap(failed = new Set()) {
+    try {
+      const r = await MapExport.write(st.dst, st.plan, st.analysis, st.s, failed,
+        (n, total) => status(T('Schreibe Karte … {0} / {1} Vorschaubilder', n, total), n / total), st.abort?.signal);
+      if (r) { log(T('Karte gespeichert: „{0}“ im Ziel ({1} Fotos mit Standort) – per Doppelklick öffnen.', r.name, r.count)); status(T('Karte gespeichert: „{0}“ im Ziel ({1} Fotos mit Standort) – per Doppelklick öffnen.', r.name, r.count)); }
+    } catch (e) { log(T('Karte konnte nicht geschrieben werden: {0}', e.message), 'err'); }
+  }
+  async function saveMap() {
+    if (!st.plan) return;
+    if (!st.dst) { await pickDst(); if (!st.dst) return; }
+    if (!(await ensurePermission(st.dst, 'readwrite')) || !(await ensurePermission(st.src, 'read'))) return;
+    st.abort = new AbortController();
+    busy(true);
+    showLog(true);
+    try { await exportMap(); } finally { busy(false); }
   }
 
   function log(text, cls = '') {
@@ -811,6 +830,7 @@
     $('#btnDst').onclick = pickDst;
     $('#btnScan').onclick = scan;
     $('#btnCopy').onclick = $('#btnCopy2').onclick = copy;
+    $('#btnMapExport').onclick = saveMap;
     $('#btnCancel').onclick = () => st.abort?.abort();
     $('#btnAddZone').onclick = () => { showTab('orte'); MapView.setAddMode(!MapView.addMode); };
     $('#btnFit').onclick = () => MapView.fitAll(st.analysis);

@@ -53,7 +53,6 @@ const I18n = (() => {
     'Noch kein Zielordner gewählt.': 'No target folder chosen yet.',
     'Es wird nur kopiert. Vorhandene Dateien werden nie überschrieben, ein zweiter Lauf überspringt sie.':
       'Files are only copied. Existing files are never overwritten, a second run skips them.',
-    'Im Ziel entsteht ein Protokoll <i>_protokoll_….csv</i>.': 'A log <i>_log_….csv</i> is written to the target.',
     'Protokoll': 'Log', 'Protokoll anzeigen': 'Show log', 'Schließen': 'Close', 'Abbrechen': 'Cancel',
 
     // --- Status, Meldungen ---
@@ -172,6 +171,22 @@ const I18n = (() => {
     'Quelle: {0}\nDatum: {1} ({2})\nKlick: Bildansicht': 'Source: {0}\nDate: {1} ({2})\nClick: viewer',
     'Dateiname': 'File name', 'Dateiname (UTC)': 'File name (UTC)', 'Dateiname (nur Datum)': 'File name (date only)', 'Video-Metadaten': 'Video metadata',
     'Änderungsdatum': 'Modification date',
+
+    // --- Karte im Ziel (_karte.html) ---
+    '_karte': '_map', 'Fotos auf der Karte': 'Photos on the map', 'Alle Ereignisse': 'All events', 'Alle Personen': 'All people',
+    'Ohne Ereignis': 'No event', '{0} Fotos im Kartenausschnitt': '{0} photos in the map area', 'Kartenhintergrund (online)': 'Map background (online)',
+    'Datei öffnen': 'Open file', 'Nur die ersten {0} – näher hineinzoomen.': 'Only the first {0} – zoom in closer.',
+    'Erstellt mit Sort My Pictures am {0}': 'Created with Sort My Pictures on {0}',
+    'Im Ziel entsteht ein Protokoll <i>_protokoll_….csv</i> und eine Karte <i>_karte.html</i> zum Suchen nach Standort.':
+      'A log <i>_log_….csv</i> and a map <i>_map.html</i> for searching by location are written to the target.',
+    'Interaktive Karte ins Ziel schreiben': 'Write an interactive map to the target',
+    'Nach dem Kopieren entsteht im Ziel _karte.html: Fotos nach Standort suchen, auch offline und ohne dieses Programm. Vorschaubilder kommen in den Ordner _karte.':
+      'After copying, _map.html is created in the target: search photos by location, also offline and without this program. Thumbnails go into the folder _map.',
+    'Karte (_karte.html)': 'Map (_map.html)', 'Karte speichern': 'Save map',
+    'Interaktive Karte mit allen kopierten Fotos ins Ziel schreiben (_karte.html)': 'Write an interactive map with all copied photos to the target (_map.html)',
+    'Schreibe Karte … {0} / {1} Vorschaubilder': 'Writing map … {0} / {1} thumbnails',
+    'Karte gespeichert: „{0}“ im Ziel ({1} Fotos mit Standort) – per Doppelklick öffnen.': 'Map saved: “{0}” in the target ({1} photos with location) – open it with a double-click.',
+    'Karte konnte nicht geschrieben werden: {0}': 'The map could not be written: {0}',
 
     // --- Bildansicht ---
     'Vorheriges (←)': 'Previous (←)', 'Nächstes (→)': 'Next (→)', 'Schließen (Esc)': 'Close (Esc)', 'Alle Metadaten': 'All metadata',
