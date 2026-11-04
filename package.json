@@ -1,8 +1,8 @@
 {
-  "name": "fotosortierer",
+  "name": "sort-my-pictures",
   "version": "0.1.0",
   "private": true,
-  "description": "Fotos und Videos lokal nach Jahr, Monat, Urlauben, Ausflügen und Dienstreisen sortieren – eine HTML-Datei",
+  "description": "Sort photos and videos locally by year, month, holidays, day trips and business trips – a single HTML file",
   "scripts": {
     "build": "node tools/build-single.js",
     "vendor": "node tools/vendor.js"
@@ -16,5 +16,7 @@
     "exifr": "^7.1.3",
     "leaflet": "^1.9.4",
     "onnxruntime-web": "^1.31.1"
-  }
+  },
+  "license": "MIT",
+  "repository": "github:SkaFUU/sort-my-pictures"
 }

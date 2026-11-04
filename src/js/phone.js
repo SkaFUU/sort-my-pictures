@@ -31,7 +31,7 @@ const Phone = (() => {
     }
     onStatus?.(T('Am Handy „USB-Debugging zulassen?“ bestätigen …'));
     const transport = await WebAdb.AdbDaemonTransport.authenticate({
-      serial: dev.serial, connection, credentialStore: new WebAdb.AdbWebCredentialStore('Fotosortierer'),
+      serial: dev.serial, connection, credentialStore: new WebAdb.AdbWebCredentialStore('Fotosortierer')  /* Name bleibt, sonst muss das Handy neu erlaubt werden */,
     });
     adb = new WebAdb.Adb(transport);
     device = dev;

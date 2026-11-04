@@ -216,6 +216,26 @@ td .dot { margin-right:6px; }
 .pcard .face.auto img { outline:2px dashed var(--warn); outline-offset:-2px; }
 .pcard .face button { position:absolute; top:1px; right:1px; padding:0 4px; font-size:11px; line-height:16px; }
 .pcard .face button.ok { right:auto; left:1px; background:var(--tab); color:#000; }
+/* Drag & Drop, Auswahl, Fertig, Nicht zugeordnet */
+.pcard .face { cursor:grab; }
+.pcard .face button { opacity:0; transition:opacity .1s; }
+.pcard .face:hover button, .pcard.open .face button { opacity:1; }
+.pcard .face.sel img { outline:3px solid var(--acc); outline-offset:-3px; }
+.pcard.over, .chip.over { border-color:var(--tab); background:#2f3a33; box-shadow:0 0 0 2px var(--tab) inset; }
+body.dragging-faces .pcard, body.dragging-faces .chip { border-style:dashed; }
+.pcard-title { font-weight:600; margin-bottom:4px; }
+.ppl-sel { position:sticky; top:0; z-index:2; display:flex; align-items:center; gap:6px; padding:6px 8px; margin:0 0 8px; background:#3a2a2a; border:1px solid var(--acc); border-radius:8px; }
+.ppl-sel span { flex:1; }
+.ppl-sel button { padding:3px 8px; }
+.ppl-done { display:flex; flex-wrap:wrap; gap:6px; }
+.chip { display:flex; align-items:center; gap:6px; padding:3px 8px 3px 3px; border:1px solid var(--tab); border-radius:20px; background:var(--panel); cursor:pointer; }
+.chip img { width:26px; height:26px; border-radius:50%; object-fit:cover; }
+.chip span { color:var(--muted); font-size:12px; }
+.pcard-foot .done-btn { color:var(--tab); }
+.ppl-bottom { display:flex; gap:8px; align-items:stretch; margin-top:14px; }
+.pcard.unassigned { flex:1; width:auto; border-style:dashed; border-color:var(--warn); min-height:110px; }
+.pcard.newp { width:150px; align-items:center; justify-content:center; text-align:center; border-style:dashed; cursor:pointer; }
+.pcard.newp .big-plus { font-size:30px; line-height:1; color:var(--tab); }
 .pcard .hint { margin:4px 0 2px; }
 
 /* ---------- Eigene Kategorien ---------- */

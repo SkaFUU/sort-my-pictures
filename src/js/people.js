@@ -1,17 +1,81 @@
-// Personen-Tab: Gesichtsgruppen benennen, zusammenfuehren (gleicher Name), Fehler entfernen
+// Personen-Tab: Gesichtsgruppen benennen, zusammenfuehren (gleicher Name), Gesichter per Drag & Drop verschieben.
+// Besondere Namen: '#none' = "Nicht zugeordnet" (bleibt unten liegen, bis es zugewiesen wird), '#ignore' = kein Gesicht.
 const People = (() => {
   const { h } = Util;
   const $ = sel => document.querySelector(sel);
+  const DONE_KEY = 'fotosortierer.peopleDone';
   let app, expanded = null;
+  const sel = new Set();  // ausgewaehlte Gesichter (Strg/Umschalt + Klick)
+  let done = new Set();
+  try { done = new Set(JSON.parse(localStorage.getItem(DONE_KEY) || '[]')); } catch { /* leer */ }
+  const saveDone = () => localStorage.setItem(DONE_KEY, JSON.stringify([...done]));
 
   function init(appCtx) {
     app = appCtx;
     $('#btnFaces').onclick = () => app.scanFaces();
     $('#pplSmall').onchange = render;
+    $('#pplHideDone').checked = localStorage.getItem('fotosortierer.peopleHideDone') === '1';
+    $('#pplHideDone').onchange = e => { localStorage.setItem('fotosortierer.peopleHideDone', e.target.checked ? '1' : ''); render(); };
     $('#btnFacesReset').onclick = () => {
       if (!confirm(T('Alle Namen und Ausschlüsse der Gesichter löschen? (Die Erkennung selbst bleibt gespeichert.)'))) return;
+      done.clear(); saveDone();
       app.setFaceNames(Object.keys(app.st.faceNames), null);
     };
+    document.addEventListener('keydown', e => { if (e.key === 'Escape' && sel.size && app.tab === 'people') { sel.clear(); render(); } });
+  }
+
+  // Namen setzen und Auswahl leeren
+  const assign = (ids, name) => { sel.clear(); app.setFaceNames(ids, name); };
+  const askName = () => (prompt(T('Name der Person:')) || '').trim();
+
+  // Ziel fuer Drag & Drop: onDrop(ids) bekommt die gezogenen Gesichter
+  function dropTarget(el, onDrop) {
+    el.addEventListener('dragover', e => { if (e.dataTransfer.types.includes('application/x-faces')) { e.preventDefault(); el.classList.add('over'); } });
+    el.addEventListener('dragleave', e => { if (!el.contains(e.relatedTarget)) el.classList.remove('over'); });
+    el.addEventListener('drop', e => {
+      e.preventDefault();
+      el.classList.remove('over');
+      document.body.classList.remove('dragging-faces');
+      const ids = JSON.parse(e.dataTransfer.getData('application/x-faces') || '[]');
+      if (ids.length) onDrop(ids);
+    });
+    return el;
+  }
+
+  // Ein Gesicht: ziehen, Strg+Klick auswaehlen, Klick oeffnet die Bildansicht
+  function faceEl(f, list, { group = null, removeTo = '#none', small = false } = {}) {
+    const el = h('div', { class: 'face' + (f.auto && group?.name ? ' auto' : '') + (sel.has(f.id) ? ' sel' : '') + (small ? ' small' : ''), draggable: 'true' },
+      h('img', { src: f.crop, draggable: 'false',
+        title: f.item.name + (f.auto && group?.name ? ` (${T('automatisch zugeordnet')}, ${Math.round(f.sim * 100)} %)` : '') + '\n' + T('Ziehen zum Verschieben, Strg+Klick wählt mehrere aus') }),
+      small ? null : [
+        f.auto && group?.name ? h('button', { class: 'ok', title: T('Ja, das ist {0}', group.name), onclick: e => { e.stopPropagation(); assign([f.id], group.name); } }, '✓') : null,
+        h('button', { title: removeTo === '#ignore' ? T('Kein Gesicht / endgültig ausblenden') : T('Nicht diese Person – nach „Nicht zugeordnet“'),
+          onclick: e => { e.stopPropagation(); assign(sel.has(f.id) ? [...sel] : [f.id], removeTo); } }, '✕')]);
+    el.addEventListener('click', e => {
+      if (e.ctrlKey || e.metaKey || e.shiftKey) {
+        if (sel.has(f.id)) sel.delete(f.id); else sel.add(f.id);
+        el.classList.toggle('sel', sel.has(f.id));
+        updateSelInfo();
+        return;
+      }
+      const items = [...new Set(list.map(x => x.item))];
+      app.openViewer(items, items.indexOf(f.item));
+    });
+    el.addEventListener('dragstart', e => {
+      const ids = sel.has(f.id) ? [...sel] : [f.id];
+      e.dataTransfer.setData('application/x-faces', JSON.stringify(ids));
+      e.dataTransfer.effectAllowed = 'move';
+      document.body.classList.add('dragging-faces');
+    });
+    el.addEventListener('dragend', () => document.body.classList.remove('dragging-faces'));
+    return el;
+  }
+
+  function updateSelInfo() {
+    const el = $('#pplSel');
+    if (!el) return;
+    el.hidden = !sel.size;
+    el.querySelector('span').textContent = T('{0} Gesichter ausgewählt – ziehen oder:', sel.size);
   }
 
   function render() {
@@ -23,6 +87,7 @@ const People = (() => {
     if (!p && app.st.oldFaces) { info.textContent = T('Die Gesichtserkennung wurde verbessert (neues Modell). Bitte „Gesichter erkennen“ neu starten – vergebene Namen werden auf die neu gefundenen Gesichter übertragen.'); return; }
     if (!p) { info.textContent = T('Noch keine Gesichtserkennung für diesen Ordner. „Gesichter erkennen“ startet sie (lokal, nutzt alle Prozessorkerne, ca. 3–10 min für 5000 Fotos, kann jederzeit abgebrochen und fortgesetzt werden).'); return; }
     const named = p.groups.filter(g => g.name);
+    for (const n of [...done]) if (!named.some(g => g.name === n)) done.delete(n);
     const minG = app.st.s.faceMinGroup;
     const showSmall = $('#pplSmall').checked;
     const unnamed = p.groups.filter(g => !g.name && (showSmall || g.faces.length >= minG));
@@ -35,42 +100,73 @@ const People = (() => {
     dl.innerHTML = '';
     for (const g of named) dl.append(h('option', { value: g.name }));
 
-    if (named.length) box.append(h('h3', {}, T('Personen')));
-    for (const g of named) box.append(card(g));
+    // Auswahl-Leiste
+    box.append(h('div', { id: 'pplSel', class: 'ppl-sel', hidden: !sel.size },
+      h('span', {}), h('button', { onclick: () => { const n = askName(); if (n) assign([...sel], n); } }, T('Neue Person …')),
+      h('button', { onclick: () => assign([...sel], '#none') }, T('Nicht zugeordnet')),
+      h('button', { onclick: () => { sel.clear(); render(); } }, T('Auswahl aufheben'))));
+    updateSelInfo();
+
+    // Fertige Personen klein als Leiste (bleiben Ziel fuer Drag & Drop)
+    const fin = named.filter(g => done.has(g.name) && expanded !== g.id);
+    const open = named.filter(g => !fin.includes(g));
+    if (fin.length && !$('#pplHideDone').checked) {
+      box.append(h('h3', {}, T('Fertig')), h('div', { class: 'ppl-done' }, fin.map(g => dropTarget(h('div', { class: 'chip', title: T('Klick: wieder aufklappen · Gesichter hierher ziehen = {0}', g.name),
+        onclick: () => { done.delete(g.name); saveDone(); render(); } },
+        h('img', { src: g.faces.find(f => !f.auto)?.crop || g.faces[0].crop }), h('b', {}, g.name), h('span', {}, g.faces.length)), ids => assign(ids, g.name)))));
+    }
+
+    if (open.length) box.append(h('h3', {}, T('Personen')));
+    for (const g of open) box.append(card(g));
     if (unnamed.length) box.append(h('h3', {}, T('Unbenannt – Namen eintippen (gleicher Name = zusammenführen)')));
     for (const g of unnamed.slice(0, 200)) box.append(card(g));
     if (unnamed.length > 200) box.append(h('div', { class: 'hint' }, T('… und {0} weitere Gruppen', unnamed.length - 200)));
+
+    // Unten: Nicht zugeordnet + neue Person (beides Ziele fuer Drag & Drop)
+    const un = p.unassigned;
+    box.append(h('div', { class: 'ppl-bottom' },
+      dropTarget(h('div', { class: 'pcard unassigned' },
+        h('div', { class: 'pcard-title' }, T('Nicht zugeordnet ({0})', un.length),
+          h('span', { class: 'hint' }, ' ' + T('Hierher kommt, was du mit ✕ entfernst. Später auf eine Person ziehen.'))),
+        h('div', { class: 'faces' }, un.slice(0, 400).map(f => faceEl(f, un, { removeTo: '#ignore' }))),
+        un.length > 400 ? h('div', { class: 'hint' }, T('… und {0} weitere', un.length - 400)) : null), ids => assign(ids, '#none')),
+      dropTarget(h('div', { class: 'pcard newp', onclick: () => { if (sel.size) { const n = askName(); if (n) assign([...sel], n); } } },
+        h('div', { class: 'big-plus' }, '+'), h('div', {}, T('Neue Person')), h('div', { class: 'hint' }, T('Gesichter hierher ziehen'))),
+        ids => { const n = askName(); if (n) assign(ids, n); })));
   }
 
   function card(g) {
     const ids = g.faces.map(f => f.id);
     const isOpen = expanded === g.id;
-    const face = f => h('div', { class: 'face' + (f.auto && g.name ? ' auto' : '') },
-      h('img', { src: f.crop, title: `${f.item.name}${f.auto && g.name ? ` (${T('automatisch zugeordnet')}, ${Math.round(f.sim * 100)} %)` : ''}`,
-        onclick: () => { const items = [...new Set(g.faces.map(x => x.item))]; app.openViewer(items, items.indexOf(f.item)); } }),
-      isOpen && f.auto && g.name ? h('button', { class: 'ok', title: T('Ja, das ist {0}', g.name), onclick: () => app.setFaceNames([f.id], g.name) }, '✓') : null,
-      isOpen ? h('button', { title: T('Nicht diese Person / ignorieren'), onclick: () => app.setFaceNames([f.id], '#ignore') }, '✕') : null);
     let body;
     if (isOpen && g.name) {
       // Benannte Person: automatisch zugeordnete zum Bestaetigen, unsicherste zuerst
       const auto = g.faces.filter(f => f.auto).sort((a, b) => a.sim - b.sim);
       body = [
         auto.length ? h('div', { class: 'hint' }, T('{0} automatisch zugeordnet – unsicherste zuerst. ✓ bestätigt, ✕ entfernt.', auto.length)) : null,
-        auto.length ? h('div', { class: 'faces' }, auto.map(face)) : null,
+        auto.length ? h('div', { class: 'faces' }, auto.map(f => faceEl(f, g.faces, { group: g }))) : null,
         h('div', { class: 'hint' }, T('{0} bestätigt', g.faces.length - auto.length)),
-        h('div', { class: 'faces' }, g.faces.filter(f => !f.auto).map(face))];
-    } else body = h('div', { class: 'faces' }, (isOpen ? g.faces : g.faces.slice(0, 8)).map(face));
+        h('div', { class: 'faces' }, g.faces.filter(f => !f.auto).map(f => faceEl(f, g.faces, { group: g })))];
+    } else body = h('div', { class: 'faces' }, (isOpen ? g.faces : g.faces.slice(0, 8)).map(f => faceEl(f, g.faces, { group: g })));
     const items = () => [...new Set(g.faces.map(f => f.item))].sort((a, b) => a.date - b.date);
     const autoCount = g.name ? g.faces.filter(f => f.auto).length : 0;
-    return h('div', { class: 'pcard' + (isOpen ? ' open' : '') + (g.name ? ' named' : '') },
+    const el = h('div', { class: 'pcard' + (isOpen ? ' open' : '') + (g.name ? ' named' : '') },
       body,
       h('div', { class: 'pcard-foot' },
         h('input', { type: 'text', list: 'personNames', value: g.name || '', placeholder: T('Name …'),
-          onchange: e => app.setFaceNames(ids, e.target.value.trim() || null) }),
+          onchange: e => { const n = e.target.value.trim(); if (g.name && done.has(g.name)) { done.delete(g.name); if (n) done.add(n); saveDone(); } app.setFaceNames(ids, n || null); } }),
         h('span', { class: 'hint' }, T('{0} Gesichter · {1} Fotos', g.faces.length, g.photos) + (autoCount ? T(' · {0} zu prüfen', autoCount) : '')),
         h('button', { onclick: () => app.openViewer(items(), 0) }, T('Fotos')),
         h('button', { onclick: () => { expanded = isOpen ? null : g.id; render(); } }, isOpen ? T('Weniger') : g.name && autoCount ? T('Prüfen') : T('Alle')),
-        h('button', { title: T('Diese Gruppe ignorieren (keine Person)'), onclick: () => app.setFaceNames(ids, '#ignore') }, T('Ignorieren'))));
+        g.name ? h('button', { class: 'done-btn', title: T('Mit dieser Person fertig: klein oben ablegen. Automatisch zugeordnete Gesichter werden dabei bestätigt.'),
+          onclick: () => { done.add(g.name); saveDone(); if (expanded === g.id) expanded = null; if (autoCount) assign(g.faces.filter(f => f.auto).map(f => f.id), g.name); else render(); } }, '✓ ' + T('Fertig'))
+          : h('button', { title: T('Diese Gruppe ignorieren (keine Person)'), onclick: () => assign(ids, '#ignore') }, T('Ignorieren'))));
+    // Gesichter auf eine Gruppe ziehen: benannt = dieser Person zuordnen, unbenannt = Gruppe zuerst benennen
+    return dropTarget(el, dropIds => {
+      if (g.name) return assign(dropIds, g.name);
+      const n = askName();
+      if (n) assign([...new Set([...ids, ...dropIds])], n);
+    });
   }
 
   return { init, render };

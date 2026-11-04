@@ -52,7 +52,7 @@ for (const m of html.replace(/<[^>]+>/g, '\n').split('\n')) add(m.replace(/&amp;
 
 // Kennungen, Pfade und Woerter, die in beiden Sprachen gleich sind
 const SAME = ['EXIF', 'PXL_', 'DE', 'EN', 'English', 'Deutsch', 'Enter', 'WhatsApp', 'DCIM', 'DCIM/Camera', 'Movies', 'Pictures',
-  'Android/media/com.whatsapp/WhatsApp/Media', 'Filter', 'optional', 'Zone',
+  'Android/media/com.whatsapp/WhatsApp/Media', 'Filter', 'optional', 'Zone', 'Sort My Pictures',
   'vac', 'trip', 'work', 'none', 'any', 'weekend', 'onlyweekend', 'workdays'];
 for (const k of [...keys]) if (SAME.includes(k) || /^(#|i-)/.test(k)) keys.delete(k);
 

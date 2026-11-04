@@ -3,7 +3,6 @@
 const I18n = (() => {
   const EN = {
     // --- Oberflaeche: Register, Ribbon, Seitenleiste ---
-    'Fotosortierer': 'Photo Sorter',
     'Quelle': 'Source', 'Orte': 'Places', 'Ereignisse': 'Events', 'Prüfen': 'Review', 'Personen': 'People', 'Ziel & Kopieren': 'Target & copy',
     'Kopieren': 'Copy', 'Alle geplanten Kopien in den Zielordner schreiben': 'Write all planned copies to the target folder',
     'Ordner wählen': 'Choose folder', 'Handy (USB)': 'Phone (USB)', 'Einlesen': 'Scan', 'Dateien und Metadaten einlesen': 'Read files and metadata',
@@ -97,7 +96,7 @@ const I18n = (() => {
     'Auf die Karte klicken, um die Zone zu setzen.': 'Click on the map to place the zone.',
     'Keine Bilder mit GPS – Urlaube und Ausflüge können nicht erkannt werden.': 'No pictures with GPS – holidays and day trips cannot be detected.',
     'Handy getrennt – zum Fortsetzen wieder anstecken und erneut starten.': 'Phone disconnected – plug it in again and restart to continue.',
-    'Datei ungültig: {0}': 'Invalid file: {0}', 'fotosortierer-einstellungen.json': 'photo-sorter-settings.json',
+    'Datei ungültig: {0}': 'Invalid file: {0}',
     'Alle Einstellungen auf Standard zurücksetzen? (Zonen, eigene Kategorien und manuelle Änderungen bleiben)': 'Reset all settings to defaults? (Zones, custom categories and manual changes are kept)',
     'Alle manuellen Änderungen in der Ereignisliste verwerfen?': 'Discard all manual changes in the event list?',
 
@@ -153,9 +152,21 @@ const I18n = (() => {
     '{0} Gesichter · {1} Personen benannt · {2} unbenannte Gruppen': '{0} faces · {1} people named · {2} unnamed groups',
     '({0} kleine ausgeblendet)': '({0} small ones hidden)', '· {0} ignoriert': '· {0} ignored',
     'Unbenannt – Namen eintippen (gleicher Name = zusammenführen)': 'Unnamed – type names (same name = merge)', '… und {0} weitere Gruppen': '… and {0} more groups',
-    'automatisch zugeordnet': 'assigned automatically', 'Ja, das ist {0}': 'Yes, this is {0}', 'Nicht diese Person / ignorieren': 'Not this person / ignore',
+    'automatisch zugeordnet': 'assigned automatically', 'Ja, das ist {0}': 'Yes, this is {0}',
     '{0} automatisch zugeordnet – unsicherste zuerst. ✓ bestätigt, ✕ entfernt.': '{0} assigned automatically – least certain first. ✓ confirms, ✕ removes.',
     '{0} bestätigt': '{0} confirmed', 'Name …': 'Name …', '{0} Gesichter · {1} Fotos': '{0} faces · {1} photos', '· {0} zu prüfen': '· {0} to review',
+    'Auswahl aufheben': 'Clear selection', 'Gesichter hierher ziehen': 'Drag faces here',
+    'Gesichter mit der Maus auf eine andere Person ziehen. Strg+Klick wählt mehrere aus.': 'Drag faces onto another person with the mouse. Ctrl+click selects several.',
+    'Hierher kommt, was du mit ✕ entfernst. Später auf eine Person ziehen.': 'Whatever you remove with ✕ ends up here. Drag it onto a person later.',
+    'Kein Gesicht / endgültig ausblenden': 'Not a face / hide for good',
+    'Klick: wieder aufklappen · Gesichter hierher ziehen = {0}': 'Click: expand again · drag faces here = {0}',
+    'Mit dieser Person fertig: klein oben ablegen. Automatisch zugeordnete Gesichter werden dabei bestätigt.': 'Done with this person: put it small at the top. Automatically assigned faces are confirmed.',
+    'Mit ✕ entfernte Gesichter landen unten in „Nicht zugeordnet“ und lassen sich später zuweisen.': 'Faces removed with ✕ go to “Unassigned” at the bottom and can be assigned later.',
+    'Name der Person:': 'Name of the person:', 'Neue Person': 'New person', 'Neue Person …': 'New person …',
+    'Nicht diese Person – nach „Nicht zugeordnet“': 'Not this person – move to “Unassigned”', 'Nicht zugeordnet': 'Unassigned', 'Nicht zugeordnet ({0})': 'Unassigned ({0})',
+    'Ziehen zum Verschieben, Strg+Klick wählt mehrere aus': 'Drag to move, Ctrl+click selects several', 'fertige Personen ausblenden': 'hide finished people',
+    '{0} Gesichter ausgewählt – ziehen oder:': '{0} faces selected – drag them or:',
+    '„Fertig“ legt eine Person klein oben ab – sie bleibt Ziel zum Hineinziehen.': '“Done” puts a person small at the top – you can still drag faces onto it.',
     'Fotos': 'Photos', 'Weniger': 'Less', 'Diese Gruppe ignorieren (keine Person)': 'Ignore this group (not a person)', 'Ignorieren': 'Ignore',
 
     // --- Ziel / Vorschau ---

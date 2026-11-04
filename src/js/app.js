@@ -482,7 +482,7 @@
   }
   const faceName = (it, i) => {
     const n = st.faceNames[`${it.path}#${i}`];
-    if (n && n !== '#ignore') return n;
+    if (n && !n.startsWith('#')) return n;
     const g = st.people?.groups.find(g => g.name && g.faces.some(f => f.id === `${it.path}#${i}`));
     return g ? g.name + ' ?' : '';
   };
@@ -762,7 +762,7 @@
   // ---------------- Export / Import ----------------
   function exportConfig() {
     const blob = new Blob([JSON.stringify({ settings: st.s, zones: st.zones, overrides: st.overrides, faceNames: st.faceNames }, null, 2)], { type: 'application/json' });
-    const a = h('a', { href: URL.createObjectURL(blob), download: T('fotosortierer-einstellungen.json') });
+    const a = h('a', { href: URL.createObjectURL(blob), download: 'sort-my-pictures-settings.json' });
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
   }
@@ -808,7 +808,7 @@
   }
   function applyLang() {
     I18n.translateDom(document.body);
-    document.title = T('Fotosortierer');
+    document.title = 'Sort My Pictures';
     document.querySelectorAll('[data-lang]').forEach(b => b.classList.toggle('on', b.dataset.lang === I18n.lang));
     addNextButtons();
     buildSettings();

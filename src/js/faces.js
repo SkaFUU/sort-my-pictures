@@ -312,7 +312,7 @@ const Faces = (() => {
 
     for (const f of all) {
       const n = names[f.id];
-      if (!n || n === '#ignore') continue;
+      if (!n || n.startsWith('#')) continue;  // '#ignore' = kein Gesicht, '#none' = nicht zugeordnet
       if (!byName.has(n)) byName.set(n, newGroup(n));
       byName.get(n).fixed.push(f);
     }
@@ -348,7 +348,8 @@ const Faces = (() => {
         byItem.get(f.item.id).add(g.name);
       }
     }
-    return { groups, byItem, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length };
+    const unassigned = all.filter(f => names[f.id] === '#none').map(f => ({ ...f, auto: false }));
+    return { groups, byItem, unassigned, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length };
   }
 
   // Gesichter eines Bildes (fuer die Bildansicht)

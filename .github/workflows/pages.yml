@@ -1,0 +1,36 @@
+# Baut die einzelne HTML-Datei und veroeffentlicht sie auf GitHub Pages:
+#   https://skafuu.github.io/sort-my-pictures/                         (direkt im Browser benutzen)
+#   https://skafuu.github.io/sort-my-pictures/sort-my-pictures.html    (zum Herunterladen, offline)
+name: Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # nur Node, keine Pakete noetig: src/vendor ist eingecheckt
+      - run: node tools/build-single.js _site/index.html
+      - run: cp _site/index.html _site/sort-my-pictures.html
+      - uses: actions/upload-pages-artifact@v3
+      - id: deployment
+        uses: actions/deploy-pages@v4

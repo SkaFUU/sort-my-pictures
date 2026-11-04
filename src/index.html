@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fotosortierer</title>
+  <title>Sort My Pictures</title>
   <link rel="stylesheet" href="vendor/leaflet.css">
   <link rel="stylesheet" href="css/app.css">
 </head>
@@ -43,7 +43,7 @@
   <header>
     <div id="qat">
       <span class="logo"><svg class="ic"><use href="#i-logo"/></svg></span>
-      <span id="docTitle">Fotosortierer <span class="fld" id="srcName"></span></span>
+      <span id="docTitle" data-noi18n>Sort My Pictures <span class="fld" id="srcName"></span></span>
       <button id="btnCopy" class="qbtn primary" disabled title="Alle geplanten Kopien in den Zielordner schreiben"><svg class="ic"><use href="#i-copy"/></svg><span class="qtxt">Kopieren</span></button>
       <span class="grow"></span>
       <span id="netState" class="net offline"></span>
@@ -126,6 +126,7 @@
         </div><div class="gcap">Erkennung (lokal)</div></div>
         <div class="grp"><div class="gbody"><div class="gchecks">
           <label class="check"><input id="pplSmall" type="checkbox"> kleine Gruppen zeigen</label>
+          <label class="check"><input id="pplHideDone" type="checkbox"> fertige Personen ausblenden</label>
         </div></div><div class="gcap">Anzeigen</div></div>
         <div class="grp"><div class="gbody"><div class="gchecks" data-checks="personFolders"></div></div><div class="gcap">Ordner</div></div>
       </div>
@@ -231,6 +232,9 @@
           <li>Läuft komplett lokal, es wird nichts hochgeladen. Nutzt alle Prozessorkerne.</li>
           <li>Namen eintippen – gleicher Name führt Gruppen zusammen.</li>
           <li>„Prüfen“ zeigt automatisch zugeordnete Gesichter, unsicherste zuerst: ✓ bestätigt, ✕ entfernt Fehltreffer.</li>
+          <li>Gesichter mit der Maus auf eine andere Person ziehen. Strg+Klick wählt mehrere aus.</li>
+          <li>Mit ✕ entfernte Gesichter landen unten in „Nicht zugeordnet“ und lassen sich später zuweisen.</li>
+          <li>„Fertig“ legt eine Person klein oben ab – sie bleibt Ziel zum Hineinziehen.</li>
           <li>Kann jederzeit abgebrochen werden, ein neuer Start setzt fort.</li>
         </ul>
         <div class="settings" data-sections="Personen"></div>

@@ -1,10 +1,10 @@
 // Baut aus src/index.html eine einzelne, eigenstaendige HTML-Datei.
-// Aufruf: node tools/build-single.js [ziel.html]   (Standard: dist/fotosortierer.html)
+// Aufruf: node tools/build-single.js [ziel.html]   (Standard: dist/sort-my-pictures.html)
 const fs = require('fs');
 const path = require('path');
 
 const src = path.join(__dirname, '..', 'src');
-const target = path.resolve(process.argv[2] || path.join(__dirname, '..', 'dist', 'fotosortierer.html'));
+const target = path.resolve(process.argv[2] || path.join(__dirname, '..', 'dist', 'sort-my-pictures.html'));
 
 let html = fs.readFileSync(path.join(src, 'index.html'), 'utf8');
 

@@ -1,130 +1,146 @@
-# Fotosortierer
+# Sort My Pictures
 
-Sortiert Fotos und Videos lokal in eine Ordnerstruktur nach Jahr und Monat. Zusätzlich erkennt es anhand der GPS-Daten Urlaube, Ausflüge und Dienstreisen. Es ist eine einzige HTML-Datei, die ohne Installation im Browser läuft.
+**English** | [Deutsch](README.de.md)
+
+**➜ Open it directly in your browser: https://skafuu.github.io/sort-my-pictures/**
+
+Sorts photos and videos locally into folders by year and month. It also uses the GPS data to detect holidays, day trips, business trips and your own custom categories. It is a single HTML file that runs in the browser without installation. Your photos never leave your computer.
 
 ```
-Ziel/
+Target/
   2023/
-    06_Juni/21_14-32-08.jpg                        ← alle Bilder und Videos
-    Urlaube/06_Juni_Italien_Caorle/20_10-32-32.jpg  ← zusätzlich als Kopie
-    Ausflüge/05_Mai_Wien/…
-    Dienstreisen/01_Jänner_Seekirchen am Wallersee/…
-  _protokoll_2026-11-04_12-00-00.csv
+    06_June/21_14-32-08.jpg                          ← all pictures and videos
+    Holidays/06_June_Italy_Lignano/20_10-32-32.jpg   ← additionally as a copy
+    Day trips/05_May_Vienna/…
+    Business trips/01_January_Linz/…
+    People/Anna/…                                    ← optional, via face recognition
+  _log_2026-11-04_12-00-00.csv
 ```
 
-## Benutzung
+## Usage
 
-Öffne `fotosortierer.html` in **Chrome, Edge, Brave oder Opera**. Firefox und Safari können keine lokalen Ordner schreiben.
+Open **https://skafuu.github.io/sort-my-pictures/** in **Chrome, Edge, Brave or Opera**. Firefox and Safari cannot write to local folders.
 
-Die Oberfläche führt Schritt für Schritt durch die Register von links nach rechts:
+- Only the page itself is loaded. Folders, photos and results stay on your computer, nothing is uploaded.
+- To use it without internet: download [sort-my-pictures.html](https://skafuu.github.io/sort-my-pictures/sort-my-pictures.html) (right-click → Save as) and open it with a double-click.
 
-- Jedes Register hat oben ein Ribbon mit den Aktionen und rechts eine Seitenleiste mit den zugehörigen Einstellungen.
-- **Weiter** führt zum nächsten Schritt.
-- Erledigte Schritte bekommen ein ✓.
+The interface guides you step by step through the tabs from left to right:
 
-1. **Quelle:** Wähle einen Ordner oder **Handy (USB)** und klicke auf **Einlesen**. Aufnahmedatum und GPS kommen aus EXIF bzw. aus den MP4/MOV-Metadaten.
-2. **Orte:** Lege auf der Karte Zonen an (Zuhause, Alltagsort, Dienstort, Benannter Ort). Optional holst du dir hier Ortsnamen und den Kartenhintergrund von OpenStreetMap (🌐).
-3. **Ereignisse:** Ändere Art und Ortsname je Ereignis. Ein Klick auf eine Zeile zeigt die Bilder, dort lassen sich einzelne Bilder herausnehmen. Hier legst du auch **eigene Kategorien** an (siehe unten).
-4. **Prüfen:** Klicke die Ereignisse nacheinander durch, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `5`–`9` deine eigenen Kategorien. `Enter` übernimmt den Vorschlag, `←`/`→` blättert.
-5. **Personen** (optional): Lass die Gesichter erkennen und benenne die Gruppen (gleicher Name = zusammenführen). **Prüfen** bei einer Person zeigt die automatisch zugeordneten Gesichter, die unsichersten zuerst: ✓ bestätigt, ✕ entfernt Fehltreffer.
-6. **Ziel & Kopieren:** Lege Ordnerstruktur, Dateinamen und Filter fest und prüfe den Ordnerbaum. Dann wählst du das **Ziel** und klickst **Kopieren**.
+- Each tab has a ribbon with the actions at the top and a side panel with its settings on the right.
+- **Next** takes you to the next step.
+- Finished steps get a ✓.
 
-Oben rechts schaltest du mit **DE | EN** die Sprache um (wie im AOG Feldeditor). Beim ersten Start richtet sie sich nach dem Browser. Ordnernamen, die du nicht geändert hast, werden mit umgestellt (Urlaube → Holidays).
+1. **Source:** Choose a folder or **Phone (USB)** and click **Scan**. Date taken and GPS come from EXIF or from the MP4/MOV metadata.
+2. **Places:** Add zones on the map (Home, Everyday place, Work place, Named place). Optionally get place names and the map background from OpenStreetMap (🌐).
+3. **Events:** Change type and place name per event. Clicking a row shows its pictures, where you can take single pictures out. This is also where you create **custom categories** (see below).
+4. **Review:** Go through the events one by one, uncertain ones first. Keys `1`–`4` choose holiday, day trip, business trip or no folder, `5`–`9` your custom categories. `Enter` accepts the suggestion, `←`/`→` browse.
+5. **People** (optional): Detect faces and name the groups, see [Face recognition](#face-recognition).
+6. **Target & copy:** Set folder structure, file names and filters, check the folder tree. Then choose the **target** and click **Copy**.
 
-## Eigene Kategorien
+Switch the language with **DE | EN** at the top right. On first start it follows the browser language. Folder names you have not changed are switched too (Urlaube → Holidays).
 
-Neben Urlaub, Ausflug und Dienstreise kannst du eigene Kategorien mit eigenen Regeln und eigenem Ordner anlegen: **3 Ereignisse → Neue Kategorie** oder in der Seitenleiste unter **Eigene Kategorien**, auch aus Vorlagen (Fernreise, Wochenendtrip, Skiurlaub, Sommerurlaub, Wanderungen).
+Clicking a picture (thumbnail, map point, file in the folder tree) opens the **viewer**. It shows the large picture with face boxes, info, target paths, a mini map and all metadata. `←`/`→` browse, `Esc` closes.
 
-Eine Kategorie übernimmt erkannte Ereignisse, die zu allen ihren Bedingungen passen. Leere Felder bedeuten „egal“.
+With the **filter** only part of the pictures is sorted: by period, time of day (also across midnight), weekdays, photo/video, GPS, zone, camera or people.
 
-| Bedingung | Beispiel |
+Originals are only read. Existing files in the target are never overwritten, a second run skips them. Settings, zones and changes are stored in the browser and can be exported as JSON.
+
+## Custom categories
+
+Besides holiday, day trip and business trip you can create your own categories with their own rules and folder: **3 Events → New category** or in the side panel under **Custom categories**, also from templates (long-haul trip, weekend trip, ski holiday, summer holiday, hikes).
+
+A category takes over detected events that match all of its conditions. Empty fields mean “any”.
+
+| Condition | Example |
 |---|---|
-| Gilt für | nur Urlaube, nur Ausflüge, nur Dienstreisen oder alle |
-| Entfernung von zu Hause | ab 800 km |
-| Dauer | 2–3 Tage |
-| Mindestens Bilder | 20 |
-| Wochentage | mit Wochenende, nur am Wochenende, nur Werktage |
-| Monate | Dezember–März |
-| Zone | in einer Zone von der Karte |
-| Ort enthält | „Italien“ |
-| Personen | auf den Fotos ist „Anna“ |
+| Applies to | holidays only, day trips only, business trips only, or all |
+| Distance from home | from 800 km |
+| Duration | 2–3 days |
+| At least pictures | 20 |
+| Weekdays | with weekend, only at the weekend, workdays only |
+| Months | December–March |
+| Zone | inside a zone from the map |
+| Place contains | “Italy” |
+| People | “Anna” is on the photos |
 
-Die Reihenfolge der Liste zählt: Die erste passende Kategorie gewinnt, mit ▲▼ verschiebst du sie. Im Ordner-Muster steht die Kategorie als `{KAT}`, ihre Farbe erscheint auf der Karte.
+The order of the list matters: the first matching category wins, move them with ▲▼. In the folder pattern the category is `{CAT}`, its colour shows on the map.
 
-## Direkt vom Handy (USB)
+## Face recognition
 
-Mit **📱 Handy** liest der Fotosortierer Fotos direkt von einem Android-Handy, ohne sie vorher auf den PC zu übertragen. Die Verbindung läuft über ADB per WebUSB (ya-webadb). Das ist lokal zwischen Browser und Handy, es geht nichts ins Internet. Auf dem Handy wird nichts verändert, es wird nur gelesen.
+It runs completely locally in the browser, using ONNX Runtime Web and two models from the OpenCV Model Zoo:
 
-1. Am Handy die Entwickleroptionen freischalten: **Einstellungen → Über das Telefon** → 7× auf **Build-Nummer** tippen.
-2. **Einstellungen → System → Entwickleroptionen → USB-Debugging** einschalten.
-3. Das Handy anstecken, **📱 Handy → Verbinden** klicken, das Gerät auswählen und am Handy „USB-Debugging zulassen?“ bestätigen.
-4. Einen Ordner wählen, z. B. **Kamera** (`DCIM/Camera`) oder WhatsApp.
+- **YuNet** (MIT) finds the faces and five landmarks (eyes, nose, mouth corners), which are used to align each face.
+- **SFace** (Apache 2.0) computes 128 features from it for recognition.
 
-Für die Metadaten wird nur der Anfang jeder Datei gelesen, das geht schnell. Die Gesichtserkennung, die Bildansicht und das Kopieren holen die ganze Datei. Versteckte Dateien und der Android-Papierkorb (`.trashed-…`) werden übersprungen.
+Runtime and models are embedded in the HTML file, which is why it is about 19 MB.
 
-- Wenn adb, Android Studio oder scrcpy läuft, ist das Gerät belegt. Dann vorher `adb kill-server` ausführen.
-- iPhones werden nicht unterstützt, und über WLAN geht es nicht, weil Browser keine direkten Netzwerkverbindungen erlauben.
-- Nach dem Sortieren am besten USB-Debugging wieder ausschalten.
+- Detection runs in several web workers in parallel, one per CPU core. On a 6-core PC that is about 0.04 s per photo, so 3–4 minutes for 5000 photos.
+- It can be cancelled at any time. Starting again continues where it stopped, results are stored in the browser.
+- “Similarity” in the settings controls how strictly faces are grouped. If people get mixed up, set a smaller value. If one person is spread over many groups, a larger one.
+- Small children who change a lot over the years are often mixed up.
 
-Ein Klick auf ein Bild (Vorschaubild, Kartenpunkt, Datei im Ordnerbaum) öffnet die **Bildansicht**. Sie zeigt das große Bild mit Gesichtsrahmen, Infos, Zielpfaden, eine Mini-Karte und alle Metadaten. `←`/`→` blättert, `Esc` schließt.
+Editing groups:
 
-Mit dem **Filter** (oben in den Einstellungen) wird nur ein Teil sortiert: nach Zeitraum, Uhrzeit (auch über Mitternacht), Wochentagen, Foto/Video, GPS, Zone, Kamera oder Personen.
+- **Type a name** to name a group. Same name = merge groups.
+- **Drag and drop:** drag faces onto another person with the mouse. Ctrl+click selects several. Dropping onto an unnamed group asks for a name, dropping onto **New person** creates one.
+- **✕** removes a face from the person. It goes to **Unassigned** at the bottom and can be assigned later.
+- **Review** shows a person’s automatically assigned faces, least certain first: ✓ confirms.
+- **✓ Done** puts a person small at the top to keep the overview clear. You can still drag faces onto it. “Hide finished people” hides them completely.
 
-## Gesichtserkennung
+## Directly from the phone (USB)
 
-Sie läuft komplett lokal im Browser, mit ONNX Runtime Web und zwei Modellen aus dem OpenCV Model Zoo:
+**Phone (USB)** reads photos directly from an Android phone without transferring them to the PC first. The connection uses ADB over WebUSB (ya-webadb), locally between browser and phone. Nothing is changed on the phone.
 
-- **YuNet** (MIT) findet die Gesichter und fünf Merkpunkte (Augen, Nase, Mundwinkel). Damit wird jedes Gesicht gerade ausgerichtet.
-- **SFace** (Apache 2.0) berechnet daraus 128 Merkmale zum Wiedererkennen.
+1. Enable the developer options on the phone: **Settings → About phone** → tap **Build number** 7 times.
+2. Switch on **Settings → System → Developer options → USB debugging**.
+3. Connect the phone, click **Phone (USB) → Connect**, choose the device and confirm “Allow USB debugging?” on the phone.
+4. Choose a folder, e.g. **Camera** (`DCIM/Camera`) or WhatsApp.
 
-Laufzeit und Modelle sind in der HTML-Datei eingebettet, deshalb ist sie ca. 19 MB groß. Es wird nichts nachgeladen.
+- If adb, Android Studio or scrcpy is running, the device is busy. Run `adb kill-server` first.
+- iPhones are not supported. Wi-Fi does not work because browsers do not allow direct network connections.
+- Switch USB debugging off again after sorting.
 
-- Die Erkennung läuft in mehreren Web Workern gleichzeitig, einer je Prozessorkern. Auf einem 6-Kern-Rechner sind es etwa 0,04 s pro Foto, bei 5000 Fotos also 3–4 Minuten.
-- Der Lauf kann jederzeit abgebrochen werden. Ein neuer Start setzt dort fort, und die Ergebnisse bleiben im Browser gespeichert.
-- Benannte Gesichter bilden feste Gruppen. Neue Gesichter werden der ähnlichsten Gruppe zugeordnet (gestrichelt = automatisch). Gute, frontale Gesichter werden zuerst eingeordnet, danach wird in zwei Runden nachsortiert.
-- Die „Ähnlichkeit“ in den Einstellungen steuert, wie streng gruppiert wird. Werden Personen vermischt, stellst du einen kleineren Wert ein. Wird eine Person auf viele Gruppen verteilt, einen größeren.
-- Kleine Kinder, die sich über die Jahre stark verändern, werden auch mit diesem Modell oft vermischt.
-- Ergebnisse der früheren Erkennung (face-api) werden nicht weiterverwendet. Beim neuen Lauf werden vergebene Namen auf die Gesichter an derselben Stelle übertragen.
+## Local and online
 
-Die Originale werden nur gelesen. Vorhandene Dateien im Ziel werden nie überschrieben, ein zweiter Lauf überspringt sie. Einstellungen, Zonen und Änderungen bleiben im Browser gespeichert und lassen sich als JSON exportieren.
+By default everything runs **offline**. Two features use the internet. They are marked with 🌐 and off by default:
 
-## Lokal und online
-
-Standardmäßig läuft alles **offline**. Zwei Funktionen nutzen das Internet. Sie sind in der Oberfläche mit 🌐 gekennzeichnet und standardmäßig aus:
-
-| Funktion | Dienst | Was gesendet wird |
+| Feature | Service | What is sent |
 |---|---|---|
-| Ortsnamen | nominatim.openstreetmap.org | ein Koordinatenpunkt pro Ereignis (max. 1/s, Ergebnis wird lokal gespeichert) |
-| Kartenhintergrund | tile.openstreetmap.org | Kartenausschnitt (welche Kacheln angezeigt werden) |
+| Place names | nominatim.openstreetmap.org | one coordinate point per event (max. 1/s, result stored locally) |
+| Map background | tile.openstreetmap.org | the map area shown (which tiles are displayed) |
 
-Ohne Ortsnamen bekommen Ordner die Koordinaten (`47.39N_13.72E`) oder den Namen einer Zone. Zonen vom Typ „Benannter Ort“ sind damit eine reine Offline-Alternative.
+Without place names, folders get the coordinates (`47.39N_13.72E`) or the name of a zone. Zones of type “Named place” are a purely offline alternative.
 
-## Erkennung
+## Detection
 
-- **Wohnort:** Ort mit den meisten Aufnahmetagen, oder Zonen vom Typ „Zuhause“.
-- **Alltagsorte:** Orte in der Nähe, die an vielen Tagen vorkommen (Arbeit, Familie). Sie zählen nie als Ausflug.
-- **Urlaub:** zusammenhängende Tage weiter weg als die Mindestentfernung. Lücken ohne Fotos sind erlaubt, solange an diesen Tagen kein Foto nahe zu Hause entstand.
-- **Ausflug:** ein Tag mit mindestens N Bildern außerhalb des Umkreises von zu Hause.
-- **Dienstreise:** Fahrt in eine Zone „Dienstort“, oder mehrtägige Fahrt nur an Werktagen mit wenigen Bildern pro Tag. Einzeltage am selben Ort zählen auch.
+- **Home:** the place with the most days with pictures, or zones of type “Home”.
+- **Everyday places:** nearby places that occur on many days (work, family). They never count as day trips.
+- **Holiday:** consecutive days farther away than the minimum distance. Gaps without photos are allowed as long as no photo was taken near home on those days.
+- **Day trip:** a day with at least N pictures outside the radius around home.
+- **Business trip:** a trip into a “Work place” zone, or a trip of several days on workdays only with few pictures per day. Single days at the same place count too.
 
-## Entwicklung
-
-```
-src/index.html        Oberfläche
-src/js/*.js           Logik (metadata, analyze, plan, copy, map, app …)
-src/js/i18n.js        Sprache: Texte stehen deutsch im Code (T('…')), englische Übersetzungen hier
-src/vendor/           Leaflet (BSD-2), exifr (MIT), onnxruntime-web (MIT), YuNet (MIT), SFace (Apache 2.0), ya-webadb (MIT), eingebettet
-tools/adb-entry.js    Einstieg für das ADB-Bundle (esbuild -> src/vendor/webadb.js)
-tools/build-single.js baut dist/fotosortierer.html (alles in einer Datei)
-tools/vendor.js       aktualisiert src/vendor aus node_modules, lädt die Gesichtsmodelle einmal aus dem OpenCV Model Zoo
-tools/i18n-check.js   prüft, ob jeder deutsche Text eine englische Übersetzung hat
-```
+## Development
 
 ```
-npm install          # nur zum Aktualisieren der Bibliotheken nötig
-npm run vendor       # src/vendor neu erzeugen
+src/index.html        user interface
+src/js/*.js           logic (metadata, analyze, plan, copy, map, faces, people, app …)
+src/js/i18n.js        language: texts are German in the code (T('…')), English translations here
+src/vendor/           Leaflet (BSD-2), exifr (MIT), onnxruntime-web (MIT), YuNet (MIT), SFace (Apache 2.0), ya-webadb (MIT), embedded
+tools/build-single.js builds dist/sort-my-pictures.html (everything in one file)
+tools/vendor.js       updates src/vendor from node_modules, downloads the face models once from the OpenCV Model Zoo
+tools/i18n-check.js   checks that every German text has an English translation
+tools/adb-entry.js    entry point for the ADB bundle (esbuild -> src/vendor/webadb.js)
+```
+
+```
+npm install          # only needed to update the libraries
+npm run vendor       # regenerate src/vendor
 node tools/i18n-check.js
-npm run build        # -> dist/fotosortierer.html
+npm run build        # -> dist/sort-my-pictures.html
 ```
 
-`src/index.html` lässt sich zum Entwickeln auch direkt öffnen.
+`src/index.html` can also be opened directly for development. Every push to `main` rebuilds the page with GitHub Actions and publishes it on GitHub Pages.
+
+## License
+
+MIT, see [LICENSE](LICENSE). The embedded libraries and models have their own licenses, see `src/vendor/LICENSE-*`.
