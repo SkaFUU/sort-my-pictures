@@ -28,6 +28,14 @@ const People = (() => {
     keyOfFace = next;
     return [...groups].sort((a, b) => rankOf.get(a.key) - rankOf.get(b.key));
   }
+  // Ist name auf dem Foto des Gesichts schon? -> { mark, title } mit der zweitbesten Person (oder null)
+  function taken(name, f) {
+    const p = app.st.people;
+    if (!p.taken(name, f)) return null;
+    const alt = p.altFor(name, f);
+    return alt ? { mark: alt + '?', title: T('{0} ist auf diesem Foto schon – passt am zweitbesten zu {1}, wird {1} zugeordnet', name, alt) }
+      : { mark: '≠', title: T('{0} ist auf diesem Foto schon – wird nicht {0} zugeordnet', name) };
+  }
   // Gesichter nach Aufnahmedatum, mit der Jahreszahl als Trenner zwischen den Jahren
   function byYear(faces, make) {
     const out = [];
@@ -199,10 +207,10 @@ const People = (() => {
   function faceEl(f, list, { group = null, removeTo = '#none', small = false } = {}) {
     order.push(f.id);
     // unbenannte Gruppe mit Vorschlag: Gesichter auf Fotos, auf denen die vorgeschlagene Person schon ist, markieren
-    const blk = group && !group.name && group.suggest && app.st.people.taken(group.suggest.name, f);
-    const el = h('div', { class: 'face' + (f.auto && group?.name ? ' auto' : '') + (sel.has(f.id) ? ' sel' : '') + (small ? ' small' : '') + (blk ? ' blk' : ''), draggable: 'true', 'data-id': f.id },
+    const blk = group && !group.name && group.suggest ? taken(group.suggest.name, f) : null;
+    const el = h('div', { class: 'face' + (f.auto && group?.name ? ' auto' : '') + (sel.has(f.id) ? ' sel' : '') + (small ? ' small' : '') + (blk ? ' blk' : ''), draggable: 'true', 'data-id': f.id, 'data-alt': blk?.mark },
       h('img', { src: f.crop, draggable: 'false',
-        title: f.item.name + (blk ? '\n' + T('{0} ist auf diesem Foto schon – wird nicht {0} zugeordnet', group.suggest.name) : '') + (f.auto && group?.name ? ` (${T('automatisch zugeordnet')}, ${Math.round(f.sim * 100)} %)` : '') + '\n' +
+        title: f.item.name + (blk ? '\n' + blk.title : '') + (f.auto && group?.name ? ` (${T('automatisch zugeordnet')}, ${Math.round(f.sim * 100)} %)` : '') + '\n' +
           T('Strg+Klick: auswählen · Umschalt+Klick: Bereich · auf freier Fläche ziehen: Rahmen · Rechtsklick: Namen zuweisen') }),
       small ? null : [
         f.auto && group?.name ? h('button', { class: 'ok', title: T('Ja, das ist {0}', group.name), onclick: e => { e.stopPropagation(); assign([f.id], group.name); } }, '✓') : null,
@@ -349,5 +357,5 @@ const People = (() => {
     });
   }
 
-  return { init, render, byYear };
+  return { init, render, byYear, taken };
 })();

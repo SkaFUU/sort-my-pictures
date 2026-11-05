@@ -494,14 +494,21 @@ const Faces = (() => {
     const present = new Map();
     for (const g of groups) if (g.name) present.set(g.name, new Map(g.fixed.concat(g.members).map(f => [f.item.id, f.id])));
     const taken = (name, f) => blocked(name, f) || (present.get(name)?.has(f.item.id) && present.get(name).get(f.item.id) !== f.id);
-    // Aenderungen, wenn Gesichter einer Gruppe der Person name gegeben werden: wo sie schon bestaetigt ist = sicher
-    // nicht sie ('!name'), wo sie automatisch schon an einem anderen Gesicht haengt = offen lassen
+    // zweitbeste Person fuer ein Gesicht, wenn name auf dem Foto schon vorkommt (nur wenn sie dort noch frei ist)
+    const altFor = (name, f) => {
+      let b = null, bs = minSim - 0.12;
+      for (const k of known) { if (k.name === name || taken(k.name, f)) continue; const s = score(f.d, k); if (s > bs) { bs = s; b = k.name; } }
+      return b;
+    };
+    // Aenderungen, wenn Gesichter einer Gruppe der Person name gegeben werden. Ist sie auf dem Foto schon,
+    // bekommt das Gesicht die zweitbeste Person; gibt es keine: bestaetigt = sicher nicht sie ('!name'), sonst offen lassen
     const assignTo = (faces, name, skip = new Set()) => {
       const ch = {}, real = name && name[0] !== '#';
       for (const f of faces) {
-        if (real && blocked(name, f)) ch[f.id] = '!' + name;
-        else if (skip.has(f.id)) { if (real) ch[f.id] = '!' + name; }
-        else if (!(real && taken(name, f))) ch[f.id] = name;
+        if (skip.has(f.id)) { if (real) ch[f.id] = '!' + name; continue; }
+        if (!real || !taken(name, f)) { ch[f.id] = name; continue; }
+        const a = altFor(name, f);
+        if (a) ch[f.id] = a; else if (blocked(name, f)) ch[f.id] = '!' + name;
       }
       return ch;
     };
@@ -532,7 +539,7 @@ const Faces = (() => {
       }
     }
     const unassigned = all.filter(f => names[f.id] === '#none').map(f => ({ ...f, auto: false }));
-    return { groups, byItem, unassigned, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length, minSim, score, blocked, taken, assignTo,
+    return { groups, byItem, unassigned, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length, minSim, score, blocked, taken, altFor, assignTo,
       sig: [threshold, months, lib ? Object.keys(lib).length : -1].join() };
   }
 

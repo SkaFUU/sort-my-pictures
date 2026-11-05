@@ -150,6 +150,7 @@ const I18n = (() => {
     'Unbenannt – Namen eintippen (gleicher Name = zusammenführen)': 'Unnamed – type names (same name = merge)', '… und {0} weitere Gruppen': '… and {0} more groups',
     'automatisch zugeordnet': 'assigned automatically', 'Ja, das ist {0}': 'Yes, this is {0}',
     '{0} automatisch zugeordnet – ✓ bestätigt, ✕ entfernt.': '{0} assigned automatically – ✓ confirms, ✕ removes.',
+    '{0} ist auf diesem Foto schon – passt am zweitbesten zu {1}, wird {1} zugeordnet': '{0} is already on this photo – second best match is {1}, will be assigned to {1}',
     '{0} ist auf diesem Foto schon – wird nicht {0} zugeordnet': '{0} is already on this photo – will not be assigned to {0}',
     '{0} bestätigt': '{0} confirmed', 'Name …': 'Name …', '{0} Gesichter · {1} Fotos': '{0} faces · {1} photos', '· {0} zu prüfen': '· {0} to review',
     'Auswahl aufheben': 'Clear selection', 'Gesichter hierher ziehen': 'Drag faces here',

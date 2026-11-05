@@ -7,7 +7,7 @@ const MapView = (() => {
   const ZONE_LABELS = { home: 'Zuhause', ignore: 'Alltagsort (kein Ausflug)', work: 'Dienstort', named: 'Benannter Ort' };
   const ZONE_TYPES = new Proxy(ZONE_LABELS, { get: (o, k) => (k in o ? T(o[k]) : undefined) });
 
-  let map, tiles, pointLayer, overlayLayer, zoneLayer, addMode = false, cb = {};
+  let map, tiles, pointLayer, overlayLayer, zoneLayer, pointCanvas = null, addMode = false, cb = {};
 
   function init(el, callbacks) {
     cb = callbacks;
@@ -21,6 +21,9 @@ const MapView = (() => {
       cb.onAddZone?.(e.latlng.lat, e.latlng.lng);
     });
   }
+
+  // eine gemeinsame Zeichenflaeche fuer Punkte, Kreise und Zonen (nicht bei jedem Neuberechnen eine weitere)
+  const renderer = () => (pointCanvas ||= L.canvas({ padding: 0.3 }));
 
   function setTiles(on) {
     if (on && !tiles) {
@@ -40,22 +43,13 @@ const MapView = (() => {
   function render(analysis, zones) {
     pointLayer.clearLayers(); overlayLayer.clearLayers();
     if (!analysis) return;
-    const canvas = L.canvas({ padding: 0.3 });
-    for (const it of analysis.items) {
-      if (!it.hasGps) continue;
-      const kind = it.event ? it.event.kind : (it.near ? 'home' : 'other');
-      L.circleMarker([it.lat, it.lon], {
-        renderer: canvas, radius: it.event ? 4 : 3, weight: 0, fillOpacity: it.event ? 0.8 : 0.35, fillColor: color(kind),
-      }).bindTooltip(`${Util.escapeHtml(it.name)}<br>${Util.fmtDateTime(it.date)}${it.event ? '<br><b>' + Util.escapeHtml(it.event.place) + '</b>' : ''}`)
-        .on('click', () => cb.onPointClick?.(it))
-        .addTo(pointLayer);
-    }
+    const canvas = renderer();
     for (const h of analysis.homes.filter(h => h.auto)) {
-      L.circle([h.lat, h.lon], { radius: h.r * 1000, color: COLORS.home, weight: 2, fill: false, dashArray: '6 4' })
+      L.circle([h.lat, h.lon], { renderer: canvas, radius: h.r * 1000, color: COLORS.home, weight: 2, fill: false, dashArray: '6 4' })
         .bindTooltip(T('Wohnort (automatisch, {0} Tage)', h.days)).addTo(overlayLayer);
     }
     for (const d of analysis.autoDaily) {
-      L.circle([d.lat, d.lon], { radius: d.r * 1000, color: ZONE_COLORS.ignore, weight: 2, fillOpacity: 0.1, dashArray: '4 4' })
+      L.circle([d.lat, d.lon], { renderer: canvas, radius: d.r * 1000, color: ZONE_COLORS.ignore, weight: 2, fillOpacity: 0.1, dashArray: '4 4' })
         .bindPopup(() => {
           const div = document.createElement('div');
           div.innerHTML = `<b>${T('Alltagsort (automatisch)')}</b><br>${T('{0} Tage', d.days)}<br>`;
@@ -67,13 +61,23 @@ const MapView = (() => {
         }).addTo(overlayLayer);
     }
     renderZones(zones);
+    // Punkte zuletzt: auf der gemeinsamen Zeichenflaeche liegen sie damit oben und bleiben anklickbar
+    for (const it of analysis.items) {
+      if (!it.hasGps) continue;
+      const kind = it.event ? it.event.kind : (it.near ? 'home' : 'other');
+      L.circleMarker([it.lat, it.lon], {
+        renderer: canvas, radius: it.event ? 4 : 3, weight: 0, fillOpacity: it.event ? 0.8 : 0.35, fillColor: color(kind),
+      }).bindTooltip(`${Util.escapeHtml(it.name)}<br>${Util.fmtDateTime(it.date)}${it.event ? '<br><b>' + Util.escapeHtml(it.event.place) + '</b>' : ''}`)
+        .on('click', () => cb.onPointClick?.(it))
+        .addTo(pointLayer);
+    }
   }
 
   function renderZones(zones) {
     zoneLayer.clearLayers();
     for (const z of zones) {
       const color = ZONE_COLORS[z.type];
-      const circle = L.circle([z.lat, z.lon], { radius: z.r * 1000, color, weight: 2, fillOpacity: 0.12 })
+      const circle = L.circle([z.lat, z.lon], { renderer: renderer(), radius: z.r * 1000, color, weight: 2, fillOpacity: 0.12 })
         .bindTooltip(`${Util.escapeHtml(z.name || ZONE_TYPES[z.type])} (${ZONE_TYPES[z.type]})`).addTo(zoneLayer);
       const handle = L.marker([z.lat, z.lon], {
         draggable: true,
@@ -83,6 +87,7 @@ const MapView = (() => {
       handle.on('dragend', e => { const p = e.target.getLatLng(); cb.onZoneMoved?.(z, p.lat, p.lng); });
       handle.on('click', () => cb.onZoneClick?.(z));
     }
+    pointLayer.eachLayer(l => l.bringToFront());  // Punkte wieder nach oben
   }
 
   function fitAll(analysis) {
