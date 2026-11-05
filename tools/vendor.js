@@ -17,7 +17,7 @@ for (const [from, to] of files) {
   console.log(`${from} -> ${to}`);
 }
 
-// Leaflet zusaetzlich als Text: wird in die exportierte Karte (_karte.html im Ziel) eingebettet
+// Leaflet zusaetzlich als Text: wird in die exportierte Fotoübersicht (_fotos.html) eingebettet
 fs.writeFileSync(path.join(root, 'src/vendor/leaflet-src.js'),
   '// Generiert von tools/vendor.js – Leaflet (BSD-2) als Text fuer die exportierte Karte\nconst LEAFLET_SRC = ' + JSON.stringify({
     js: fs.readFileSync(path.join(root, 'node_modules/leaflet/dist/leaflet.js'), 'utf8'),

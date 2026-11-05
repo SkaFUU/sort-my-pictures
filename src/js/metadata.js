@@ -2,6 +2,7 @@
 const Meta = (() => {
   const PHOTO = ['jpg', 'jpeg', 'heic', 'heif', 'png', 'tif', 'tiff', 'dng', 'webp'];
   const VIDEO = ['mp4', 'mov', 'm4v', '3gp'];
+  const SKIP_DIRS = ['_fotos', '_photos', '_karte', '_map'];
 
   // Ordner rekursiv auflisten
   async function listFiles(dirHandle, { recursive, exts }, onProgress) {
@@ -9,7 +10,8 @@ const Meta = (() => {
     async function walk(dir, prefix) {
       for await (const [name, h] of dir.entries()) {
         if (h.kind === 'directory') {
-          if (recursive) await walk(h, prefix + name + '/');
+          // eigene Vorschaubilder der Fotoübersicht nicht mit einlesen
+          if (recursive && !SKIP_DIRS.includes(name)) await walk(h, prefix + name + '/');
           continue;
         }
         const ext = name.includes('.') ? name.split('.').pop().toLowerCase() : '';

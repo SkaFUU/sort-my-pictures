@@ -172,21 +172,31 @@ const I18n = (() => {
     'Dateiname': 'File name', 'Dateiname (UTC)': 'File name (UTC)', 'Dateiname (nur Datum)': 'File name (date only)', 'Video-Metadaten': 'Video metadata',
     'Änderungsdatum': 'Modification date',
 
-    // --- Karte im Ziel (_karte.html) ---
-    '_karte': '_map', 'Fotos auf der Karte': 'Photos on the map', 'Alle Ereignisse': 'All events', 'Alle Personen': 'All people',
+    // --- Fotoübersicht (_fotos.html) ---
+    '_fotos': '_photos', 'Fotoübersicht': 'Photo overview', 'Alle Ereignisse': 'All events', 'Alle Personen': 'All people',
     'Ohne Ereignis': 'No event', '{0} Fotos im Kartenausschnitt': '{0} photos in the map area', 'Kartenhintergrund (online)': 'Map background (online)',
     'Datei öffnen': 'Open file', 'Nur die ersten {0} – näher hineinzoomen.': 'Only the first {0} – zoom in closer.',
     'Erstellt mit Sort My Pictures am {0}': 'Created with Sort My Pictures on {0}',
-    'Im Ziel entsteht ein Protokoll <i>_protokoll_….csv</i> und eine Karte <i>_karte.html</i> zum Suchen nach Standort.':
-      'A log <i>_log_….csv</i> and a map <i>_map.html</i> for searching by location are written to the target.',
-    'Interaktive Karte ins Ziel schreiben': 'Write an interactive map to the target',
-    'Nach dem Kopieren entsteht im Ziel _karte.html: Fotos nach Standort suchen, auch offline und ohne dieses Programm. Vorschaubilder kommen in den Ordner _karte.':
-      'After copying, _map.html is created in the target: search photos by location, also offline and without this program. Thumbnails go into the folder _map.',
-    'Karte (_karte.html)': 'Map (_map.html)', 'Karte speichern': 'Save map',
-    'Interaktive Karte mit allen kopierten Fotos ins Ziel schreiben (_karte.html)': 'Write an interactive map with all copied photos to the target (_map.html)',
-    'Schreibe Karte … {0} / {1} Vorschaubilder': 'Writing map … {0} / {1} thumbnails',
-    'Karte gespeichert: „{0}“ im Ziel ({1} Fotos mit Standort) – per Doppelklick öffnen.': 'Map saved: “{0}” in the target ({1} photos with location) – open it with a double-click.',
-    'Karte konnte nicht geschrieben werden: {0}': 'The map could not be written: {0}',
+    'Ordner': 'Folders', '{0} Dateien': '{0} files', 'Verweist auf die Originale – nichts wurde kopiert.': 'Links to the originals – nothing was copied.',
+    'Datei nicht gefunden – wurde das Original verschoben oder gelöscht?': 'File not found – was the original moved or deleted?',
+    'Im Ziel entsteht ein Protokoll <i>_protokoll_….csv</i> und eine Fotoübersicht <i>_fotos.html</i> (Karte + Ordner) zum Suchen nach Standort.':
+      'A log <i>_log_….csv</i> and a photo overview <i>_photos.html</i> (map + folders) for searching by location are written to the target.',
+    '<b>Verzeichnis ohne Kopieren</b> schreibt nur die Fotoübersicht mit Links auf die Originale – kein Speicherplatz doppelt belegt.':
+      '<b>Index without copying</b> writes only the photo overview with links to the originals – no storage used twice.',
+    'Fotoübersicht ins Ziel schreiben': 'Write a photo overview to the target',
+    'Nach dem Kopieren entsteht im Ziel _fotos.html: Karte und Ordner zum Durchsuchen, auch offline und ohne dieses Programm. Vorschaubilder kommen in den Ordner _fotos.':
+      'After copying, _photos.html is created in the target: map and folders to browse, also offline and without this program. Thumbnails go into the folder _photos.',
+    'Fotoübersicht (_fotos.html)': 'Photo overview (_photos.html)', 'Übersicht speichern': 'Save overview',
+    'Fotoübersicht (Karte + Ordner) mit den kopierten Fotos ins Ziel schreiben, ohne erneut zu kopieren': 'Write the photo overview (map + folders) of the copied photos to the target without copying again',
+    'Verzeichnis ohne Kopieren': 'Index without copying', 'Nur Links': 'Links only',
+    'Nichts kopieren: nur eine Fotoübersicht (Karte + Ordner) schreiben, die direkt auf die Originale verlinkt': 'Copy nothing: only write a photo overview (map + folders) that links directly to the originals',
+    'Verzeichnis ohne Kopieren:\n\nEs wird nichts kopiert oder verschoben. Es entsteht nur „{0}“ (Karte + Ordnerübersicht) mit Links auf die Originale und kleinen Vorschaubildern im Ordner „{1}“.\n\nIm nächsten Fenster den Ordner wählen, in den die Übersicht kommt – am einfachsten der Quellordner selbst.':
+      'Index without copying:\n\nNothing is copied or moved. Only “{0}” (map + folder overview) is written, with links to the originals and small thumbnails in the folder “{1}”.\n\nIn the next window choose the folder for the overview – the easiest is the source folder itself.',
+    'Der gewählte Ordner liegt nicht neben der Quelle „{0}“.\nDamit die Links funktionieren, bitte den vollständigen Pfad der Quelle eingeben (aus der Adresszeile des Explorers kopieren):':
+      'The chosen folder is not next to the source “{0}”.\nFor the links to work, please enter the full path of the source (copy it from the Explorer address bar):',
+    'Schreibe Fotoübersicht … {0} / {1} Vorschaubilder': 'Writing photo overview … {0} / {1} thumbnails',
+    'Fotoübersicht gespeichert: „{0}“ in „{1}“ ({2} Dateien, {3} mit Standort) – per Doppelklick öffnen.': 'Photo overview saved: “{0}” in “{1}” ({2} files, {3} with location) – open it with a double-click.',
+    'Fotoübersicht konnte nicht geschrieben werden: {0}': 'The photo overview could not be written: {0}',
 
     // --- Bildansicht ---
     'Vorheriges (←)': 'Previous (←)', 'Nächstes (→)': 'Next (→)', 'Schließen (Esc)': 'Close (Esc)', 'Alle Metadaten': 'All metadata',

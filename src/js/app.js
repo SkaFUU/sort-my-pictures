@@ -32,7 +32,7 @@
   function updateButtons() {
     const b = document.body.classList.contains('busy');
     $('#btnScan').disabled = b || !st.src;
-    $('#btnCopy').disabled = $('#btnCopy2').disabled = $('#btnMapExport').disabled = b || !st.plan || !st.plan.ops.length;
+    $('#btnCopy').disabled = $('#btnCopy2').disabled = $('#btnMapExport').disabled = $('#btnIndex').disabled = b || !st.plan || !st.plan.ops.length;
     for (const id of ['#btnSrc', '#btnDst', '#btnFaces', '#btnGeocode']) $(id).disabled = b;
     document.querySelectorAll('[data-lang]').forEach(x => { x.disabled = b; });
     updateSteps();
@@ -101,7 +101,7 @@
   }
   const RIBBON_LABELS = { recursive: 'Unterordner', includePhotos: 'Fotos', includeVideos: 'Videos', geocode: 'Ortsnamen (OSM)',
     homeAuto: 'Wohnort automatisch', autoDaily: 'Alltagsorte automatisch', vacEnabled: 'Urlaube', tripEnabled: 'Ausflüge',
-    workEnabled: 'Dienstreisen', personFolders: 'Personenordner anlegen', monthFolders: 'Monatsordner', dupSkip: 'Duplikate überspringen', lowerExt: 'Endung klein', mapExport: 'Karte (_karte.html)' };
+    workEnabled: 'Dienstreisen', personFolders: 'Personenordner anlegen', monthFolders: 'Monatsordner', dupSkip: 'Duplikate überspringen', lowerExt: 'Endung klein', mapExport: 'Fotoübersicht (_fotos.html)' };
   const ribbonLabel = it => T(RIBBON_LABELS[it.key] || it.label);
 
   // Wert setzen und alle Eingaben dafuer (Seitenleiste + Ribbon) angleichen
@@ -434,18 +434,21 @@
       if (!r.aborted && !r.errors) st.copied = true;
       for (const l of r.log.filter(l => l.err).slice(0, 50)) log(`  ${l.quelle} → ${l.ziel}: ${l.status}`, 'err');
       status(msg);
-      if (!r.aborted && st.s.mapExport) await exportMap(new Set(r.log.filter(l => l.err).map(l => l.ziel)));
+      if (!r.aborted && st.s.mapExport) await exportMap(st.dst, { failed: new Set(r.log.filter(l => l.err).map(l => l.ziel)) });
     } catch (e) { log(T('Fehler: {0}', e.message), 'err'); status(T('Fehler: {0}', e.message)); }
     finally { busy(false); }
   }
 
-  // Interaktive Karte ins Ziel schreiben (nach dem Kopieren oder per Knopf)
-  async function exportMap(failed = new Set()) {
+  // Fotoübersicht (Karte + Ordner) schreiben: nach dem Kopieren ins Ziel oder ohne Kopieren mit Links auf die Originale
+  async function exportMap(dir = st.dst, opts = {}) {
     try {
-      const r = await MapExport.write(st.dst, st.plan, st.analysis, st.s, failed,
-        (n, total) => status(T('Schreibe Karte … {0} / {1} Vorschaubilder', n, total), n / total), st.abort?.signal);
-      if (r) { log(T('Karte gespeichert: „{0}“ im Ziel ({1} Fotos mit Standort) – per Doppelklick öffnen.', r.name, r.count)); status(T('Karte gespeichert: „{0}“ im Ziel ({1} Fotos mit Standort) – per Doppelklick öffnen.', r.name, r.count)); }
-    } catch (e) { log(T('Karte konnte nicht geschrieben werden: {0}', e.message), 'err'); }
+      const r = await MapExport.write(dir, st.plan, st.analysis, st.s, opts,
+        (n, total) => status(T('Schreibe Fotoübersicht … {0} / {1} Vorschaubilder', n, total), n / total), st.abort?.signal);
+      if (r) {
+        const msg = T('Fotoübersicht gespeichert: „{0}“ in „{1}“ ({2} Dateien, {3} mit Standort) – per Doppelklick öffnen.', r.name, dir.name, r.count, r.gps);
+        log(msg); status(msg);
+      }
+    } catch (e) { log(T('Fotoübersicht konnte nicht geschrieben werden: {0}', e.message), 'err'); }
   }
   async function saveMap() {
     if (!st.plan) return;
@@ -455,6 +458,40 @@
     busy(true);
     showLog(true);
     try { await exportMap(); } finally { busy(false); }
+  }
+
+  // Verzeichnis ohne Kopieren: nur _fotos.html + Vorschaubilder, die Links zeigen auf die Originale.
+  // Liegt die Quelle im gewaehlten Ordner (oder umgekehrt), gehen relative Links; sonst braucht es den Pfad der Quelle.
+  const fileUrl = p => {
+    const s = p.trim().replace(/\\/g, '/').replace(/\/+$/, '');
+    const unc = s.startsWith('//');
+    return (unc ? 'file://' : 'file:///') + s.replace(/^\/+/, '').split('/').map((x, i) => i ? encodeURIComponent(x) : x).join('/') + '/';
+  };
+  async function saveIndex() {
+    if (!st.plan || !st.src) return;
+    if (!confirm(T('Verzeichnis ohne Kopieren:\n\nEs wird nichts kopiert oder verschoben. Es entsteht nur „{0}“ (Karte + Ordnerübersicht) mit Links auf die Originale und kleinen Vorschaubildern im Ordner „{1}“.\n\nIm nächsten Fenster den Ordner wählen, in den die Übersicht kommt – am einfachsten der Quellordner selbst.', T('_fotos') + '.html', T('_fotos')))) return;
+    let dir;
+    try { dir = await showDirectoryPicker({ id: 'fs-index', mode: 'readwrite', startIn: st.src }); }
+    catch (e) { if (e.name !== 'AbortError') alert(e.message); return; }
+    if (!(await ensurePermission(st.src, 'read'))) return;
+    let base = null;
+    const down = await dir.resolve(st.src);       // Quelle liegt im gewaehlten Ordner (oder ist es)
+    if (down) base = down.map(x => encodeURIComponent(x) + '/').join('');
+    else {
+      const up = await st.src.resolve(dir);       // gewaehlter Ordner liegt in der Quelle
+      if (up) base = '../'.repeat(up.length);
+    }
+    if (base === null) {
+      const p = prompt(T('Der gewählte Ordner liegt nicht neben der Quelle „{0}“.\nDamit die Links funktionieren, bitte den vollständigen Pfad der Quelle eingeben (aus der Adresszeile des Explorers kopieren):', st.src.name),
+        localStorage.getItem('fotosortierer.srcPath') || '');
+      if (!p || !p.trim()) return;
+      localStorage.setItem('fotosortierer.srcPath', p.trim());
+      base = fileUrl(p);
+    }
+    st.abort = new AbortController();
+    busy(true);
+    showLog(true);
+    try { await exportMap(dir, { linkBase: base }); } finally { busy(false); }
   }
 
   function log(text, cls = '') {
@@ -831,6 +868,7 @@
     $('#btnScan').onclick = scan;
     $('#btnCopy').onclick = $('#btnCopy2').onclick = copy;
     $('#btnMapExport').onclick = saveMap;
+    $('#btnIndex').onclick = saveIndex;
     $('#btnCancel').onclick = () => st.abort?.abort();
     $('#btnAddZone').onclick = () => { showTab('orte'); MapView.setAddMode(!MapView.addMode); };
     $('#btnFit').onclick = () => MapView.fitAll(st.analysis);

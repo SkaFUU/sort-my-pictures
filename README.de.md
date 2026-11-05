@@ -14,7 +14,7 @@ Ziel/
     Ausflüge/05_Mai_Wien/…
     Dienstreisen/01_Jänner_Linz/…
     Personen/Anna/…                                ← optional, per Gesichtserkennung
-  _karte.html                                      ← interaktive Karte: Fotos nach Standort suchen
+  _fotos.html                                      ← Fotoübersicht: Karte + Ordner zum Suchen
   _protokoll_2026-11-04_12-00-00.csv
 ```
 
@@ -46,15 +46,24 @@ Mit dem **Filter** wird nur ein Teil sortiert: nach Zeitraum, Uhrzeit (auch übe
 
 Die Originale werden nur gelesen. Vorhandene Dateien im Ziel werden nie überschrieben, ein zweiter Lauf überspringt sie. Einstellungen, Zonen und Änderungen bleiben im Browser gespeichert und lassen sich als JSON exportieren.
 
-## Karte im Zielordner
+## Fotoübersicht: Karte und Ordner
 
-Nach dem Kopieren liegt im Ziel **`_karte.html`**, abschaltbar unter „Karte (_karte.html)“. Mit **Karte speichern** lässt sie sich auch ohne erneutes Kopieren schreiben.
+Nach dem Kopieren liegt im Ziel **`_fotos.html`**, abschaltbar unter „Fotoübersicht (_fotos.html)“. Mit **Übersicht speichern** lässt sie sich auch ohne erneutes Kopieren schreiben.
 
 - Doppelklick öffnet sie in jedem Browser, auch offline und ohne dieses Programm.
-- Alle Fotos mit Standort sind Punkte auf der Karte. Rechts stehen die Fotos des sichtbaren Ausschnitts: hineinzoomen = nach Ort suchen.
+- **Karte:** Alle Fotos mit Standort sind Punkte. Rechts stehen die Fotos des sichtbaren Ausschnitts: hineinzoomen = nach Ort suchen.
+- **Ordner:** die sortierte Ordnerstruktur zum Durchklicken, mit Vorschaubildern und den neuen Dateinamen.
 - Filter nach Jahr, Ereignis und Person. Ein Klick öffnet die Großansicht, `←`/`→` blättert.
-- Die Fotos werden direkt aus den sortierten Ordnern geladen. Vorschaubilder liegen im Ordner `_karte`. Die Karte funktioniert also nur, solange sie im Zielordner neben den Fotos liegt (der ganze Ordner darf aber verschoben oder auf eine Festplatte kopiert werden).
+- Vorschaubilder liegen im Ordner `_fotos`, die Fotos selbst werden über relative Links geladen. Die Übersicht muss also neben den Fotos bleiben (der ganze Ordner darf verschoben werden).
 - Der Kartenhintergrund (OpenStreetMap 🌐) lässt sich dort ein- und ausschalten.
+
+### Verzeichnis ohne Kopieren
+
+Wer keinen Speicherplatz doppelt belegen will: **6 Ziel → Verzeichnis ohne Kopieren**. Dann wird nichts kopiert oder verschoben. Es entsteht nur `_fotos.html` mit Vorschaubildern, Karte und der gewünschten Ordnerstruktur. Diese verlinkt direkt auf die Originale.
+
+- Am einfachsten legst du die Übersicht in den Quellordner selbst (oder in einen Ordner darüber). Dann sind die Links relativ und funktionieren auch, wenn der Ordner verschoben wird.
+- Liegt sie woanders, fragt das Programm nach dem vollständigen Pfad der Quelle (z. B. `D:\Fotos\Kamera`).
+- Wird ein Original verschoben oder gelöscht, zeigt die Übersicht „Datei nicht gefunden“. Dann einfach neu erstellen.
 
 ## Eigene Kategorien
 

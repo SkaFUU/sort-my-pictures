@@ -14,7 +14,7 @@ Target/
     Day trips/05_May_Vienna/…
     Business trips/01_January_Linz/…
     People/Anna/…                                    ← optional, via face recognition
-  _map.html                                        ← interactive map: find photos by location
+  _photos.html                                     ← photo overview: map + folders to search
   _log_2026-11-04_12-00-00.csv
 ```
 
@@ -46,15 +46,24 @@ With the **filter** only part of the pictures is sorted: by period, time of day 
 
 Originals are only read. Existing files in the target are never overwritten, a second run skips them. Settings, zones and changes are stored in the browser and can be exported as JSON.
 
-## Map in the target folder
+## Photo overview: map and folders
 
-After copying, the target contains **`_map.html`** (can be switched off with “Map (_map.html)”). **Save map** writes it without copying again.
+After copying, the target contains **`_photos.html`** (can be switched off with “Photo overview (_photos.html)”). **Save overview** writes it without copying again.
 
 - Double-click opens it in any browser, also offline and without this program.
-- All photos with a location are points on the map. On the right you see the photos of the visible area: zoom in = search by place.
+- **Map:** all photos with a location are points. On the right you see the photos of the visible area: zoom in = search by place.
+- **Folders:** the sorted folder structure to click through, with thumbnails and the new file names.
 - Filter by year, event and person. A click opens the large view, `←`/`→` browse.
-- Photos are loaded directly from the sorted folders, thumbnails live in the folder `_map`. So the map only works while it stays in the target folder next to the photos (the whole folder may be moved or copied to another drive).
+- Thumbnails live in the folder `_photos`, the photos themselves are loaded via relative links. So the overview must stay next to the photos (the whole folder may be moved).
 - The map background (OpenStreetMap 🌐) can be switched on and off there.
+
+### Index without copying
+
+If you don't want to use storage twice: **6 Target → Index without copying**. Nothing is copied or moved. Only `_photos.html` is written, with thumbnails, the map and the folder structure you set up. It links directly to the originals.
+
+- The easiest is to put the overview into the source folder itself (or a folder above it). Then the links are relative and keep working when the folder is moved.
+- If it goes somewhere else, the program asks for the full path of the source (e.g. `D:\Photos\Camera`).
+- If an original is moved or deleted, the overview shows “File not found”. Just create it again.
 
 ## Custom categories
 
