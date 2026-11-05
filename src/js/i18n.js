@@ -201,6 +201,22 @@ const I18n = (() => {
     '{0} Personen gemerkt.': '{0} people remembered.', '{0} gemerkt': '{0} remembered',
     'Ähnelt {0} ({1} %) – Klick ordnet die ganze Gruppe {0} zu': 'Looks like {0} ({1} %) – click assigns the whole group to {0}',
 
+    // --- Schnell zuordnen ---
+    'Am schnellsten: <b>Schnell zuordnen</b> fragt ein Gesicht nach dem anderen „Wer ist das?“ mit Vorschlag – Enter bestätigt, ähnliche werden nach jeder Antwort mit zugeordnet.':
+      'Fastest: <b>Quick assign</b> asks one face after another “Who is this?” with a suggestion – Enter confirms, similar ones are assigned after every answer.',
+    'Alle {0} sind {1}': 'All {0} are {1}', 'Anderer Name … (Enter)': 'Other name … (Enter)',
+    'Automatisch zugeordnet, aber unsicher ({0} %).': 'Assigned automatically, but unsure ({0} %).',
+    'Dieselbe Gruppe ({0} weitere) – nach der Antwort werden alle ähnlichen automatisch mit zugeordnet. Umschalt+Enter ordnet die ganze Gruppe fest zu:': 'Same group ({0} more) – after your answer all similar ones are assigned automatically. Shift+Enter assigns the whole group for good:',
+    'Ein Gesicht nach dem anderen: „Wer ist das?“ mit Vorschlag – ähnliche werden nach jeder Antwort automatisch mit zugeordnet':
+      'One face after another: “Who is this?” with a suggestion – similar ones are assigned automatically after every answer',
+    'Enter = Vorschlag · 1–9 = andere Person · Name tippen = neue Person · Entf = fremd · → überspringen · ← zurück · Esc beenden':
+      'Enter = suggestion · 1–9 = other person · type a name = new person · Del = stranger · → skip · ← back · Esc quit',
+    'Entf': 'Del', 'Fertig – keine offenen Fragen mehr.': 'Done – no open questions left.', 'Fremd / kein Gesicht': 'Stranger / not a face',
+    'Fremde Person oder kein Gesicht – wird nicht mehr gefragt': 'Stranger or not a face – will not be asked again', 'Ganzes Foto': 'Whole photo',
+    'Ist das {0}?': 'Is this {0}?', 'Ja, {0}': 'Yes, {0}', 'Nein, weiß nicht': 'No, don’t know', 'Schnell zuordnen': 'Quick assign', 'Wer ist das?': 'Who is this?',
+    '{0} beantwortet · {1} bestätigt · {2} automatisch zugeordnet ({3} unsicher) · {4} noch ohne Namen': '{0} answered · {1} confirmed · {2} assigned automatically ({3} unsure) · {4} still without a name',
+    'Übersprungene kommen beim nächsten Öffnen wieder.': 'Skipped ones come back the next time you open it.',
+
     // --- Fotoübersicht (_fotos.html) ---
     '_fotos': '_photos', 'Fotoübersicht': 'Photo overview', 'Alle Ereignisse': 'All events', 'Alle Personen': 'All people',
     'Ohne Ereignis': 'No event', '{0} Fotos im Kartenausschnitt': '{0} photos in the map area', 'Kartenhintergrund (online)': 'Map background (online)',

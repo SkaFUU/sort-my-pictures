@@ -252,6 +252,31 @@ body.dragging-faces .pcard, body.dragging-faces .chip { border-style:dashed; }
 .cm-item b { flex:1; font-weight:500; }
 .cm-item.new { color:var(--tab); }
 
+/* Schnell zuordnen */
+.quiz { position:fixed; inset:0; z-index:1800; background:rgba(10,11,13,.82); display:flex; align-items:center; justify-content:center; }
+.qz-card { width:min(900px, 96vw); max-height:94vh; overflow:auto; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 18px; box-shadow:0 10px 40px rgba(0,0,0,.6); }
+.qz-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
+.qz-head b { font-size:16px; }
+.qz-stats { flex:1; color:var(--muted); font-size:12.5px; }
+.qz-body { display:flex; gap:20px; align-items:flex-start; }
+.qz-left { display:flex; flex-direction:column; gap:6px; align-items:center; }
+.qz-img { width:360px; height:360px; object-fit:cover; border-radius:10px; background:#1a1c1f; display:block; }
+.qz-right { flex:1; display:flex; flex-direction:column; gap:8px; min-width:0; }
+.qz-right h2 { margin:0; font-size:22px; }
+.qz-right button { display:inline-flex; align-items:center; gap:8px; }
+.qz-right button img { width:28px; height:28px; border-radius:50%; object-fit:cover; }
+.qz-right kbd { margin-left:auto; font:11px ui-monospace,Consolas,monospace; color:var(--muted); border:1px solid var(--line); border-radius:4px; padding:0 4px; }
+.qz-sugg { font-size:18px; padding:8px 12px; border:2px solid var(--tab) !important; color:var(--tab); }
+.qz-sugg img { width:40px !important; height:40px !important; }
+.qz-names { display:grid; grid-template-columns:repeat(3, 1fr); gap:4px; }
+.qz-names span { overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.qz-actions { display:flex; flex-wrap:wrap; gap:4px; }
+.qz-faces { display:flex; flex-wrap:wrap; gap:3px; margin:4px 0; }
+.qz-faces img { width:44px; height:44px; border-radius:4px; object-fit:cover; }
+.qz-done { display:flex; flex-direction:column; gap:10px; align-items:flex-start; padding:30px; }
+.qz-foot { margin-top:12px; }
+@media (max-width:760px) { .qz-body { flex-direction:column; } .qz-img { width:100%; height:auto; aspect-ratio:1; } }
+
 /* ---------- Eigene Kategorien ---------- */
 .cat { border:1px solid var(--line); border-radius:8px; padding:6px; margin:8px 0; background:var(--panel); }
 .cat.off { opacity:.55; }

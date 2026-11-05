@@ -24,6 +24,7 @@ const People = (() => {
     };
     document.addEventListener('keydown', e => { if (e.key === 'Escape' && sel.size && app.tab === 'people' && !menu) { sel.clear(); refreshSel(); } });
     $('#btnRecheck').onclick = recheck;
+    $('#btnQuiz').onclick = () => FaceQuiz.open(app);
     $('#btnLearn').onclick = learnPeople;
     $('#btnForget').onclick = forget;
     lasso($('#pplGroups'));

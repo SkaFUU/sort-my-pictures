@@ -103,6 +103,7 @@ Editing groups:
 
 - **Type a name** to name a group. Same name = merge groups.
 - **Drag and drop:** drag faces onto another person with the mouse. Ctrl+click selects several. Dropping onto an unnamed group asks for a name, dropping onto **New person** creates one.
+- **Quick assign** (fastest with many photos): the program asks one face after another “Who is this?”. It shows a crop with some surroundings and a suggestion. After every answer it recalculates, and similar faces are assigned automatically. It asks first what helps most: large unnamed groups, then unsure assignments (“Is this Anna?”), finally single faces. Keys: `Enter` suggestion, `1`–`9` other person, type a name = new person, `Shift+Enter` whole group, `Del` stranger/not a face, `→` skip, `←` back.
 - **Many at once:** drag a frame on empty space, Shift+click selects a range, ☐ the whole group. Then **right-click** → type a name (Enter) or pick a person from the list.
 - **✕** removes a face from the person. It goes to **Unassigned** at the bottom and can be assigned later.
 - **Review** shows a person’s automatically assigned faces, least certain first: ✓ confirms.

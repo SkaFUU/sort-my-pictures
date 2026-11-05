@@ -123,6 +123,7 @@
           <button class="big c-del" id="btnFacesReset"><svg class="ic"><use href="#i-reset"/></svg><span>Namen zurücksetzen</span></button>
         </div><div class="gcap">Erkennung (lokal)</div></div>
         <div class="grp"><div class="gbody">
+          <button class="big c-ok" id="btnQuiz" title="Ein Gesicht nach dem anderen: „Wer ist das?“ mit Vorschlag – ähnliche werden nach jeder Antwort automatisch mit zugeordnet"><svg class="ic"><use href="#i-faces"/></svg><span>Schnell zuordnen</span></button>
           <button class="big c-view" id="btnRecheck" title="Alle nicht bestätigten Gesichter mit dem Wissen aus den bisher zugeordneten neu vergleichen"><svg class="ic"><use href="#i-scan"/></svg><span>Erneut prüfen</span></button>
           <button class="big c-ok" id="btnLearn" title="Benannte Personen merken: sie werden dann auch in anderen Ordnern wiedererkannt (nur Merkmale, keine Bilder)"><svg class="ic"><use href="#i-check"/></svg><span>Personen merken</span></button>
           <button class="big c-del" id="btnForget" title="Alle gemerkten Personen löschen"><svg class="ic"><use href="#i-trash"/></svg><span>Gemerkte löschen</span></button>
@@ -239,6 +240,7 @@
           <li>Namen eintippen – gleicher Name führt Gruppen zusammen.</li>
           <li>„Prüfen“ zeigt automatisch zugeordnete Gesichter, unsicherste zuerst: ✓ bestätigt, ✕ entfernt Fehltreffer.</li>
           <li>Gesichter mit der Maus auf eine andere Person ziehen. Strg+Klick wählt mehrere aus.</li>
+          <li data-i18n-html>Am schnellsten: <b>Schnell zuordnen</b> fragt ein Gesicht nach dem anderen „Wer ist das?“ mit Vorschlag – Enter bestätigt, ähnliche werden nach jeder Antwort mit zugeordnet.</li>
           <li data-i18n-html>Viele auf einmal: auf freier Fläche einen Rahmen ziehen, Umschalt+Klick wählt einen Bereich, ☐ die ganze Gruppe. Dann <b>Rechtsklick</b> → Namen eintippen oder auswählen.</li>
           <li data-i18n-html>Jede Zuordnung verbessert die Erkennung sofort. <b>Erneut prüfen</b> zeigt, was dazugekommen ist. Grüne Vorschläge wie „Anna?“ ordnen eine ganze Gruppe zu.</li>
           <li data-i18n-html><b>Personen merken</b> speichert die bestätigten Gesichter als Wissen: diese Personen werden dann auch in anderen Ordnern erkannt.</li>
@@ -291,6 +293,7 @@
   <script src="js/faces.js"></script>
   <script src="js/viewer.js"></script>
   <script src="js/review.js"></script>
+  <script src="js/facequiz.js"></script>
   <script src="js/people.js"></script>
   <script src="js/app.js"></script>
 </body>

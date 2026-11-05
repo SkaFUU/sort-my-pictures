@@ -103,6 +103,7 @@ Gruppen bearbeiten:
 
 - **Name eintippen** benennt eine Gruppe. Gleicher Name = Gruppen zusammenführen.
 - **Ziehen und Ablegen:** Gesichter mit der Maus auf eine andere Person ziehen. Strg+Klick wählt mehrere aus. Auf eine unbenannte Gruppe ziehen fragt nach einem Namen, auf **Neue Person** legt eine neue an.
+- **Schnell zuordnen** (am schnellsten bei vielen Fotos): Das Programm fragt ein Gesicht nach dem anderen „Wer ist das?“. Es zeigt einen Ausschnitt mit Umgebung und einen Vorschlag. Nach jeder Antwort rechnet es neu, und ähnliche Gesichter werden automatisch mit zugeordnet. Gefragt wird zuerst, was am meisten bringt: große unbenannte Gruppen, dann unsichere Zuordnungen („Ist das Anna?“), zuletzt Einzelne. Tasten: `Enter` Vorschlag, `1`–`9` andere Person, Name tippen = neue Person, `Umschalt+Enter` ganze Gruppe, `Entf` fremd/kein Gesicht, `→` überspringen, `←` zurück.
 - **Viele auf einmal:** Auf freier Fläche einen Rahmen ziehen, Umschalt+Klick wählt einen Bereich, ☐ die ganze Gruppe. Dann **Rechtsklick** → Namen eintippen (Enter) oder eine Person aus der Liste wählen.
 - **✕** entfernt ein Gesicht aus der Person. Es landet unten in **Nicht zugeordnet** und lässt sich später zuweisen.
 - **Prüfen** zeigt die automatisch zugeordneten Gesichter einer Person, die unsichersten zuerst: ✓ bestätigt.

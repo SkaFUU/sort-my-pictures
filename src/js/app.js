@@ -277,8 +277,7 @@
     $('#geoCacheInfo') && ($('#geoCacheInfo').textContent = T('{0} Orte gespeichert', Geo.size()));
     if (!st.items) { updateButtons(); return; }
     // Personen aus der Gesichtserkennung den Bildern zuordnen
-    st.people = st.faceCache ? Faces.cluster(st.items, st.faceCache, st.faceNames, st.s.faceThreshold, st.s.faceUseLib ? st.faceLib : null) : null;
-    for (const it of st.items) it.persons = st.people?.byItem.get(it.id);
+    clusterPeople();
     st.analysis = Analyze.run(st.items, st.s, st.zones, st.overrides);
     st.plan = Plan.build(st.analysis, st.s, st.zones);
     if (st.selected) st.selected = st.analysis.events.find(e => e.id === st.selected.id) || null;
@@ -402,11 +401,17 @@
   }
 
   // Namen fuer Gesichter setzen (null = Name entfernen, '#ignore' = ignorieren)
-  function setFaceNames(ids, name) {
+  // quick: nur die Gesichter neu gruppieren (Schnell zuordnen), der Rest folgt mit recompute() beim Schliessen
+  function setFaceNames(ids, name, quick = false) {
     for (const id of ids) { if (name) st.faceNames[id] = name; else delete st.faceNames[id]; }
     Util.idb.set('faceNames', st.faceNames).catch(() => {});
+    if (quick) { clusterPeople(); return; }
     recompute();
     People.render();
+  }
+  function clusterPeople() {
+    st.people = st.faceCache ? Faces.cluster(st.items, st.faceCache, st.faceNames, st.s.faceThreshold, st.s.faceUseLib ? st.faceLib : null) : null;
+    for (const it of st.items) it.persons = st.people?.byItem.get(it.id);
   }
   const faceName = (it, i) => {
     const n = st.faceNames[`${it.path}#${i}`];
