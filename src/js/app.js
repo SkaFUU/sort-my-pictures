@@ -402,20 +402,34 @@
 
   // Namen fuer Gesichter setzen (null = Name entfernen, '#ignore' = ignorieren)
   // quick: nur die Gesichter neu gruppieren (Schnell zuordnen), der Rest folgt mit recompute() beim Schliessen
-  function setFaceNames(ids, name, quick = false) {
-    for (const id of ids) { if (name) st.faceNames[id] = name; else delete st.faceNames[id]; }
+  // changes: { faceId: Name | null }. Jede Aenderung landet im Verlauf fuer „Rückgängig“ (Strg+Z).
+  const faceHistory = [];
+  function applyFaceNames(changes, quick = false, record = true) {
+    if (record) {
+      faceHistory.push(Object.fromEntries(Object.keys(changes).map(id => [id, st.faceNames[id] ?? null])));
+      if (faceHistory.length > 300) faceHistory.shift();
+    }
+    for (const [id, n] of Object.entries(changes)) { if (n) st.faceNames[id] = n; else delete st.faceNames[id]; }
     Util.idb.set('faceNames', st.faceNames).catch(() => {});
     if (quick) { clusterPeople(); return; }
     recompute();
     People.render();
   }
+  const setFaceNames = (ids, name, quick = false) => applyFaceNames(Object.fromEntries(ids.map(id => [id, name])), quick);
+  function undoFaceNames(quick = false) {
+    const last = faceHistory.pop();
+    if (!last) { status(T('Nichts zum Rückgängigmachen.')); return false; }
+    applyFaceNames(last, quick, false);
+    status(T('Rückgängig: {0} Gesichter', Object.keys(last).length));
+    return true;
+  }
   function clusterPeople() {
-    st.people = st.faceCache ? Faces.cluster(st.items, st.faceCache, st.faceNames, st.s.faceThreshold, st.s.faceUseLib ? st.faceLib : null) : null;
+    st.people = st.faceCache ? Faces.cluster(st.items, st.faceCache, st.faceNames, st.s.faceThreshold, st.s.faceUseLib ? st.faceLib : null, st.s.faceWindow) : null;
     for (const it of st.items) it.persons = st.people?.byItem.get(it.id);
   }
   const faceName = (it, i) => {
     const n = st.faceNames[`${it.path}#${i}`];
-    if (n && !n.startsWith('#')) return n;
+    if (n && n[0] !== '#' && n[0] !== '!') return n;
     const g = st.people?.groups.find(g => g.name && g.faces.some(f => f.id === `${it.path}#${i}`));
     return g ? g.name + ' ?' : '';
   };
@@ -859,7 +873,7 @@
 
     // Kontext fuer Bildansicht, Pruefmodus und Personen
     const appCtx = {
-      st, recompute, saveOverrides, loadThumb, scanFaces, setFaceNames, faceName, status,
+      st, recompute, saveOverrides, loadThumb, scanFaces, setFaceNames, applyFaceNames, undoFaceNames, canUndo: () => faceHistory.length > 0, faceName, status,
       openViewer: (list, i) => Viewer.open(list, i),
       opsOf: it => st.plan?.byItem.get(it.id) || [],
       facesOf: it => Faces.facesOf(it, st.faceCache),

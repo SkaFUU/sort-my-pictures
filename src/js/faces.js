@@ -343,46 +343,64 @@ const Faces = (() => {
     return out;
   }
 
-  // Gesichter gruppieren. names: { faceId: 'Name' | '#ignore' }; threshold: Abstand 1 − Kosinus (klein = streng)
+  // Gesichter gruppieren. names: { faceId: 'Name' | '#ignore' | '#none' | '!Name' }; threshold: Abstand 1 − Kosinus (klein = streng)
+  //   '!Name' = offen, aber sicher NICHT diese Person (beim Pruefen abgewaehlt)
   // lib: gemerkte Personen { name: [Merkmale] } aus der Bibliothek (oder null)
-  // 1. Benannte Gesichter bilden feste Gruppen. Jede benannte Person bekommt mehrere Vertreter aus ihren
-  //    bestaetigten Gesichtern (+ Bibliothek) – je mehr zugeordnet ist, desto besser wird sie erkannt.
+  // months: Zeitfenster in Monaten (0 = aus). Ein Gesicht wird einer Person nur automatisch zugeordnet, wenn es
+  //   bestaetigten Gesichtern dieser Person aus derselben Zeit aehnelt. Kinder veraendern sich stark, und zwei
+  //   Babys im Abstand von Jahren sehen sich fuer das Modell oft aehnlicher als dasselbe Kind mit 1 und mit 4.
+  // Regeln: Eine Person kommt auf einem Foto nur einmal vor.
+  // 1. Benannte Gesichter bilden feste Gruppen mit mehreren Vertretern je Halbjahr (+ Bibliothek).
   // 2. Die uebrigen werden nach Qualitaet sortiert (gute, frontale Gesichter zuerst) der aehnlichsten Gruppe
   //    zugeordnet oder bilden eine neue.
   // 3. Zwei Runden Nachsortieren: jedes automatische Gesicht wandert zur jetzt aehnlichsten Gruppe.
-  // 4. Unbenannte Gruppen, die einer bekannten Person aehneln, bekommen einen Namensvorschlag.
-  function cluster(items, cache, names, threshold, lib = null) {
+  // 4. Unbenannte Gruppen mit grosser Zeitluecke werden geteilt.
+  // 5. Unbenannte Gruppen, die einer bekannten Person aehneln, bekommen einen Namensvorschlag.
+  const MONTH = 30.44 * 864e5;
+  const SLICE = 6 * MONTH;
+  function cluster(items, cache, names, threshold, lib = null, months = 0) {
     const all = [];
     for (const it of items) {
       if (it.isVideo) continue;
       const faces = cache[cacheKey(it)];
       if (!faces) continue;
-      faces.forEach((f, i) => all.push({ id: `${it.path}#${i}`, item: it, ...f }));
+      faces.forEach((f, i) => all.push({ id: `${it.path}#${i}`, item: it, t: it.date.getTime(), ...f }));
     }
     const minSim = 1 - threshold;
+    const win = months > 0 ? months * MONTH : 0;
     const groups = [];
     const byName = new Map();
-    const newGroup = name => { const g = { name, fixed: [], members: [], lib: [], c: null, p: null }; groups.push(g); return g; };
+    const newGroup = name => { const g = { name, fixed: [], members: [], lib: [], c: null, p: null, slices: null, items: new Set() }; groups.push(g); return g; };
     const centre = g => {
       const sum = new Float32Array(128);
       for (const f of g.fixed.concat(g.members)) { const w = f.q ?? 1; for (let i = 0; i < 128; i++) sum[i] += f.d[i] * w; }
       for (const v of g.lib) for (let i = 0; i < 128; i++) sum[i] += v[i];
       g.c = unit(sum);
     };
-    // Aehnlichkeit zu einer Gruppe: benannte Personen ueber ihre Vertreter, unbenannte ueber den Mittelpunkt
-    const score = (d, g) => {
-      if (g.p?.length) { let m = -1; for (const c of g.p) { const v = dot(d, c); if (v > m) m = v; } return m; }
-      return g.c ? dot(d, g.c) : -1;
+    const maxDot = (d, ps) => { let m = -1; for (const c of ps) { const v = dot(d, c); if (v > m) m = v; } return m; };
+    // Aehnlichkeit ohne Zeit (fuer Vorschlaege und Auffaelligkeiten)
+    const score = (d, g) => (g.p?.length ? maxDot(d, g.p) : g.c ? dot(d, g.c) : -1);
+    // Aehnlichkeit fuer die automatische Zuordnung: benannte Personen nur ueber Vertreter aus derselben Zeit
+    const forbidden = f => { const n = names[f.id]; return n && n[0] === '!' ? n.slice(1) : null; };
+    const fit = (f, g) => {
+      if (g.items.has(f.item.id)) return -1;  // schon auf diesem Foto
+      if (!g.name) return g.c ? dot(f.d, g.c) : -1;
+      if (forbidden(f) === g.name) return -1;
+      if (!win || !g.slices.length) return score(f.d, g);
+      let m = -1;
+      for (const s of g.slices) if (Math.abs(s.mid - f.t) <= win + SLICE / 2) m = Math.max(m, maxDot(f.d, s.p));
+      return m;
     };
-    const best = f => {
+    const best = (f, skip = null) => {
       let b = null, bs = minSim;
-      for (const g of groups) { const v = score(f.d, g); if (v > bs) { bs = v; b = g; } }
+      for (const g of groups) { if (g === skip) continue; const v = fit(f, g); if (v > bs) { bs = v; b = g; } }
       return [b, bs];
     };
+    const put = (g, f) => { g.members.push(f); g.items.add(f.item.id); };
 
     for (const f of all) {
       const n = names[f.id];
-      if (!n || n.startsWith('#')) continue;  // '#ignore' = kein Gesicht, '#none' = nicht zugeordnet
+      if (!n || n[0] === '#' || n[0] === '!') continue;  // '#ignore' = kein Gesicht, '#none' = nicht zugeordnet
       if (!byName.has(n)) byName.set(n, newGroup(n));
       byName.get(n).fixed.push(f);
     }
@@ -393,36 +411,60 @@ const Faces = (() => {
     }
     for (const g of groups) {
       const good = g.fixed.filter(f => (f.q ?? 1) >= 0.3);
-      g.p = protos([...(good.length >= 3 ? good : g.fixed).map(f => f.d), ...g.lib]);
+      const use = good.length >= 3 ? good : g.fixed;
+      g.p = protos([...use.map(f => f.d), ...g.lib]);
+      // Vertreter je Halbjahr; die Bibliothek (ohne Datum) zaehlt nur, wenn es hier noch nichts Bestaetigtes gibt
+      const bySlice = new Map();
+      for (const f of use) { const k = Math.floor(f.t / SLICE); if (!bySlice.has(k)) bySlice.set(k, []); bySlice.get(k).push(f.d); }
+      g.slices = [...bySlice].map(([k, ds]) => ({ mid: (k + 0.5) * SLICE, p: protos(ds, 4) }));
     }
+    const resetItems = () => { for (const g of groups) g.items = new Set(g.fixed.map(f => f.item.id)); };
+    resetItems();
     groups.forEach(centre);
-    const free = all.filter(f => !names[f.id]).sort((a, b) => (b.q ?? 1) - (a.q ?? 1));
+    const free = all.filter(f => !names[f.id] || names[f.id][0] === '!').sort((a, b) => (b.q ?? 1) - (a.q ?? 1));
     for (const f of free) {
       const [g] = best(f);
       const t = g || newGroup(null);
-      t.members.push(f);
+      put(t, f);
       if (!g || t.members.length + t.fixed.length <= 20) centre(t);  // Mittelpunkt anfangs laufend nachfuehren
     }
     for (let round = 0; round < 2; round++) {
       groups.forEach(centre);
       for (const g of groups) g.members = [];
-      for (const f of free) { const [g] = best(f); (g || newGroup(null)).members.push(f); }
+      resetItems();
+      for (const f of free) { const [g] = best(f); put(g || newGroup(null), f); }
       for (let i = groups.length - 1; i >= 0; i--) if (!groups[i].name && !groups[i].members.length) groups.splice(i, 1);
     }
     // gemerkte Personen, die in diesem Ordner nicht vorkommen, nicht anzeigen
     for (let i = groups.length - 1; i >= 0; i--) if (!groups[i].fixed.length && !groups[i].members.length) groups.splice(i, 1);
+    // unbenannte Gruppen an grossen Zeitluecken teilen (z. B. zwei Babys, Jahre auseinander)
+    if (win) {
+      for (const g of groups.filter(g => !g.name && g.members.length > 1)) {
+        const ms = [...g.members].sort((a, b) => a.t - b.t);
+        let part = [ms[0]];
+        const parts = [part];
+        for (let i = 1; i < ms.length; i++) {
+          if (ms[i].t - ms[i - 1].t > win) parts.push(part = []);
+          part.push(ms[i]);
+        }
+        if (parts.length < 2) continue;
+        g.members = parts[0];
+        for (const p of parts.slice(1)) { const n = newGroup(null); n.members = p; }
+      }
+    }
     groups.forEach(centre);
     for (const g of groups) {
-      for (const f of g.members) f.sim = score(f.d, g);
+      for (const f of g.members) f.sim = g.name ? Math.max(fit({ ...f, item: { id: null } }, g), -1) : dot(f.d, g.c);
       g.members.sort((a, b) => b.sim - a.sim);  // sicherste zuerst
       g.faces = [...g.fixed.map(f => ({ ...f, auto: false })), ...g.members.map(f => ({ ...f, auto: true }))];
     }
-    // Namensvorschlag: im Schnitt aehnlichste bekannte Person, etwas lockerer als die automatische Zuordnung
+    // Namensvorschlag: im Schnitt aehnlichste bekannte Person (ohne Zeitfenster), etwas lockerer als die Zuordnung
     const known = groups.filter(g => g.name && g.p?.length);
     for (const g of groups) {
       if (g.name || !known.length) continue;
       let bn = null, bs = minSim - 0.1;
       for (const k of known) {
+        if (g.members.filter(f => forbidden(f) === k.name).length * 2 > g.members.length) continue;
         let s = 0;
         for (const f of g.members) s += score(f.d, k);
         s /= g.members.length;
@@ -443,11 +485,35 @@ const Faces = (() => {
       }
     }
     const unassigned = all.filter(f => names[f.id] === '#none').map(f => ({ ...f, auto: false }));
-    return { groups, byItem, unassigned, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length };
+    return { groups, byItem, unassigned, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length, minSim, score };
+  }
+
+  // Auffaelligkeiten unter den bestaetigten Gesichtern (fuer „Erneut pruefen“):
+  //   'twice'  – dieselbe Person zweimal auf einem Foto
+  //   'better' – passt deutlich besser zu einer anderen Person
+  function anomalies(people) {
+    const out = [];
+    const named = people.groups.filter(g => g.name && g.p?.length);
+    for (const g of named) {
+      const fixed = g.faces.filter(f => !f.auto);
+      const byItem = new Map();
+      for (const f of fixed) { if (!byItem.has(f.item.id)) byItem.set(f.item.id, []); byItem.get(f.item.id).push(f); }
+      for (const fs of byItem.values()) if (fs.length > 1) for (const f of fs) out.push({ kind: 'twice', f, name: g.name, others: fs.filter(x => x !== f) });
+      if (fixed.length < 3) continue;
+      const sample = fixed.length > 300 ? fixed.filter((_, i) => i % Math.ceil(fixed.length / 300) === 0) : fixed;
+      for (const f of fixed) {
+        let own = -1;  // naechstes anderes bestaetigtes Gesicht derselben Person
+        for (const x of sample) if (x !== f) own = Math.max(own, dot(f.d, x.d));
+        let alt = null, as = Math.max(people.minSim, own + 0.06);
+        for (const o of named) { if (o === g) continue; const s = people.score(f.d, o); if (s > as) { as = s; alt = o.name; } }
+        if (alt) out.push({ kind: 'better', f, name: g.name, alt, own, altSim: as });
+      }
+    }
+    return out;
   }
 
   // Gesichter eines Bildes (fuer die Bildansicht)
   const facesOf = (it, cache) => (cache && cache[cacheKey(it)]) || [];
 
-  return { VERSION, load, detect, scanAll, loadCache, cluster, facesOf, loadLib, saveLib, learn };
+  return { VERSION, load, detect, scanAll, loadCache, cluster, anomalies, facesOf, loadLib, saveLib, learn };
 })();

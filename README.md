@@ -103,7 +103,7 @@ Editing groups:
 
 - **Type a name** to name a group. Same name = merge groups.
 - **Drag and drop:** drag faces onto another person with the mouse. Ctrl+click selects several. Dropping onto an unnamed group asks for a name, dropping onto **New person** creates one.
-- **Quick assign** (fastest with many photos): the program asks one face after another “Who is this?”. It shows a crop with some surroundings and a suggestion. After every answer it recalculates, and similar faces are assigned automatically. It asks first what helps most: large unnamed groups, then unsure assignments (“Is this Anna?”), finally single faces. Keys: `Enter` suggestion, `1`–`9` other person, type a name = new person, `Shift+Enter` whole group, `Del` stranger/not a face, `→` skip, `←` back.
+- **Quick assign** (fastest with many photos): shows every open group in turn, including the automatically assigned faces of a person (“Are these all Anna?”). Click the wrong faces, then `Enter` for the suggestion, `1`–`9` for another person, or type a name. Deselected faces are no longer assigned to that person afterwards. It recalculates after every answer. More keys: `Del` stranger/not a face, `→` skip, `←` undo.
 - **Many at once:** drag a frame on empty space, Shift+click selects a range, ☐ the whole group. Then **right-click** → type a name (Enter) or pick a person from the list.
 - **✕** removes a face from the person. It goes to **Unassigned** at the bottom and can be assigned later.
 - **Review** shows a person’s automatically assigned faces, least certain first: ✓ confirms.
@@ -112,7 +112,10 @@ Editing groups:
 Recognition learns as you go:
 
 - Each named person gets several “representatives” from their confirmed faces, e.g. with glasses, in profile, as a child and later. The more you assign, the more the program recognises by itself. This happens right after every change.
-- **Check again** shows how many faces were newly assigned since the last check. Unnamed groups that look like a known person get a green suggestion like **“Anna?”**. One click assigns the whole group.
+- **Check again** shows how many faces were newly assigned since the last check and looks for **anomalies**: a person twice in the same photo, or a confirmed face that fits another person much better. You can then go through them one by one. Unnamed groups that look like a known person get a green suggestion like **“Anna?”**.
+- **Rules:** a person appears only once per photo. With the **time window** (default 12 months), a face is only assigned automatically if it resembles confirmed faces of the person from the same time. This keeps two babies born years apart from being mixed up. Groups with large time gaps are split. If it is the same person after all, one Enter in “Quick assign” is enough.
+- **Undo:** `Ctrl+Z` or the “Undo” button takes back the last assignments.
+- Unnamed groups keep their place in the list, people are sorted alphabetically.
 - **Remember people** stores the confirmed faces (up to 60 as different as possible per person) as knowledge in the browser. These people are then recognised in other folders too. Only face features (128 numbers) are stored, no pictures. Exporting the settings (JSON) takes the knowledge to another PC.
 - The model itself is not retrained. It compares with your examples, which gives almost the same effect for a handful of people.
 

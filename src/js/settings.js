@@ -101,6 +101,8 @@ const Settings = (() => {
       { key: 'faceMinSize', label: 'Mindestgröße Gesicht (Pixel)', type: 'num', def: 40, min: 10, level: 'faces',
         help: 'Kleinere Gesichter (Hintergrund) werden ignoriert. Gilt für neu analysierte Fotos.' },
       { key: 'faceMinGroup', label: 'Gruppen zeigen ab Gesichtern', type: 'num', def: 3, min: 1 },
+      { key: 'faceWindow', label: 'Zeitfenster für Kinder (Monate, 0 = aus)', type: 'num', def: 12, min: 0, step: 1,
+        help: 'Automatisch zugeordnet wird nur, wenn ein Gesicht bestätigten Gesichtern der Person aus dieser Zeit ähnelt. So werden zwei Babys, die Jahre auseinander liegen, nicht vermischt. Gruppen mit größeren Zeitlücken werden geteilt – einmal Enter bei „Schnell zuordnen“ fügt sie wieder zusammen.' },
       { key: 'faceUseLib', label: 'Gemerkte Personen verwenden', type: 'bool', def: true,
         help: 'Mit „Personen merken“ gespeicherte Personen werden auch in anderen Ordnern wiedererkannt. Gespeichert werden nur Gesichtsmerkmale (Zahlen), keine Bilder – nur in diesem Browser.' },
     ]},

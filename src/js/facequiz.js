@@ -1,52 +1,79 @@
-// Schnell zuordnen: Gesichter einzeln abfragen („Wer ist das?“) mit Vorschlag. Nach jeder Antwort wird neu gerechnet,
-// aehnliche Gesichter wandern automatisch mit – das Programm lernt mit jeder Antwort.
-// Gefragt wird zuerst, was am meisten bringt: grosse unbenannte Gruppen, dann unsichere automatische Zuordnungen,
-// zuletzt kleine Gruppen und Einzelne.
+// Schnell zuordnen: jede offene Gruppe nacheinander zur Schnellpruefung („Wer ist das?“) mit Vorschlag.
+// Falsche Gesichter anklicken = abwaehlen, Enter ordnet den Rest zu. Nach jeder Antwort wird neu gerechnet –
+// aehnliche Gesichter wandern mit, das Programm lernt mit jeder Antwort.
+// Offen sind: unbenannte Gruppen und automatisch zugeordnete (noch nicht bestaetigte) Gesichter einer Person.
+// Zweiter Modus (check): einzelne Auffaelligkeiten aus „Erneut pruefen“ durchgehen.
 const FaceQuiz = (() => {
   const { h } = Util;
+  const MAX_TILES = 80;
   let app = null, el = null, q = null, token = 0, answered = 0, changed = false;
+  let mode = 'groups', checks = [], ci = 0;
   let skipped = new Set();
-  const history = [];  // [{ prev: { faceId: alterName|undefined } }] fuer „Zurück“
+  const excluded = new Set();
 
   const dot = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
-  const simTo = (d, g) => {
-    if (g.p?.length) { let m = -1; for (const c of g.p) { const v = dot(d, c); if (v > m) m = v; } return m; }
-    return g.c ? dot(d, g.c) : -1;
-  };
-  const minSim = () => 1 - app.st.s.faceThreshold;
-  const UNSURE = 0.08;  // automatisch zugeordnet, aber nur knapp ueber der Schwelle
+  const people = () => app.st.people;
+  const real = n => n && n[0] !== '#' && n[0] !== '!';
 
-  // Vertreter einer unbenannten Gruppe: gutes Gesicht nahe der Gruppenmitte
-  function rep(g) {
-    const fs = g.faces.filter(f => !skipped.has(f.id));
-    if (!fs.length) return null;
-    const good = fs.filter(f => (f.q ?? 1) >= 0.5);
-    return (good.length ? good : fs).reduce((a, b) => (dot(b.d, g.c) > dot(a.d, g.c) ? b : a));
-  }
-
-  function stats() {
-    const p = app.st.people, m = minSim();
-    const named = p.groups.filter(g => g.name);
-    return {
-      fixed: named.reduce((a, g) => a + g.faces.filter(f => !f.auto).length, 0),
-      auto: named.reduce((a, g) => a + g.faces.filter(f => f.auto).length, 0),
-      unsure: named.reduce((a, g) => a + g.faces.filter(f => f.auto && f.sim < m + UNSURE).length, 0),
-      open: p.groups.filter(g => !g.name).reduce((a, g) => a + g.faces.length, 0),
-    };
-  }
-
-  function nextQuestion() {
-    const p = app.st.people;
+  // ---------- Fragen ----------
+  function nextGroupQuestion() {
+    const p = people();
     if (!p) return null;
-    const m = minSim();
-    const named = p.groups.filter(g => g.name);
-    const unnamed = p.groups.filter(g => !g.name && g.c).sort((a, b) => b.faces.length - a.faces.length);
-    for (const g of unnamed.filter(g => g.faces.length >= 3)) { const f = rep(g); if (f) return { f, g, kind: 'group' }; }
-    const unsure = named.flatMap(g => g.faces.filter(f => f.auto && !skipped.has(f.id) && f.sim < m + UNSURE).map(f => ({ f, g })))
-      .sort((a, b) => a.f.sim - b.f.sim);
-    if (unsure.length) return { ...unsure[0], kind: 'unsure' };
-    for (const g of unnamed) { const f = rep(g); if (f) return { f, g, kind: 'group' }; }
-    return null;
+    const cands = [];
+    for (const g of p.groups) {
+      if (!g.name) cands.push({ kind: 'group', g, faces: g.faces });
+      else {
+        const auto = g.faces.filter(f => f.auto);
+        if (auto.length) cands.push({ kind: 'auto', g, faces: auto });
+      }
+    }
+    const open = cands.filter(c => c.faces.some(f => !skipped.has(f.id)));
+    if (!open.length) return null;
+    open.sort((a, b) => b.faces.length - a.faces.length);
+    const c = open[0];
+    const faces = [...c.faces].sort((a, b) => (b.sim ?? 1) - (a.sim ?? 1)).slice(0, MAX_TILES);
+    const good = faces.filter(f => (f.q ?? 1) >= 0.5);
+    const rep = c.kind === 'group' && c.g.c ? (good.length ? good : faces).reduce((a, b) => (dot(b.d, c.g.c) > dot(a.d, c.g.c) ? b : a)) : faces[0];
+    return { ...c, faces, rep, more: c.faces.length - faces.length };
+  }
+
+  function candidates(d, exclude = null) {
+    return people().groups.filter(x => x.name && x.name !== exclude).map(x => ({ g: x, s: people().score(d, x) })).sort((a, b) => b.s - a.s);
+  }
+
+  // ---------- Antworten ----------
+  function apply(changes) {
+    if (!Object.keys(changes).length) return;
+    answered++;
+    changed = true;
+    app.applyFaceNames(changes, true);
+  }
+  // Gruppe: ausgewaehlte = name, abgewaehlte = sicher nicht diese Person ('!name')
+  function answerGroup(name) {
+    const ch = {};
+    for (const f of q.faces) {
+      if (!excluded.has(f.id)) ch[f.id] = name;
+      else if (real(name)) ch[f.id] = '!' + name;
+    }
+    apply(ch);
+    show();
+  }
+  function answerOne(name) {
+    if (name !== undefined) apply({ [q.f.id]: name });
+    ci++;
+    show();
+  }
+  function skip() {
+    if (mode === 'check') { ci++; show(); return; }
+    for (const f of q.faces) skipped.add(f.id);
+    show();
+  }
+  function undo() {
+    if (!app.canUndo()) return;
+    app.undoFaceNames(true);
+    answered = Math.max(0, answered - 1);
+    if (mode === 'check') ci = Math.max(0, ci - 1);
+    show();
   }
 
   // Bildausschnitt mit etwas Umgebung (hilft beim Erkennen); bis dahin das kleine Gesichtsbild
@@ -57,120 +84,172 @@ const FaceQuiz = (() => {
       const [x, y, w, hh] = f.box;
       const s = Math.max(w * bmp.width, hh * bmp.height) * 2.6;
       const cx = (x + w / 2) * bmp.width, cy = (y + hh / 2) * bmp.height;
-      const cv = h('canvas', { width: 360, height: 360 });
-      cv.getContext('2d').drawImage(bmp, cx - s / 2, cy - s / 2, s, s, 0, 0, 360, 360);
+      const cv = h('canvas', { width: 320, height: 320 });
+      cv.getContext('2d').drawImage(bmp, cx - s / 2, cy - s / 2, s, s, 0, 0, 320, 320);
       bmp.close();
       cv.className = 'qz-img';
       img.replaceWith(cv);
     } catch { /* bleibt beim kleinen Bild */ }
   }
 
-  function answer(name, ids = [q.f.id]) {
-    const prev = {};
-    for (const id of ids) prev[id] = app.st.faceNames[id];
-    history.push({ prev });
-    answered++;
-    app.setFaceNames(ids, name, true);
-    changed = true;
-    show();
-  }
-  function undo() {
-    const last = history.pop();
-    if (!last) return;
-    answered--;
-    for (const [id, n] of Object.entries(last.prev)) {
-      skipped.delete(id);
-      app.setFaceNames([id], n || null, true);
-    }
-    show();
+  const avatar = g => h('img', { src: g.faces.find(f => !f.auto)?.crop || g.faces[0]?.crop });
+  const kbd = k => h('kbd', {}, k);
+
+  function stats() {
+    const p = people();
+    const named = p.groups.filter(g => g.name);
+    const auto = named.reduce((a, g) => a + g.faces.filter(f => f.auto).length, 0);
+    const fixed = named.reduce((a, g) => a + g.faces.length, 0) - auto;
+    const open = p.groups.filter(g => !g.name).reduce((a, g) => a + g.faces.length, 0);
+    return mode === 'check'
+      ? T('Auffälligkeit {0} von {1}', Math.min(ci + 1, checks.length), checks.length)
+      : T('{0} beantwortet · {1} bestätigt · {2} automatisch zugeordnet · {3} noch ohne Namen', answered, fixed, auto, open);
   }
 
   function show() {
     if (!el) return;
     const my = ++token;
-    q = nextQuestion();
-    const s = stats();
+    excluded.clear();
     const body = el.querySelector('.qz-body');
     body.innerHTML = '';
-    el.querySelector('.qz-stats').textContent =
-      T('{0} beantwortet · {1} bestätigt · {2} automatisch zugeordnet ({3} unsicher) · {4} noch ohne Namen', answered, s.fixed, s.auto, s.unsure, s.open);
+    if (mode === 'check') {
+      // Auffaelligkeiten, die sich inzwischen erledigt haben, ueberspringen
+      while (ci < checks.length && app.st.faceNames[checks[ci].f.id] !== checks[ci].name) ci++;
+      q = ci < checks.length ? checks[ci] : null;
+    } else q = nextGroupQuestion();
+    el.querySelector('.qz-stats').textContent = stats();
+    el.querySelector('.qz-undo').disabled = !app.canUndo();
     if (!q) {
-      body.append(h('div', { class: 'qz-done' }, h('b', {}, T('Fertig – keine offenen Fragen mehr.')),
-        h('div', { class: 'hint' }, T('Übersprungene kommen beim nächsten Öffnen wieder.')),
-        h('button', { onclick: undo, disabled: !history.length }, T('Zurück')), h('button', { onclick: close }, T('Schließen'))));
+      body.append(h('div', { class: 'qz-done' }, h('b', {}, mode === 'check' ? T('Alle Auffälligkeiten durchgesehen.') : T('Fertig – keine offenen Gruppen mehr.')),
+        mode === 'check' ? null : h('div', { class: 'hint' }, T('Übersprungene kommen beim nächsten Öffnen wieder.')),
+        h('button', { onclick: close }, T('Schließen'))));
       return;
     }
-    const { f, g, kind } = q;
-    const m = minSim();
-    const cands = app.st.people.groups.filter(x => x.name).map(x => ({ g: x, s: simTo(f.d, x) })).sort((a, b) => b.s - a.s);
-    const sugg = kind === 'unsure' ? g.name : (cands[0] && cands[0].s >= m - 0.12 ? cands[0].g.name : null);
-    const others = cands.filter(c => c.g.name !== sugg).slice(0, 9);
-    q.sugg = sugg;
-    q.others = others.map(c => c.g.name);
+    if (mode === 'check') showCheck(body, my); else showGroup(body, my);
+  }
 
+  function showGroup(body, my) {
+    const { kind, g, faces, rep, more } = q;
+    const m = people().minSim;
+    let sugg = null, others;
+    if (kind === 'auto') { sugg = g.name; others = []; }
+    else {
+      // Vorschlag: im Schnitt aehnlichste bekannte Person
+      const avg = people().groups.filter(x => x.name).map(x => ({ g: x, s: faces.reduce((a, f) => a + people().score(f.d, x), 0) / faces.length })).sort((a, b) => b.s - a.s);
+      if (avg[0] && avg[0].s >= m - 0.12) sugg = avg[0].g.name;
+      others = avg.filter(c => c.g.name !== sugg).slice(0, 9).map(c => c.g);
+    }
+    q.sugg = sugg;
+    q.others = others.map(x => x.name);
+    const img = h('img', { class: 'qz-img', src: rep.crop });
+    context(rep, img, my);
+    const inp = nameInput(n => answerGroup(n));
+    const tiles = h('div', { class: 'qz-tiles' }, faces.map(f => {
+      const t = h('div', { class: 'qz-tile', title: f.item.name + ' · ' + Util.fmtDate(f.item.date) + '\n' + T('Klick: falsch / richtig') },
+        h('img', { src: f.crop }), h('span', {}, '✕'));
+      t.onclick = () => { excluded.has(f.id) ? excluded.delete(f.id) : excluded.add(f.id); t.classList.toggle('off', excluded.has(f.id)); count(); };
+      t.oncontextmenu = e => { e.preventDefault(); app.openViewer([f.item], 0); };
+      return t;
+    }));
+    const cnt = h('span', { class: 'hint' });
+    const count = () => { cnt.textContent = T('{0} von {1} ausgewählt', faces.length - excluded.size, faces.length); };
+    count();
+    const years = [...new Set(faces.map(f => f.item.date.getFullYear()))].sort();
+    body.append(
+      h('div', { class: 'qz-left' }, img,
+        h('div', { class: 'hint' }, years.length > 1 ? years[0] + '–' + years[years.length - 1] : String(years[0])),
+        h('button', { class: 'qz-photo', onclick: () => app.openViewer([...new Set(faces.map(f => f.item))], 0) }, T('Fotos ansehen'))),
+      h('div', { class: 'qz-right' },
+        h('h2', {}, kind === 'auto' ? T('Sind das alle {0}?', g.name) : T('Wer ist das?')),
+        h('div', { class: 'hint' }, kind === 'auto' ? T('Automatisch zugeordnet. Falsche anklicken, dann Enter.') : T('Falsche Gesichter anklicken (abwählen), dann Namen wählen.'),
+          more > 0 ? ' ' + T('(+{0} weitere danach)', more) : ''),
+        tiles, cnt,
+        sugg ? h('button', { class: 'qz-sugg', onclick: () => answerGroup(sugg) }, avatar(people().groups.find(x => x.name === sugg)),
+          h('span', {}, kind === 'auto' ? T('Ja, {0}', sugg) : sugg), kbd('Enter')) : null,
+        others.length ? h('div', { class: 'qz-names' }, others.map((x, i) => h('button', { onclick: () => answerGroup(x.name) }, avatar(x), h('span', {}, x.name), kbd(String(i + 1))))) : null,
+        inp, actions(() => answerGroup('#ignore'))));
+  }
+
+  function showCheck(body, my) {
+    const { kind, f, name, alt, others: same } = q;
+    const cands = candidates(f.d, name);
+    if (alt) cands.sort((a, b) => (b.g.name === alt) - (a.g.name === alt));
+    q.sugg = undefined;  // Enter = bleibt
+    q.others = cands.slice(0, 9).map(c => c.g.name);
     const img = h('img', { class: 'qz-img', src: f.crop });
     context(f, img, my);
-    const inp = h('input', { type: 'text', list: 'personNames', placeholder: T('Anderer Name … (Enter)') });
-    inp.addEventListener('keydown', e => {
-      e.stopPropagation();
-      if (e.key === 'Enter' && inp.value.trim()) answer(inp.value.trim(), e.shiftKey && kind === 'group' ? g.faces.map(x => x.id) : [f.id]);
-      if (e.key === 'Escape') inp.blur();
-    });
-    const avatar = x => h('img', { src: x.faces.find(ff => !ff.auto)?.crop || x.faces[0]?.crop });
-    const groupFaces = kind === 'group' ? g.faces.filter(x => x.id !== f.id) : [];
+    const own = people().groups.find(x => x.name === name);
     body.append(
       h('div', { class: 'qz-left' }, img,
         h('div', { class: 'hint' }, f.item.name + ' · ' + Util.fmtDate(f.item.date)),
         h('button', { class: 'qz-photo', onclick: () => app.openViewer([f.item], 0) }, T('Ganzes Foto'))),
       h('div', { class: 'qz-right' },
-        h('h2', {}, kind === 'unsure' ? T('Ist das {0}?', g.name) : T('Wer ist das?')),
-        kind === 'unsure' ? h('div', { class: 'hint' }, T('Automatisch zugeordnet, aber unsicher ({0} %).', Math.round(f.sim * 100))) : null,
-        sugg ? h('button', { class: 'qz-sugg', onclick: () => answer(sugg) }, avatar(app.st.people.groups.find(x => x.name === sugg)),
-          h('span', {}, (kind === 'unsure' ? T('Ja, {0}', sugg) : sugg)), h('kbd', {}, 'Enter')) : null,
-        others.length ? h('div', { class: 'qz-names' }, others.map((c, i) =>
-          h('button', { onclick: () => answer(c.g.name), title: Math.round(c.s * 100) + ' %' }, avatar(c.g), h('span', {}, c.g.name), h('kbd', {}, String(i + 1))))) : null,
-        inp,
-        h('div', { class: 'qz-actions' },
-          h('button', { onclick: () => answer('#ignore'), title: T('Fremde Person oder kein Gesicht – wird nicht mehr gefragt') }, T('Fremd / kein Gesicht'), h('kbd', {}, T('Entf'))),
-          kind === 'unsure' ? h('button', { onclick: () => answer('#none') }, T('Nein, weiß nicht'), h('kbd', {}, '0')) : null,
-          h('button', { onclick: () => { skipped.add(f.id); show(); } }, T('Überspringen'), h('kbd', {}, '→')),
-          h('button', { onclick: undo, disabled: !history.length }, T('Zurück'), h('kbd', {}, '←'))),
-        groupFaces.length ? h('div', { class: 'qz-group' },
-          h('div', { class: 'hint' }, T('Dieselbe Gruppe ({0} weitere) – nach der Antwort werden alle ähnlichen automatisch mit zugeordnet. Umschalt+Enter ordnet die ganze Gruppe fest zu:', groupFaces.length)),
-          h('div', { class: 'qz-faces' }, groupFaces.slice(0, 24).map(x => h('img', { src: x.crop }))),
-          sugg ? h('button', { onclick: () => answer(sugg, g.faces.map(x => x.id)) }, T('Alle {0} sind {1}', g.faces.length, sugg), h('kbd', {}, '⇧Enter')) : null) : null));
+        h('h2', {}, T('Ist das {0}?', name)),
+        h('div', { class: 'hint' }, kind === 'twice'
+          ? T('{0} ist auf diesem Foto mehrmals zugeordnet – das geht nicht.', name)
+          : T('Passt besser zu {0} ({1} % statt {2} %).', alt, Math.round(q.altSim * 100), Math.round(q.own * 100))),
+        same?.length ? h('div', { class: 'qz-faces' }, same.map(x => h('img', { src: x.crop, title: T('Ebenfalls als {0} zugeordnet', name) }))) : null,
+        h('button', { class: 'qz-sugg', onclick: () => answerOne() }, own ? avatar(own) : null, h('span', {}, T('Ja, bleibt {0}', name)), kbd('Enter')),
+        q.others.length ? h('div', { class: 'qz-names' }, q.others.map((n, i) => {
+          const g = people().groups.find(x => x.name === n);
+          return h('button', { onclick: () => answerOne(n) }, avatar(g), h('span', {}, n), kbd(String(i + 1)));
+        })) : null,
+        nameInput(n => answerOne(n)),
+        actions(() => answerOne('#ignore'), () => answerOne('#none'))));
+  }
+
+  function nameInput(onName) {
+    const inp = h('input', { type: 'text', list: 'personNames', placeholder: T('Anderer Name … (Enter)') });
+    inp.addEventListener('keydown', e => {
+      e.stopPropagation();
+      if (e.key === 'Enter' && inp.value.trim()) onName(inp.value.trim());
+      if (e.key === 'Escape') inp.blur();
+    });
+    return inp;
+  }
+  function actions(onStranger, onNone = null) {
+    return h('div', { class: 'qz-actions' },
+      h('button', { onclick: onStranger, title: T('Fremde Person oder kein Gesicht – wird nicht mehr gefragt') }, T('Fremd / kein Gesicht'), kbd(T('Entf'))),
+      onNone ? h('button', { onclick: onNone }, T('Weiß nicht'), kbd('0')) : null,
+      h('button', { onclick: skip }, T('Überspringen'), kbd('→')));
   }
 
   function onKey(e) {
     if (!el) return;
-    if (!q) { if (e.key === 'Escape') close(); if (e.key === 'ArrowLeft' || e.key === 'Backspace') undo(); return; }
     if (document.activeElement?.tagName === 'INPUT') return;
     if (document.getElementById('viewer')?.getClientRects().length) return;  // Bildansicht offen
     const k = e.key;
     if (k === 'Escape') close();
-    else if (k === 'Enter' && e.shiftKey && q.sugg && q.kind === 'group') answer(q.sugg, q.g.faces.map(x => x.id));
-    else if (k === 'Enter' && q.sugg) answer(q.sugg);
-    else if (/^[1-9]$/.test(k) && q.others[+k - 1]) answer(q.others[+k - 1]);
-    else if (k === 'Delete') answer('#ignore');
-    else if (k === '0' && q.kind === 'unsure') answer('#none');
-    else if (k === 'ArrowRight' || k === ' ') { skipped.add(q.f.id); show(); }
-    else if (k === 'ArrowLeft' || k === 'Backspace') undo();
-    else if (k.length === 1 && /\p{L}/u.test(k)) { el.querySelector('input').focus(); return; }  // Tippen = anderer Name
+    else if (k === 'ArrowLeft' || k === 'Backspace' || ((e.ctrlKey || e.metaKey) && k.toLowerCase() === 'z')) undo();
+    else if (!q) return;
+    else if (k === 'Enter') { if (mode === 'check') answerOne(); else if (q.sugg) answerGroup(q.sugg); }
+    else if (/^[1-9]$/.test(k) && q.others[+k - 1]) { mode === 'check' ? answerOne(q.others[+k - 1]) : answerGroup(q.others[+k - 1]); }
+    else if (k === 'Delete') { mode === 'check' ? answerOne('#ignore') : answerGroup('#ignore'); }
+    else if (k === '0' && mode === 'check') answerOne('#none');
+    else if (k === 'ArrowRight') skip();
+    else if (k.length === 1 && /\p{L}/u.test(k) && !e.ctrlKey && !e.metaKey) { el.querySelector('input').focus(); return; }  // Tippen = anderer Name
     else return;
     e.preventDefault();
   }
 
-  function open(appCtx) {
+  function start(appCtx, m, list = []) {
     app = appCtx;
     if (!app.st.people) { alert(T('Zuerst „Gesichter erkennen“.')); return; }
+    close();
+    mode = m;
+    checks = list;
+    ci = 0;
     skipped = new Set();
     answered = 0;
-    history.length = 0;
     changed = false;
     el = h('div', { class: 'quiz' }, h('div', { class: 'qz-card' },
-      h('div', { class: 'qz-head' }, h('b', {}, T('Schnell zuordnen')), h('span', { class: 'qz-stats' }), h('button', { onclick: close, title: 'Esc' }, '✕')),
+      h('div', { class: 'qz-head' }, h('b', {}, m === 'check' ? T('Auffälligkeiten prüfen') : T('Schnell zuordnen')), h('span', { class: 'qz-stats' }),
+        h('button', { class: 'qz-undo', onclick: undo, title: T('Rückgängig (← oder Strg+Z)') }, '↶ ' + T('Rückgängig')),
+        h('button', { onclick: close, title: 'Esc' }, '✕')),
       h('div', { class: 'qz-body' }),
-      h('div', { class: 'hint qz-foot' }, T('Enter = Vorschlag · 1–9 = andere Person · Name tippen = neue Person · Entf = fremd · → überspringen · ← zurück · Esc beenden'))));
+      h('div', { class: 'hint qz-foot' }, m === 'check'
+        ? T('Enter = bleibt · 1–9 = andere Person · Name tippen = neue Person · Entf = fremd · 0 = weiß nicht · → überspringen · ← rückgängig · Esc beenden')
+        : T('Falsche Gesichter anklicken · Enter = Vorschlag · 1–9 = andere Person · Name tippen = neue Person · Entf = fremd · → überspringen · ← rückgängig · Esc beenden'))));
     document.body.append(el);
     document.addEventListener('keydown', onKey);
     show();
@@ -180,8 +259,8 @@ const FaceQuiz = (() => {
     el?.remove();
     el = null;
     token++;
-    if (changed) { app.recompute(); People.render(); }
+    if (changed) { changed = false; app.recompute(); People.render(); }
   }
 
-  return { open };
+  return { open: appCtx => start(appCtx, 'groups'), check: (appCtx, list) => start(appCtx, 'check', list) };
 })();

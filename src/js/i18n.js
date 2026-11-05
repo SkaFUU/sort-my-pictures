@@ -191,8 +191,6 @@ const I18n = (() => {
     'Mit „Personen merken“ gespeicherte Personen werden auch in anderen Ordnern wiedererkannt. Gespeichert werden nur Gesichtsmerkmale (Zahlen), keine Bilder – nur in diesem Browser.':
       'People saved with “Remember people” are recognised in other folders too. Only face features (numbers) are stored, no pictures – only in this browser.',
     'Name eintippen …': 'Type a name …', 'Namen zuweisen …': 'Assign name …',
-    'Neu geprüft mit {0} bekannten Personen: {1} Gesichter neu zugeordnet (zum Prüfen), {2} Gruppen mit Namensvorschlag.':
-      'Checked again with {0} known people: {1} faces newly assigned (to review), {2} groups with a name suggestion.',
     'Neue Person „{0}“': 'New person “{0}”', 'Noch keine Person mit bestätigten Gesichtern.': 'No person with confirmed faces yet.',
     'Noch keine Personen – Namen eintippen und Enter.': 'No people yet – type a name and press Enter.', 'Personen merken': 'Remember people',
     'Strg+Klick: auswählen · Umschalt+Klick: Bereich · auf freier Fläche ziehen: Rahmen · Rechtsklick: Namen zuweisen':
@@ -201,20 +199,41 @@ const I18n = (() => {
     '{0} Personen gemerkt.': '{0} people remembered.', '{0} gemerkt': '{0} remembered',
     'Ähnelt {0} ({1} %) – Klick ordnet die ganze Gruppe {0} zu': 'Looks like {0} ({1} %) – click assigns the whole group to {0}',
 
+    // --- Gruppenpruefung, Auffaelligkeiten, Rueckgaengig, Zeitfenster ---
+    '(+{0} weitere danach)': '(+{0} more afterwards)', 'Alle Auffälligkeiten durchgesehen.': 'All anomalies reviewed.',
+    'Auffälligkeit {0} von {1}': 'Anomaly {0} of {1}', 'Auffälligkeiten prüfen': 'Review anomalies',
+    'Automatisch zugeordnet wird nur, wenn ein Gesicht bestätigten Gesichtern der Person aus dieser Zeit ähnelt. So werden zwei Babys, die Jahre auseinander liegen, nicht vermischt. Gruppen mit größeren Zeitlücken werden geteilt – einmal Enter bei „Schnell zuordnen“ fügt sie wieder zusammen.':
+      'A face is only assigned automatically if it resembles confirmed faces of the person from that time. This keeps two babies born years apart from being mixed up. Groups with larger time gaps are split – one Enter in “Quick assign” joins them again.',
+    'Automatisch zugeordnet. Falsche anklicken, dann Enter.': 'Assigned automatically. Click the wrong ones, then Enter.',
+    'Ebenfalls als {0} zugeordnet': 'Also assigned as {0}',
+    'Enter = bleibt · 1–9 = andere Person · Name tippen = neue Person · Entf = fremd · 0 = weiß nicht · → überspringen · ← rückgängig · Esc beenden':
+      'Enter = keep · 1–9 = other person · type a name = new person · Del = stranger · 0 = don’t know · → skip · ← undo · Esc quit',
+    'Falsche Gesichter anklicken (abwählen), dann Namen wählen.': 'Click wrong faces (deselect), then choose a name.',
+    'Falsche Gesichter anklicken · Enter = Vorschlag · 1–9 = andere Person · Name tippen = neue Person · Entf = fremd · → überspringen · ← rückgängig · Esc beenden':
+      'Click wrong faces · Enter = suggestion · 1–9 = other person · type a name = new person · Del = stranger · → skip · ← undo · Esc quit',
+    'Fertig – keine offenen Gruppen mehr.': 'Done – no open groups left.', 'Fotos ansehen': 'View photos', 'Ja, bleibt {0}': 'Yes, stays {0}',
+    'Klick: falsch / richtig': 'Click: wrong / right', 'Letzte Zuordnung rückgängig machen (Strg+Z)': 'Undo the last assignment (Ctrl+Z)',
+    'Neu geprüft mit {0} bekannten Personen: {1} Gesichter neu zugeordnet (zum Prüfen), {2} Gruppen mit Namensvorschlag, {3} Auffälligkeiten.':
+      'Checked again with {0} known people: {1} faces newly assigned (to review), {2} groups with a name suggestion, {3} anomalies.',
+    'Nichts zum Rückgängigmachen.': 'Nothing to undo.', 'Passt besser zu {0} ({1} % statt {2} %).': 'Fits {0} better ({1} % instead of {2} %).',
+    'Rückgängig': 'Undo', 'Rückgängig (← oder Strg+Z)': 'Undo (← or Ctrl+Z)', 'Rückgängig: {0} Gesichter': 'Undone: {0} faces',
+    'Sind das alle {0}?': 'Are these all {0}?', 'Weiß nicht': 'Don’t know', 'Zeitfenster für Kinder (Monate, 0 = aus)': 'Time window for children (months, 0 = off)',
+    '{0} Auffälligkeiten gefunden (Person zweimal auf einem Foto oder Gesicht passt besser zu einer anderen Person). Jetzt durchgehen?':
+      '{0} anomalies found (a person twice in one photo or a face that fits another person better). Review them now?',
+    '{0} beantwortet · {1} bestätigt · {2} automatisch zugeordnet · {3} noch ohne Namen': '{0} answered · {1} confirmed · {2} assigned automatically · {3} still without a name',
+    '{0} ist auf diesem Foto mehrmals zugeordnet – das geht nicht.': '{0} is assigned more than once in this photo – that is not possible.',
+    '{0} von {1} ausgewählt': '{0} of {1} selected',
+
     // --- Schnell zuordnen ---
-    'Am schnellsten: <b>Schnell zuordnen</b> fragt ein Gesicht nach dem anderen „Wer ist das?“ mit Vorschlag – Enter bestätigt, ähnliche werden nach jeder Antwort mit zugeordnet.':
-      'Fastest: <b>Quick assign</b> asks one face after another “Who is this?” with a suggestion – Enter confirms, similar ones are assigned after every answer.',
-    'Alle {0} sind {1}': 'All {0} are {1}', 'Anderer Name … (Enter)': 'Other name … (Enter)',
-    'Automatisch zugeordnet, aber unsicher ({0} %).': 'Assigned automatically, but unsure ({0} %).',
-    'Dieselbe Gruppe ({0} weitere) – nach der Antwort werden alle ähnlichen automatisch mit zugeordnet. Umschalt+Enter ordnet die ganze Gruppe fest zu:': 'Same group ({0} more) – after your answer all similar ones are assigned automatically. Shift+Enter assigns the whole group for good:',
+    'Am schnellsten: <b>Schnell zuordnen</b> zeigt jede offene Gruppe – falsche Gesichter anklicken, Enter übernimmt den Vorschlag. Nach jeder Antwort wird neu gerechnet.':
+      'Fastest: <b>Quick assign</b> shows every open group – click wrong faces, Enter takes the suggestion. It recalculates after every answer.',
+    'Verdrückt? Rückgängig mit Strg+Z.': 'Misclicked? Undo with Ctrl+Z.',
+    'Anderer Name … (Enter)': 'Other name … (Enter)',
     'Ein Gesicht nach dem anderen: „Wer ist das?“ mit Vorschlag – ähnliche werden nach jeder Antwort automatisch mit zugeordnet':
       'One face after another: “Who is this?” with a suggestion – similar ones are assigned automatically after every answer',
-    'Enter = Vorschlag · 1–9 = andere Person · Name tippen = neue Person · Entf = fremd · → überspringen · ← zurück · Esc beenden':
-      'Enter = suggestion · 1–9 = other person · type a name = new person · Del = stranger · → skip · ← back · Esc quit',
-    'Entf': 'Del', 'Fertig – keine offenen Fragen mehr.': 'Done – no open questions left.', 'Fremd / kein Gesicht': 'Stranger / not a face',
+    'Entf': 'Del', 'Fremd / kein Gesicht': 'Stranger / not a face',
     'Fremde Person oder kein Gesicht – wird nicht mehr gefragt': 'Stranger or not a face – will not be asked again', 'Ganzes Foto': 'Whole photo',
-    'Ist das {0}?': 'Is this {0}?', 'Ja, {0}': 'Yes, {0}', 'Nein, weiß nicht': 'No, don’t know', 'Schnell zuordnen': 'Quick assign', 'Wer ist das?': 'Who is this?',
-    '{0} beantwortet · {1} bestätigt · {2} automatisch zugeordnet ({3} unsicher) · {4} noch ohne Namen': '{0} answered · {1} confirmed · {2} assigned automatically ({3} unsure) · {4} still without a name',
+    'Ist das {0}?': 'Is this {0}?', 'Ja, {0}': 'Yes, {0}', 'Schnell zuordnen': 'Quick assign', 'Wer ist das?': 'Who is this?',
     'Übersprungene kommen beim nächsten Öffnen wieder.': 'Skipped ones come back the next time you open it.',
 
     // --- Fotoübersicht (_fotos.html) ---

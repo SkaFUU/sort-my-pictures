@@ -254,13 +254,21 @@ body.dragging-faces .pcard, body.dragging-faces .chip { border-style:dashed; }
 
 /* Schnell zuordnen */
 .quiz { position:fixed; inset:0; z-index:1800; background:rgba(10,11,13,.82); display:flex; align-items:center; justify-content:center; }
-.qz-card { width:min(900px, 96vw); max-height:94vh; overflow:auto; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 18px; box-shadow:0 10px 40px rgba(0,0,0,.6); }
+.qz-card { width:min(1040px, 96vw); max-height:94vh; overflow:auto; background:var(--panel); border:1px solid var(--line); border-radius:12px; padding:14px 18px; box-shadow:0 10px 40px rgba(0,0,0,.6); }
 .qz-head { display:flex; align-items:center; gap:12px; margin-bottom:12px; }
 .qz-head b { font-size:16px; }
 .qz-stats { flex:1; color:var(--muted); font-size:12.5px; }
 .qz-body { display:flex; gap:20px; align-items:flex-start; }
 .qz-left { display:flex; flex-direction:column; gap:6px; align-items:center; }
-.qz-img { width:360px; height:360px; object-fit:cover; border-radius:10px; background:#1a1c1f; display:block; }
+.qz-tiles { display:flex; flex-wrap:wrap; gap:4px; max-height:300px; overflow:auto; }
+.qz-tile { position:relative; width:64px; height:64px; cursor:pointer; border-radius:5px; overflow:hidden; }
+.qz-tile img { width:100%; height:100%; object-fit:cover; display:block; }
+.qz-tile span { display:none; position:absolute; inset:0; align-items:center; justify-content:center; font-size:30px; color:var(--acc); font-weight:700; }
+.qz-tile.off img { opacity:.25; filter:grayscale(1); }
+.qz-tile.off span { display:flex; }
+.qz-tile:hover { outline:2px solid var(--muted); outline-offset:-2px; }
+.qz-undo:disabled { opacity:.4; }
+.qz-img { width:320px; height:320px; object-fit:cover; border-radius:10px; background:#1a1c1f; display:block; }
 .qz-right { flex:1; display:flex; flex-direction:column; gap:8px; min-width:0; }
 .qz-right h2 { margin:0; font-size:22px; }
 .qz-right button { display:inline-flex; align-items:center; gap:8px; }

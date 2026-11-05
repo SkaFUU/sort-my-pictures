@@ -7,6 +7,27 @@ const People = (() => {
   let app, expanded = null;
   const sel = new Set();  // ausgewaehlte Gesichter (Strg/Umschalt + Klick, Rahmen)
   let order = [], lastClicked = null;  // Reihenfolge der angezeigten Gesichter (fuer Umschalt+Klick)
+  // Feste Reihenfolge der unbenannten Gruppen: eine Gruppe behaelt ihren Platz, solange sie im Wesentlichen
+  // dieselben Gesichter enthaelt (sonst wuerde alles nach jeder Zuordnung neu nach Groesse springen)
+  const rankOf = new Map();  // Schluessel -> Platz
+  let keyOfFace = new Map(); // Gesicht -> Schluessel der letzten Anzeige
+  let nextRank = 0;
+  function stableOrder(groups) {
+    const used = new Set(), next = new Map();
+    for (const g of groups) {
+      const cnt = new Map();
+      for (const f of g.faces) { const k = keyOfFace.get(f.id); if (k && !used.has(k)) cnt.set(k, (cnt.get(k) || 0) + 1); }
+      let key = null, n = 0;
+      for (const [k, c] of cnt) if (c > n) { n = c; key = k; }
+      if (!key || n * 2 < g.faces.length) key = 'g' + nextRank;  // ueberwiegend neue Gesichter = neue Gruppe
+      used.add(key);
+      if (!rankOf.has(key)) rankOf.set(key, nextRank++);
+      g.key = key;
+      for (const f of g.faces) next.set(f.id, key);
+    }
+    keyOfFace = next;
+    return [...groups].sort((a, b) => rankOf.get(a.key) - rankOf.get(b.key));
+  }
   let done = new Set();
   try { done = new Set(JSON.parse(localStorage.getItem(DONE_KEY) || '[]')); } catch { /* leer */ }
   const saveDone = () => localStorage.setItem(DONE_KEY, JSON.stringify([...done]));
@@ -22,7 +43,12 @@ const People = (() => {
       done.clear(); saveDone();
       app.setFaceNames(Object.keys(app.st.faceNames), null);
     };
-    document.addEventListener('keydown', e => { if (e.key === 'Escape' && sel.size && app.tab === 'people' && !menu) { sel.clear(); refreshSel(); } });
+    document.addEventListener('keydown', e => {
+      if (app.tab !== 'people' || document.querySelector('.quiz')) return;
+      if (e.key === 'Escape' && sel.size && !menu) { sel.clear(); refreshSel(); }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && document.activeElement?.tagName !== 'INPUT') { e.preventDefault(); app.undoFaceNames(); }
+    });
+    $('#btnUndoNames').onclick = () => app.undoFaceNames();
     $('#btnRecheck').onclick = recheck;
     $('#btnQuiz').onclick = () => FaceQuiz.open(app);
     $('#btnLearn').onclick = learnPeople;
@@ -108,6 +134,7 @@ const People = (() => {
   // ---------- Erneut pruefen / Personen merken ----------
   let lastCheck = null;  // automatisch zugeordnete je Person beim letzten Pruefen
   const autoCounts = p => new Map(p.groups.filter(g => g.name).map(g => [g.name, g.faces.filter(f => f.auto).length]));
+  // Neu rechnen und Auffaelligkeiten unter den bestaetigten Gesichtern zum Nachpruefen anbieten
   function recheck() {
     if (!app.st.people) { alert(T('Zuerst „Gesichter erkennen“.')); return; }
     const before = lastCheck || new Map();
@@ -118,8 +145,10 @@ const People = (() => {
     for (const [n, c] of after) more += Math.max(0, c - (before.get(n) || 0));
     lastCheck = after;
     const sug = p.groups.filter(g => !g.name && g.suggest).length;
-    app.status(T('Neu geprüft mit {0} bekannten Personen: {1} Gesichter neu zugeordnet (zum Prüfen), {2} Gruppen mit Namensvorschlag.', after.size, more, sug));
-    document.querySelector('#pplGroups .suggest')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    const odd = Faces.anomalies(p);
+    app.status(T('Neu geprüft mit {0} bekannten Personen: {1} Gesichter neu zugeordnet (zum Prüfen), {2} Gruppen mit Namensvorschlag, {3} Auffälligkeiten.', after.size, more, sug, odd.length));
+    if (odd.length && confirm(T('{0} Auffälligkeiten gefunden (Person zweimal auf einem Foto oder Gesicht passt besser zu einer anderen Person). Jetzt durchgehen?', odd.length))) FaceQuiz.check(app, odd);
+    else document.querySelector('#pplGroups .suggest')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
   async function learnPeople() {
     const p = app.st.people;
@@ -219,11 +248,11 @@ const People = (() => {
     if (!app.st.items) { info.textContent = T('Zuerst einen Quellordner einlesen.'); return; }
     if (!p && app.st.oldFaces) { info.textContent = T('Die Gesichtserkennung wurde verbessert (neues Modell). Bitte „Gesichter erkennen“ neu starten – vergebene Namen werden auf die neu gefundenen Gesichter übertragen.'); return; }
     if (!p) { info.textContent = T('Noch keine Gesichtserkennung für diesen Ordner. „Gesichter erkennen“ startet sie (lokal, nutzt alle Prozessorkerne, ca. 3–10 min für 5000 Fotos, kann jederzeit abgebrochen und fortgesetzt werden).'); return; }
-    const named = p.groups.filter(g => g.name);
+    const named = p.groups.filter(g => g.name).sort((a, b) => a.name.localeCompare(b.name));
     for (const n of [...done]) if (!named.some(g => g.name === n)) done.delete(n);
     const minG = app.st.s.faceMinGroup;
     const showSmall = $('#pplSmall').checked;
-    const unnamed = p.groups.filter(g => !g.name && (showSmall || g.faces.length >= minG));
+    const unnamed = stableOrder(p.groups.filter(g => !g.name)).filter(g => showSmall || g.faces.length >= minG);
     const hidden = p.groups.filter(g => !g.name).length - unnamed.length;
     info.textContent = T('{0} Gesichter · {1} Personen benannt · {2} unbenannte Gruppen', p.faceCount, named.length, p.groups.length - named.length) +
       (hidden ? T(' ({0} kleine ausgeblendet)', hidden) : '') + (p.ignored ? T(' · {0} ignoriert', p.ignored) : '');
