@@ -207,10 +207,16 @@ td .dot { margin-right:6px; }
 
 /* ---------- Personen ---------- */
 #pplGroups { flex:1; overflow-y:auto; padding:0 12px 12px; }
-.pcard { display:inline-flex; flex-direction:column; vertical-align:top; width:340px; margin:0 8px 8px 0; border:1px solid var(--line); border-radius:8px; padding:6px; background:var(--panel); }
+.pcard { display:inline-flex; flex-direction:column; vertical-align:top; width:356px; margin:0 8px 8px 0; border:1px solid var(--line); border-radius:8px; padding:6px; background:var(--panel); }
 .pcard.named { border-color:var(--tab); }
 .pcard.open { width:calc(100% - 8px); }
-.pcard .faces { display:flex; flex-wrap:wrap; gap:3px; }
+.pcard .faces { display:flex; flex-wrap:wrap; gap:3px; align-content:flex-start; }
+/* gleich hohe Karten: Entfernen eines Gesichts laesst die Liste nicht springen */
+.pcard:not(.open):not(.unassigned) > .faces { min-height:147px; }
+/* Jahreszahl als Trenner zwischen den Jahren */
+.yr { width:12px; align-self:stretch; display:flex; align-items:center; justify-content:center; border-left:2px solid var(--tab); margin-left:2px; }
+.yr span { writing-mode:vertical-rl; transform:rotate(180deg); font-size:10px; color:var(--muted); letter-spacing:1px; }
+.faces .yr:first-child { margin-left:0; }
 .pcard .face { position:relative; }
 .pcard .face img { width:72px; height:72px; border-radius:4px; display:block; cursor:pointer; object-fit:cover; }
 .pcard .face.auto img { outline:2px dashed var(--warn); outline-offset:-2px; }
@@ -266,6 +272,9 @@ body.dragging-faces .pcard, body.dragging-faces .chip { border-style:dashed; }
 .qz-tile span { display:none; position:absolute; inset:0; align-items:center; justify-content:center; font-size:30px; color:var(--acc); font-weight:700; }
 .qz-tile.off img { opacity:.25; filter:grayscale(1); }
 .qz-tile.off span { display:flex; }
+.qz-tile.blk img { opacity:.35; }
+.qz-tile.blk::after { content:'≠'; position:absolute; right:2px; bottom:0; font-weight:700; color:var(--warn); }
+.qz-tiles .yr { height:64px; align-self:auto; }
 .qz-tile:hover { outline:2px solid var(--muted); outline-offset:-2px; }
 .qz-undo:disabled { opacity:.4; }
 .qz-img { width:320px; height:320px; object-fit:cover; border-radius:10px; background:#1a1c1f; display:block; }

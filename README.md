@@ -106,7 +106,7 @@ Editing groups:
 - **Quick assign** (fastest with many photos): shows every open group in turn, including the automatically assigned faces of a person (“Are these all Anna?”). Click the wrong faces, then `Enter` for the suggestion, `1`–`9` for another person, or type a name. Deselected faces are no longer assigned to that person afterwards. It recalculates after every answer. More keys: `Del` stranger/not a face, `→` skip, `←` undo.
 - **Many at once:** drag a frame on empty space, Shift+click selects a range, ☐ the whole group. Then **right-click** → type a name (Enter) or pick a person from the list.
 - **✕** removes a face from the person. It goes to **Unassigned** at the bottom and can be assigned later.
-- **Review** shows a person’s automatically assigned faces, least certain first: ✓ confirms.
+- **Review** shows a person’s automatically assigned faces: ✓ confirms. Faces are always shown by date taken, with the year as a divider between the years.
 - **✓ Done** puts a person small at the top to keep the overview clear. You can still drag faces onto it. “Hide finished people” hides them completely.
 
 Recognition learns as you go:
@@ -115,7 +115,8 @@ Recognition learns as you go:
 - **Check again** shows how many faces were newly assigned since the last check and looks for **anomalies**: a person twice in the same photo, or a confirmed face that fits another person much better. You can then go through them one by one. Unnamed groups that look like a known person get a green suggestion like **“Anna?”**.
 - **Rules:** a person appears only once per photo. With the **time window** (default 12 months), a face is only assigned automatically if it resembles confirmed faces of the person from the same time. This keeps two babies born years apart from being mixed up. Groups with large time gaps are split. If it is the same person after all, one Enter in “Quick assign” is enough.
 - **Undo:** `Ctrl+Z` or the “Undo” button takes back the last assignments.
-- Unnamed groups keep their place in the list, people are sorted alphabetically.
+- Unnamed groups keep their place in the list, people are sorted alphabetically. When a face is removed, the others stay in their groups (they only move if another group fits much better). “Check again” recalculates everything from scratch.
+- If a person is already confirmed on a photo, they are not suggested for the other faces of that photo.
 - **Remember people** stores the confirmed faces (up to 60 as different as possible per person) as knowledge in the browser. These people are then recognised in other folders too. Only face features (128 numbers) are stored, no pictures. Exporting the settings (JSON) takes the knowledge to another PC.
 - The model itself is not retrained. It compares with your examples, which gives almost the same effect for a handful of people.
 

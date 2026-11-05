@@ -37,8 +37,8 @@ const FaceQuiz = (() => {
     return { ...c, faces, rep, more: c.faces.length - faces.length };
   }
 
-  function candidates(d, exclude = null) {
-    return people().groups.filter(x => x.name && x.name !== exclude).map(x => ({ g: x, s: people().score(d, x) })).sort((a, b) => b.s - a.s);
+  function candidates(f, exclude = null) {
+    return people().groups.filter(x => x.name && x.name !== exclude && !people().blocked(x.name, f)).map(x => ({ g: x, s: people().score(f.d, x) })).sort((a, b) => b.s - a.s);
   }
 
   // ---------- Antworten ----------
@@ -48,11 +48,12 @@ const FaceQuiz = (() => {
     changed = true;
     app.applyFaceNames(changes, true);
   }
-  // Gruppe: ausgewaehlte = name, abgewaehlte = sicher nicht diese Person ('!name')
+  // Gruppe: ausgewaehlte = name, abgewaehlte = sicher nicht diese Person ('!name').
+  // Ist die Person auf einem Foto schon bestaetigt, kann das Gesicht dort nicht sie sein.
   function answerGroup(name) {
     const ch = {};
     for (const f of q.faces) {
-      if (!excluded.has(f.id)) ch[f.id] = name;
+      if (!excluded.has(f.id) && !(real(name) && people().blocked(name, f))) ch[f.id] = name;
       else if (real(name)) ch[f.id] = '!' + name;
     }
     apply(ch);
@@ -134,8 +135,11 @@ const FaceQuiz = (() => {
     let sugg = null, others;
     if (kind === 'auto') { sugg = g.name; others = []; }
     else {
-      // Vorschlag: im Schnitt aehnlichste bekannte Person
-      const avg = people().groups.filter(x => x.name).map(x => ({ g: x, s: faces.reduce((a, f) => a + people().score(f.d, x), 0) / faces.length })).sort((a, b) => b.s - a.s);
+      // Vorschlag: im Schnitt aehnlichste bekannte Person – ohne Gesichter von Fotos, auf denen sie schon bestaetigt ist
+      const avg = people().groups.filter(x => x.name).map(x => {
+        const ok = faces.filter(f => !people().blocked(x.name, f));
+        return { g: x, s: ok.length * 2 > faces.length ? ok.reduce((a, f) => a + people().score(f.d, x), 0) / ok.length : -1 };
+      }).filter(c => c.s > -1).sort((a, b) => b.s - a.s);
       if (avg[0] && avg[0].s >= m - 0.12) sugg = avg[0].g.name;
       others = avg.filter(c => c.g.name !== sugg).slice(0, 9).map(c => c.g);
     }
@@ -144,8 +148,10 @@ const FaceQuiz = (() => {
     const img = h('img', { class: 'qz-img', src: rep.crop });
     context(rep, img, my);
     const inp = nameInput(n => answerGroup(n));
-    const tiles = h('div', { class: 'qz-tiles' }, faces.map(f => {
-      const t = h('div', { class: 'qz-tile', title: f.item.name + ' · ' + Util.fmtDate(f.item.date) + '\n' + T('Klick: falsch / richtig') },
+    const tiles = h('div', { class: 'qz-tiles' }, People.byYear(faces, f => {
+      const blk = sugg && kind !== 'auto' && people().blocked(sugg, f);
+      const t = h('div', { class: 'qz-tile' + (blk ? ' blk' : ''), title: f.item.name + ' · ' + Util.fmtDate(f.item.date) + '\n' +
+        (blk ? T('{0} ist auf diesem Foto schon bestätigt – wird nicht {0} zugeordnet', sugg) : T('Klick: falsch / richtig')) },
         h('img', { src: f.crop }), h('span', {}, '✕'));
       t.onclick = () => { excluded.has(f.id) ? excluded.delete(f.id) : excluded.add(f.id); t.classList.toggle('off', excluded.has(f.id)); count(); };
       t.oncontextmenu = e => { e.preventDefault(); app.openViewer([f.item], 0); };
@@ -172,7 +178,7 @@ const FaceQuiz = (() => {
 
   function showCheck(body, my) {
     const { kind, f, name, alt, others: same } = q;
-    const cands = candidates(f.d, name);
+    const cands = candidates(f, name);
     if (alt) cands.sort((a, b) => (b.g.name === alt) - (a.g.name === alt));
     q.sugg = undefined;  // Enter = bleibt
     q.others = cands.slice(0, 9).map(c => c.g.name);

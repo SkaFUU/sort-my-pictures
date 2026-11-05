@@ -106,7 +106,7 @@ Gruppen bearbeiten:
 - **Schnell zuordnen** (am schnellsten bei vielen Fotos): zeigt jede offene Gruppe nacheinander, auch die automatisch zugeordneten Gesichter einer Person („Sind das alle Anna?“). Falsche Gesichter anklicken, dann `Enter` für den Vorschlag, `1`–`9` für eine andere Person oder einen Namen tippen. Abgewählte Gesichter werden dieser Person danach nicht mehr zugeordnet. Nach jeder Antwort wird neu gerechnet. Weitere Tasten: `Entf` fremd/kein Gesicht, `→` überspringen, `←` rückgängig.
 - **Viele auf einmal:** Auf freier Fläche einen Rahmen ziehen, Umschalt+Klick wählt einen Bereich, ☐ die ganze Gruppe. Dann **Rechtsklick** → Namen eintippen (Enter) oder eine Person aus der Liste wählen.
 - **✕** entfernt ein Gesicht aus der Person. Es landet unten in **Nicht zugeordnet** und lässt sich später zuweisen.
-- **Prüfen** zeigt die automatisch zugeordneten Gesichter einer Person, die unsichersten zuerst: ✓ bestätigt.
+- **Prüfen** zeigt die automatisch zugeordneten Gesichter einer Person: ✓ bestätigt. Gesichter stehen überall nach Aufnahmedatum, mit der Jahreszahl als Trenner zwischen den Jahren.
 - **✓ Fertig** legt eine Person klein oben ab, damit die Übersicht frei bleibt. Man kann weiter Gesichter darauf ziehen. „Fertige Personen ausblenden“ blendet sie ganz aus.
 
 Die Erkennung lernt mit:
@@ -115,7 +115,8 @@ Die Erkennung lernt mit:
 - **Erneut prüfen** zeigt, wie viele Gesichter seit dem letzten Prüfen neu zugeordnet wurden, und sucht **Auffälligkeiten**: eine Person zweimal auf demselben Foto oder ein bestätigtes Gesicht, das deutlich besser zu einer anderen Person passt. Diese lassen sich dann einzeln durchgehen. Unbenannte Gruppen, die einer bekannten Person ähneln, bekommen einen grünen Vorschlag wie **„Anna?“**.
 - **Regeln:** Eine Person kommt auf einem Foto nur einmal vor. Mit dem **Zeitfenster** (Standard 12 Monate) wird automatisch nur zugeordnet, wenn ein Gesicht bestätigten Gesichtern der Person aus derselben Zeit ähnelt. So werden zwei Babys, die Jahre auseinander liegen, nicht vermischt. Gruppen mit großen Zeitlücken werden geteilt. Ist es doch dieselbe Person, reicht bei „Schnell zuordnen“ ein Enter.
 - **Rückgängig:** `Strg+Z` oder der Knopf „Rückgängig“ nimmt die letzten Zuordnungen zurück.
-- Unbenannte Gruppen behalten ihren Platz in der Liste, Personen stehen alphabetisch.
+- Unbenannte Gruppen behalten ihren Platz in der Liste, Personen stehen alphabetisch. Wird ein Gesicht entfernt, bleiben die übrigen in ihren Gruppen (gewechselt wird nur, wenn eine andere Gruppe deutlich besser passt). „Erneut prüfen“ rechnet dagegen alles frisch durch.
+- Ist eine Person auf einem Foto schon bestätigt, wird sie für die anderen Gesichter dieses Fotos nicht mehr vorgeschlagen.
 - **Personen merken** speichert die bestätigten Gesichter (bis zu 60 möglichst verschiedene je Person) als Wissen im Browser. Diese Personen werden dann auch in anderen Ordnern erkannt. Gespeichert werden nur Gesichtsmerkmale (128 Zahlen), keine Bilder. Mit dem Export der Einstellungen (JSON) wandert das Wissen auf einen anderen PC.
 - Das Modell selbst wird dabei nicht neu trainiert. Es vergleicht mit deinen Beispielen, und das bringt bei wenigen Personen fast denselben Effekt.
 

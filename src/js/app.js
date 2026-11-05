@@ -273,11 +273,11 @@
   }
 
   // ---------------- Berechnung ----------------
-  function recompute() {
+  function recompute(fresh) {
     $('#geoCacheInfo') && ($('#geoCacheInfo').textContent = T('{0} Orte gespeichert', Geo.size()));
     if (!st.items) { updateButtons(); return; }
     // Personen aus der Gesichtserkennung den Bildern zuordnen
-    clusterPeople();
+    clusterPeople(fresh === true);
     st.analysis = Analyze.run(st.items, st.s, st.zones, st.overrides);
     st.plan = Plan.build(st.analysis, st.s, st.zones);
     if (st.selected) st.selected = st.analysis.events.find(e => e.id === st.selected.id) || null;
@@ -423,8 +423,12 @@
     status(T('Rückgängig: {0} Gesichter', Object.keys(last).length));
     return true;
   }
-  function clusterPeople() {
-    st.people = st.faceCache ? Faces.cluster(st.items, st.faceCache, st.faceNames, st.s.faceThreshold, st.s.faceUseLib ? st.faceLib : null, st.s.faceWindow) : null;
+  // fresh: ohne die bisherige Einteilung neu gruppieren (sonst bleiben offene Gesichter moeglichst in ihrer Gruppe)
+  function clusterPeople(fresh = false) {
+    const lib = st.s.faceUseLib ? st.faceLib : null;
+    const sig = [st.s.faceThreshold, st.s.faceWindow, lib ? Object.keys(lib).length : -1].join();
+    const prev = !fresh && st.people?.sig === sig ? st.people : null;
+    st.people = st.faceCache ? Faces.cluster(st.items, st.faceCache, st.faceNames, st.s.faceThreshold, lib, st.s.faceWindow, prev) : null;
     for (const it of st.items) it.persons = st.people?.byItem.get(it.id);
   }
   const faceName = (it, i) => {

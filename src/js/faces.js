@@ -356,9 +356,12 @@ const Faces = (() => {
   // 3. Zwei Runden Nachsortieren: jedes automatische Gesicht wandert zur jetzt aehnlichsten Gruppe.
   // 4. Unbenannte Gruppen mit grosser Zeitluecke werden geteilt.
   // 5. Unbenannte Gruppen, die einer bekannten Person aehneln, bekommen einen Namensvorschlag.
+  // prev: letztes Ergebnis (oder null). Offene Gesichter starten dann in ihrer bisherigen Gruppe und wechseln nur,
+  //   wenn eine andere Gruppe deutlich besser passt – sonst wuerde nach jedem Loeschen alles neu durchgemischt.
   const MONTH = 30.44 * 864e5;
   const SLICE = 6 * MONTH;
-  function cluster(items, cache, names, threshold, lib = null, months = 0) {
+  const STICK = 0.04;
+  function cluster(items, cache, names, threshold, lib = null, months = 0, prev = null) {
     const all = [];
     for (const it of items) {
       if (it.isVideo) continue;
@@ -422,17 +425,41 @@ const Faces = (() => {
     resetItems();
     groups.forEach(centre);
     const free = all.filter(f => !names[f.id] || names[f.id][0] === '!').sort((a, b) => (b.q ?? 1) - (a.q ?? 1));
+    // bisherige Gruppe jedes offenen Gesichts (benannte Person oder unbenannte Gruppe) als Startpunkt
+    const home = new Map();
+    if (prev) {
+      const seeds = new Map();
+      for (const pg of prev.groups) {
+        for (const f of pg.faces) {
+          if (!f.auto) continue;
+          if (pg.name) { const g = byName.get(pg.name); if (g) home.set(f.id, g); continue; }
+          if (!seeds.has(pg)) seeds.set(pg, newGroup(null));
+          home.set(f.id, seeds.get(pg));
+        }
+      }
+      for (const f of free) { const g = home.get(f.id); if (g && !g.name && !g.items.has(f.item.id)) put(g, f); }
+      for (const g of seeds.values()) if (g.members.length) centre(g);
+    }
+    // Wechsel nur, wenn eine andere Gruppe deutlich besser passt
+    const pick = f => {
+      const [g, s] = best(f);
+      const h = home.get(f.id);
+      if (h && h !== g && groups.includes(h)) { const hs = fit(f, h); if (hs > minSim && hs >= s - STICK) return h; }
+      return g;
+    };
     for (const f of free) {
-      const [g] = best(f);
+      if (home.get(f.id)?.members.includes(f)) continue;
+      const g = pick(f);
       const t = g || newGroup(null);
       put(t, f);
       if (!g || t.members.length + t.fixed.length <= 20) centre(t);  // Mittelpunkt anfangs laufend nachfuehren
     }
+    for (let i = groups.length - 1; i >= 0; i--) if (!groups[i].name && !groups[i].members.length) groups.splice(i, 1);
     for (let round = 0; round < 2; round++) {
       groups.forEach(centre);
       for (const g of groups) g.members = [];
       resetItems();
-      for (const f of free) { const [g] = best(f); put(g || newGroup(null), f); }
+      for (const f of free) { const g = pick(f); put(g || newGroup(null), f); }
       for (let i = groups.length - 1; i >= 0; i--) if (!groups[i].name && !groups[i].members.length) groups.splice(i, 1);
     }
     // gemerkte Personen, die in diesem Ordner nicht vorkommen, nicht anzeigen
@@ -459,15 +486,20 @@ const Faces = (() => {
       g.faces = [...g.fixed.map(f => ({ ...f, auto: false })), ...g.members.map(f => ({ ...f, auto: true }))];
     }
     // Namensvorschlag: im Schnitt aehnlichste bekannte Person (ohne Zeitfenster), etwas lockerer als die Zuordnung
+    // Fotos, auf denen eine Person bestaetigt ist: dort wird sie nicht noch einmal vorgeschlagen
+    const confirmed = new Map();
+    for (const g of groups) if (g.name) confirmed.set(g.name, new Set(g.fixed.map(f => f.item.id)));
+    const blocked = (name, f) => confirmed.get(name)?.has(f.item.id) || forbidden(f) === name;
     const known = groups.filter(g => g.name && g.p?.length);
     for (const g of groups) {
       if (g.name || !known.length) continue;
       let bn = null, bs = minSim - 0.1;
       for (const k of known) {
-        if (g.members.filter(f => forbidden(f) === k.name).length * 2 > g.members.length) continue;
+        const ok = g.members.filter(f => !blocked(k.name, f));
+        if (ok.length * 2 <= g.members.length) continue;
         let s = 0;
-        for (const f of g.members) s += score(f.d, k);
-        s /= g.members.length;
+        for (const f of ok) s += score(f.d, k);
+        s /= ok.length;
         if (s > bs) { bs = s; bn = k.name; }
       }
       if (bn) g.suggest = { name: bn, sim: bs };
@@ -485,7 +517,8 @@ const Faces = (() => {
       }
     }
     const unassigned = all.filter(f => names[f.id] === '#none').map(f => ({ ...f, auto: false }));
-    return { groups, byItem, unassigned, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length, minSim, score };
+    return { groups, byItem, unassigned, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length, minSim, score, blocked,
+      sig: [threshold, months, lib ? Object.keys(lib).length : -1].join() };
   }
 
   // Auffaelligkeiten unter den bestaetigten Gesichtern (fuer „Erneut pruefen“):
@@ -505,7 +538,7 @@ const Faces = (() => {
         let own = -1;  // naechstes anderes bestaetigtes Gesicht derselben Person
         for (const x of sample) if (x !== f) own = Math.max(own, dot(f.d, x.d));
         let alt = null, as = Math.max(people.minSim, own + 0.06);
-        for (const o of named) { if (o === g) continue; const s = people.score(f.d, o); if (s > as) { as = s; alt = o.name; } }
+        for (const o of named) { if (o === g || people.blocked(o.name, f)) continue; const s = people.score(f.d, o); if (s > as) { as = s; alt = o.name; } }
         if (alt) out.push({ kind: 'better', f, name: g.name, alt, own, altSim: as });
       }
     }

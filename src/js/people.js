@@ -28,6 +28,17 @@ const People = (() => {
     keyOfFace = next;
     return [...groups].sort((a, b) => rankOf.get(a.key) - rankOf.get(b.key));
   }
+  // Gesichter nach Aufnahmedatum, mit der Jahreszahl als Trenner zwischen den Jahren
+  function byYear(faces, make) {
+    const out = [];
+    let y = null;
+    for (const f of [...faces].sort((a, b) => a.t - b.t)) {
+      const fy = f.item.date.getFullYear();
+      if (fy !== y) { y = fy; out.push(h('div', { class: 'yr' }, h('span', {}, String(fy)))); }
+      out.push(make(f));
+    }
+    return out;
+  }
   let done = new Set();
   try { done = new Set(JSON.parse(localStorage.getItem(DONE_KEY) || '[]')); } catch { /* leer */ }
   const saveDone = () => localStorage.setItem(DONE_KEY, JSON.stringify([...done]));
@@ -138,7 +149,7 @@ const People = (() => {
   function recheck() {
     if (!app.st.people) { alert(T('Zuerst „Gesichter erkennen“.')); return; }
     const before = lastCheck || new Map();
-    app.recompute();
+    app.recompute(true);  // ganz neu durchrechnen, nicht an der bisherigen Einteilung festhalten
     const p = app.st.people;
     const after = autoCounts(p);
     let more = 0;
@@ -209,7 +220,7 @@ const People = (() => {
         refreshSel();
         return;
       }
-      const items = [...new Set(list.map(x => x.item))];
+      const items = [...new Set(list.map(x => x.item))].sort((a, b) => a.date - b.date);
       app.openViewer(items, items.indexOf(f.item));
     });
     el.addEventListener('dragstart', e => {
@@ -291,7 +302,7 @@ const People = (() => {
       dropTarget(h('div', { class: 'pcard unassigned' },
         h('div', { class: 'pcard-title' }, T('Nicht zugeordnet ({0})', un.length),
           h('span', { class: 'hint' }, ' ' + T('Hierher kommt, was du mit ✕ entfernst. Später auf eine Person ziehen.'))),
-        h('div', { class: 'faces' }, un.slice(0, 400).map(f => faceEl(f, un, { removeTo: '#ignore' }))),
+        h('div', { class: 'faces' }, byYear([...un].sort((a, b) => a.t - b.t).slice(0, 400), f => faceEl(f, un, { removeTo: '#ignore' }))),
         un.length > 400 ? h('div', { class: 'hint' }, T('… und {0} weitere', un.length - 400)) : null), ids => assign(ids, '#none')),
       dropTarget(h('div', { class: 'pcard newp', onclick: () => { if (sel.size) { const n = askName(); if (n) assign([...sel], n); } } },
         h('div', { class: 'big-plus' }, '+'), h('div', {}, T('Neue Person')), h('div', { class: 'hint' }, T('Gesichter hierher ziehen'))),
@@ -303,14 +314,14 @@ const People = (() => {
     const isOpen = expanded === g.id;
     let body;
     if (isOpen && g.name) {
-      // Benannte Person: automatisch zugeordnete zum Bestaetigen, unsicherste zuerst
-      const auto = g.faces.filter(f => f.auto).sort((a, b) => a.sim - b.sim);
+      // Benannte Person: automatisch zugeordnete zum Bestaetigen, dann die bestaetigten (je nach Datum)
+      const auto = g.faces.filter(f => f.auto);
       body = [
-        auto.length ? h('div', { class: 'hint' }, T('{0} automatisch zugeordnet – unsicherste zuerst. ✓ bestätigt, ✕ entfernt.', auto.length)) : null,
-        auto.length ? h('div', { class: 'faces' }, auto.map(f => faceEl(f, g.faces, { group: g }))) : null,
+        auto.length ? h('div', { class: 'hint' }, T('{0} automatisch zugeordnet – ✓ bestätigt, ✕ entfernt.', auto.length)) : null,
+        auto.length ? h('div', { class: 'faces' }, byYear(auto, f => faceEl(f, g.faces, { group: g }))) : null,
         h('div', { class: 'hint' }, T('{0} bestätigt', g.faces.length - auto.length)),
-        h('div', { class: 'faces' }, g.faces.filter(f => !f.auto).map(f => faceEl(f, g.faces, { group: g })))];
-    } else body = h('div', { class: 'faces' }, (isOpen ? g.faces : g.faces.slice(0, 8)).map(f => faceEl(f, g.faces, { group: g })));
+        h('div', { class: 'faces' }, byYear(g.faces.filter(f => !f.auto), f => faceEl(f, g.faces, { group: g })))];
+    } else body = h('div', { class: 'faces' }, byYear(isOpen ? g.faces : g.faces.slice(0, 8), f => faceEl(f, g.faces, { group: g })));
     const items = () => [...new Set(g.faces.map(f => f.item))].sort((a, b) => a.date - b.date);
     const autoCount = g.name ? g.faces.filter(f => f.auto).length : 0;
     const el = h('div', { class: 'pcard' + (isOpen ? ' open' : '') + (g.name ? ' named' : '') },
@@ -336,5 +347,5 @@ const People = (() => {
     });
   }
 
-  return { init, render };
+  return { init, render, byYear };
 })();
