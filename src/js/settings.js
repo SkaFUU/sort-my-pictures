@@ -101,6 +101,8 @@ const Settings = (() => {
       { key: 'faceMinSize', label: 'Mindestgröße Gesicht (Pixel)', type: 'num', def: 40, min: 10, level: 'faces',
         help: 'Kleinere Gesichter (Hintergrund) werden ignoriert. Gilt für neu analysierte Fotos.' },
       { key: 'faceMinGroup', label: 'Gruppen zeigen ab Gesichtern', type: 'num', def: 3, min: 1 },
+      { key: 'faceUseLib', label: 'Gemerkte Personen verwenden', type: 'bool', def: true,
+        help: 'Mit „Personen merken“ gespeicherte Personen werden auch in anderen Ordnern wiedererkannt. Gespeichert werden nur Gesichtsmerkmale (Zahlen), keine Bilder – nur in diesem Browser.' },
     ]},
     { section: 'Ortsnamen', online: true, items: [
       { key: 'geocode', label: 'Ortsnamen von OpenStreetMap', type: 'bool', def: false, online: true,

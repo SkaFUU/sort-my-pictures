@@ -12,7 +12,7 @@
     overrides: loadJson(OKEY, { events: {}, files: {} }),
     src: null, dst: null, items: null, analysis: null, plan: null,
     abort: null, selected: null, thumbUrls: [],
-    faceCache: null, faceNames: {}, people: null, oldFaces: false,
+    faceCache: null, faceNames: {}, people: null, oldFaces: false, faceLib: {},
   };
   const saveZones = () => localStorage.setItem(ZKEY, JSON.stringify(st.zones));
   const saveOverrides = () => localStorage.setItem(OKEY, JSON.stringify(st.overrides));
@@ -277,7 +277,7 @@
     $('#geoCacheInfo') && ($('#geoCacheInfo').textContent = T('{0} Orte gespeichert', Geo.size()));
     if (!st.items) { updateButtons(); return; }
     // Personen aus der Gesichtserkennung den Bildern zuordnen
-    st.people = st.faceCache ? Faces.cluster(st.items, st.faceCache, st.faceNames, st.s.faceThreshold) : null;
+    st.people = st.faceCache ? Faces.cluster(st.items, st.faceCache, st.faceNames, st.s.faceThreshold, st.s.faceUseLib ? st.faceLib : null) : null;
     for (const it of st.items) it.persons = st.people?.byItem.get(it.id);
     st.analysis = Analyze.run(st.items, st.s, st.zones, st.overrides);
     st.plan = Plan.build(st.analysis, st.s, st.zones);
@@ -743,7 +743,9 @@
 
   // ---------------- Export / Import ----------------
   function exportConfig() {
-    const blob = new Blob([JSON.stringify({ settings: st.s, zones: st.zones, overrides: st.overrides, faceNames: st.faceNames }, null, 2)], { type: 'application/json' });
+    // gemerkte Personen als Zahlenlisten (4 Nachkommastellen reichen)
+    const faceLibrary = Object.fromEntries(Object.entries(st.faceLib).map(([n, vs]) => [n, vs.map(v => Array.from(v, x => +x.toFixed(4)))]));
+    const blob = new Blob([JSON.stringify({ settings: st.s, zones: st.zones, overrides: st.overrides, faceNames: st.faceNames, faceLibrary }, null, 2)], { type: 'application/json' });
     const a = h('a', { href: URL.createObjectURL(blob), download: 'sort-my-pictures-settings.json' });
     a.click();
     setTimeout(() => URL.revokeObjectURL(a.href), 1000);
@@ -757,6 +759,10 @@
         if (j.zones) { st.zones = j.zones; saveZones(); }
         if (j.overrides) { st.overrides = j.overrides; saveOverrides(); }
         if (j.faceNames) { st.faceNames = j.faceNames; Util.idb.set('faceNames', st.faceNames).catch(() => {}); }
+        if (j.faceLibrary) {
+          st.faceLib = Object.fromEntries(Object.entries(j.faceLibrary).map(([n, vs]) => [n, vs.map(v => Float32Array.from(v))]));
+          Faces.saveLib(st.faceLib).catch(() => {});
+        }
         buildSettings(); kindsChanged(); netState(); setTiles(); recompute();
       } catch (e) { alert(T('Datei ungültig: {0}', e.message)); }
     };
@@ -848,7 +854,7 @@
 
     // Kontext fuer Bildansicht, Pruefmodus und Personen
     const appCtx = {
-      st, recompute, saveOverrides, loadThumb, scanFaces, setFaceNames, faceName,
+      st, recompute, saveOverrides, loadThumb, scanFaces, setFaceNames, faceName, status,
       openViewer: (list, i) => Viewer.open(list, i),
       opsOf: it => st.plan?.byItem.get(it.id) || [],
       facesOf: it => Faces.facesOf(it, st.faceCache),
@@ -892,6 +898,7 @@
     updateButtons();
     status(T('Quelle wählen, um zu beginnen.'));
     try { st.faceNames = (await Util.idb.get('faceNames')) || {}; } catch { /* leer */ }
+    st.faceLib = await Faces.loadLib();
     // Zuletzt verwendete Ordner wiederherstellen (Zugriff muss per Klick erneut erlaubt werden)
     if (fsSupported) {
       try {

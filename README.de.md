@@ -103,9 +103,17 @@ Gruppen bearbeiten:
 
 - **Name eintippen** benennt eine Gruppe. Gleicher Name = Gruppen zusammenführen.
 - **Ziehen und Ablegen:** Gesichter mit der Maus auf eine andere Person ziehen. Strg+Klick wählt mehrere aus. Auf eine unbenannte Gruppe ziehen fragt nach einem Namen, auf **Neue Person** legt eine neue an.
+- **Viele auf einmal:** Auf freier Fläche einen Rahmen ziehen, Umschalt+Klick wählt einen Bereich, ☐ die ganze Gruppe. Dann **Rechtsklick** → Namen eintippen (Enter) oder eine Person aus der Liste wählen.
 - **✕** entfernt ein Gesicht aus der Person. Es landet unten in **Nicht zugeordnet** und lässt sich später zuweisen.
 - **Prüfen** zeigt die automatisch zugeordneten Gesichter einer Person, die unsichersten zuerst: ✓ bestätigt.
 - **✓ Fertig** legt eine Person klein oben ab, damit die Übersicht frei bleibt. Man kann weiter Gesichter darauf ziehen. „Fertige Personen ausblenden“ blendet sie ganz aus.
+
+Die Erkennung lernt mit:
+
+- Jede benannte Person bekommt aus ihren bestätigten Gesichtern mehrere „Vertreter“, z. B. mit Brille, im Profil, als Kind und später. Je mehr du zuordnest, desto mehr erkennt das Programm selbst. Das passiert nach jeder Änderung sofort.
+- **Erneut prüfen** zeigt, wie viele Gesichter seit dem letzten Prüfen neu zugeordnet wurden. Unbenannte Gruppen, die einer bekannten Person ähneln, bekommen einen grünen Vorschlag wie **„Anna?“**. Ein Klick ordnet die ganze Gruppe zu.
+- **Personen merken** speichert die bestätigten Gesichter (bis zu 60 möglichst verschiedene je Person) als Wissen im Browser. Diese Personen werden dann auch in anderen Ordnern erkannt. Gespeichert werden nur Gesichtsmerkmale (128 Zahlen), keine Bilder. Mit dem Export der Einstellungen (JSON) wandert das Wissen auf einen anderen PC.
+- Das Modell selbst wird dabei nicht neu trainiert. Es vergleicht mit deinen Beispielen, und das bringt bei wenigen Personen fast denselben Effekt.
 
 ## Lokal und online
 

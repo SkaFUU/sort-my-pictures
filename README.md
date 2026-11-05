@@ -103,9 +103,17 @@ Editing groups:
 
 - **Type a name** to name a group. Same name = merge groups.
 - **Drag and drop:** drag faces onto another person with the mouse. Ctrl+click selects several. Dropping onto an unnamed group asks for a name, dropping onto **New person** creates one.
+- **Many at once:** drag a frame on empty space, Shift+click selects a range, ☐ the whole group. Then **right-click** → type a name (Enter) or pick a person from the list.
 - **✕** removes a face from the person. It goes to **Unassigned** at the bottom and can be assigned later.
 - **Review** shows a person’s automatically assigned faces, least certain first: ✓ confirms.
 - **✓ Done** puts a person small at the top to keep the overview clear. You can still drag faces onto it. “Hide finished people” hides them completely.
+
+Recognition learns as you go:
+
+- Each named person gets several “representatives” from their confirmed faces, e.g. with glasses, in profile, as a child and later. The more you assign, the more the program recognises by itself. This happens right after every change.
+- **Check again** shows how many faces were newly assigned since the last check. Unnamed groups that look like a known person get a green suggestion like **“Anna?”**. One click assigns the whole group.
+- **Remember people** stores the confirmed faces (up to 60 as different as possible per person) as knowledge in the browser. These people are then recognised in other folders too. Only face features (128 numbers) are stored, no pictures. Exporting the settings (JSON) takes the knowledge to another PC.
+- The model itself is not retrained. It compares with your examples, which gives almost the same effect for a handful of people.
 
 ## Local and online
 

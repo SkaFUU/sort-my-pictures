@@ -282,12 +282,76 @@ const Faces = (() => {
   const dot = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
   const unit = v => { const n = Math.sqrt(dot(v, v)) || 1; return v.map(x => x / n); };
 
+  // Vertreter einer Person: bis zu K Teil-Mittelpunkte (k-means mit Kosinus). So bleiben verschiedene Ansichten
+  // (Brille, Profil, Kind und spaeter erwachsen) erhalten, statt zu einem einzigen Mittelwert zu verschwimmen.
+  function protos(vecs, K = 8) {
+    const n = vecs.length;
+    if (!n) return [];
+    const k = Math.min(K, Math.ceil(n / 4));
+    const cs = [vecs[0]];
+    const near = vecs.map(v => dot(v, cs[0]));
+    while (cs.length < k) {  // Start: moeglichst verschiedene Gesichter
+      let mi = 0;
+      for (let i = 1; i < n; i++) if (near[i] < near[mi]) mi = i;
+      cs.push(vecs[mi]);
+      for (let i = 0; i < n; i++) near[i] = Math.max(near[i], dot(vecs[i], vecs[mi]));
+    }
+    let cents = cs;
+    for (let round = 0; round < 4; round++) {
+      const sums = cents.map(() => new Float32Array(128)), cnt = cents.map(() => 0);
+      for (const v of vecs) {
+        let b = 0, bs = -2;
+        cents.forEach((c, j) => { const s = dot(v, c); if (s > bs) { bs = s; b = j; } });
+        cnt[b]++;
+        for (let i = 0; i < 128; i++) sums[b][i] += v[i];
+      }
+      // Einzelgaenger (verwackelt, halb verdeckt) nicht als eigenen Vertreter behalten
+      cents = sums.filter((_, j) => cnt[j] >= (n >= 8 ? 2 : 1)).map(unit);
+    }
+    return cents;
+  }
+
+  // Bibliothek: gemerkte Personen (ueber alle Quellordner), je Person bis zu 60 moeglichst verschiedene Gesichter
+  const LIB_KEY = 'faceLibrary';
+  const LIB_MAX = 60;
+  async function loadLib() {
+    try { return (await Util.idb.get(LIB_KEY)) || {}; } catch { return {}; }
+  }
+  const saveLib = lib => Util.idb.set(LIB_KEY, lib);
+  function diverse(vecs, max) {
+    if (vecs.length <= max) return vecs;
+    const out = [vecs[0]];
+    const near = vecs.map(v => dot(v, vecs[0]));
+    while (out.length < max) {
+      let mi = 0;
+      for (let i = 1; i < vecs.length; i++) if (near[i] < near[mi]) mi = i;
+      out.push(vecs[mi]);
+      for (let i = 0; i < vecs.length; i++) near[i] = Math.max(near[i], dot(vecs[i], vecs[mi]));
+    }
+    return out;
+  }
+  // Bestaetigte Gesichter der benannten Personen in die Bibliothek uebernehmen -> { name: Anzahl }
+  function learn(people, lib) {
+    const out = {};
+    for (const g of people.groups) {
+      if (!g.name) continue;
+      const mine = g.faces.filter(f => !f.auto && (f.q ?? 1) >= 0.3).map(f => Float32Array.from(f.d));
+      if (!mine.length) continue;
+      lib[g.name] = diverse([...mine, ...(lib[g.name] || [])], LIB_MAX);
+      out[g.name] = lib[g.name].length;
+    }
+    return out;
+  }
+
   // Gesichter gruppieren. names: { faceId: 'Name' | '#ignore' }; threshold: Abstand 1 − Kosinus (klein = streng)
-  // 1. Benannte Gesichter bilden feste Gruppen.
+  // lib: gemerkte Personen { name: [Merkmale] } aus der Bibliothek (oder null)
+  // 1. Benannte Gesichter bilden feste Gruppen. Jede benannte Person bekommt mehrere Vertreter aus ihren
+  //    bestaetigten Gesichtern (+ Bibliothek) – je mehr zugeordnet ist, desto besser wird sie erkannt.
   // 2. Die uebrigen werden nach Qualitaet sortiert (gute, frontale Gesichter zuerst) der aehnlichsten Gruppe
   //    zugeordnet oder bilden eine neue.
   // 3. Zwei Runden Nachsortieren: jedes automatische Gesicht wandert zur jetzt aehnlichsten Gruppe.
-  function cluster(items, cache, names, threshold) {
+  // 4. Unbenannte Gruppen, die einer bekannten Person aehneln, bekommen einen Namensvorschlag.
+  function cluster(items, cache, names, threshold, lib = null) {
     const all = [];
     for (const it of items) {
       if (it.isVideo) continue;
@@ -298,15 +362,21 @@ const Faces = (() => {
     const minSim = 1 - threshold;
     const groups = [];
     const byName = new Map();
-    const newGroup = name => { const g = { name, fixed: [], members: [], c: null }; groups.push(g); return g; };
+    const newGroup = name => { const g = { name, fixed: [], members: [], lib: [], c: null, p: null }; groups.push(g); return g; };
     const centre = g => {
       const sum = new Float32Array(128);
       for (const f of g.fixed.concat(g.members)) { const w = f.q ?? 1; for (let i = 0; i < 128; i++) sum[i] += f.d[i] * w; }
+      for (const v of g.lib) for (let i = 0; i < 128; i++) sum[i] += v[i];
       g.c = unit(sum);
+    };
+    // Aehnlichkeit zu einer Gruppe: benannte Personen ueber ihre Vertreter, unbenannte ueber den Mittelpunkt
+    const score = (d, g) => {
+      if (g.p?.length) { let m = -1; for (const c of g.p) { const v = dot(d, c); if (v > m) m = v; } return m; }
+      return g.c ? dot(d, g.c) : -1;
     };
     const best = f => {
       let b = null, bs = minSim;
-      for (const g of groups) { if (!g.c) continue; const v = dot(f.d, g.c); if (v > bs) { bs = v; b = g; } }
+      for (const g of groups) { const v = score(f.d, g); if (v > bs) { bs = v; b = g; } }
       return [b, bs];
     };
 
@@ -315,6 +385,15 @@ const Faces = (() => {
       if (!n || n.startsWith('#')) continue;  // '#ignore' = kein Gesicht, '#none' = nicht zugeordnet
       if (!byName.has(n)) byName.set(n, newGroup(n));
       byName.get(n).fixed.push(f);
+    }
+    for (const [n, vecs] of Object.entries(lib || {})) {
+      if (!vecs?.length) continue;
+      if (!byName.has(n)) byName.set(n, newGroup(n));
+      byName.get(n).lib = vecs;
+    }
+    for (const g of groups) {
+      const good = g.fixed.filter(f => (f.q ?? 1) >= 0.3);
+      g.p = protos([...(good.length >= 3 ? good : g.fixed).map(f => f.d), ...g.lib]);
     }
     groups.forEach(centre);
     const free = all.filter(f => !names[f.id]).sort((a, b) => (b.q ?? 1) - (a.q ?? 1));
@@ -330,11 +409,26 @@ const Faces = (() => {
       for (const f of free) { const [g] = best(f); (g || newGroup(null)).members.push(f); }
       for (let i = groups.length - 1; i >= 0; i--) if (!groups[i].name && !groups[i].members.length) groups.splice(i, 1);
     }
+    // gemerkte Personen, die in diesem Ordner nicht vorkommen, nicht anzeigen
+    for (let i = groups.length - 1; i >= 0; i--) if (!groups[i].fixed.length && !groups[i].members.length) groups.splice(i, 1);
     groups.forEach(centre);
     for (const g of groups) {
-      for (const f of g.members) f.sim = dot(f.d, g.c);
+      for (const f of g.members) f.sim = score(f.d, g);
       g.members.sort((a, b) => b.sim - a.sim);  // sicherste zuerst
       g.faces = [...g.fixed.map(f => ({ ...f, auto: false })), ...g.members.map(f => ({ ...f, auto: true }))];
+    }
+    // Namensvorschlag: im Schnitt aehnlichste bekannte Person, etwas lockerer als die automatische Zuordnung
+    const known = groups.filter(g => g.name && g.p?.length);
+    for (const g of groups) {
+      if (g.name || !known.length) continue;
+      let bn = null, bs = minSim - 0.1;
+      for (const k of known) {
+        let s = 0;
+        for (const f of g.members) s += score(f.d, k);
+        s /= g.members.length;
+        if (s > bs) { bs = s; bn = k.name; }
+      }
+      if (bn) g.suggest = { name: bn, sim: bs };
     }
     groups.sort((a, b) => (b.name ? 1 : 0) - (a.name ? 1 : 0) || b.faces.length - a.faces.length);
     groups.forEach((g, i) => { g.id = g.name ? 'n:' + g.name : 'c' + i; g.photos = new Set(g.faces.map(f => f.item.id)).size; });
@@ -355,5 +449,5 @@ const Faces = (() => {
   // Gesichter eines Bildes (fuer die Bildansicht)
   const facesOf = (it, cache) => (cache && cache[cacheKey(it)]) || [];
 
-  return { VERSION, load, detect, scanAll, loadCache, cluster, facesOf };
+  return { VERSION, load, detect, scanAll, loadCache, cluster, facesOf, loadLib, saveLib, learn };
 })();

@@ -153,6 +153,12 @@ const I18n = (() => {
     '{0} bestätigt': '{0} confirmed', 'Name …': 'Name …', '{0} Gesichter · {1} Fotos': '{0} faces · {1} photos', '· {0} zu prüfen': '· {0} to review',
     'Auswahl aufheben': 'Clear selection', 'Gesichter hierher ziehen': 'Drag faces here',
     'Gesichter mit der Maus auf eine andere Person ziehen. Strg+Klick wählt mehrere aus.': 'Drag faces onto another person with the mouse. Ctrl+click selects several.',
+    'Viele auf einmal: auf freier Fläche einen Rahmen ziehen, Umschalt+Klick wählt einen Bereich, ☐ die ganze Gruppe. Dann <b>Rechtsklick</b> → Namen eintippen oder auswählen.':
+      'Many at once: drag a frame on empty space, Shift+click selects a range, ☐ the whole group. Then <b>right-click</b> → type or pick a name.',
+    'Jede Zuordnung verbessert die Erkennung sofort. <b>Erneut prüfen</b> zeigt, was dazugekommen ist. Grüne Vorschläge wie „Anna?“ ordnen eine ganze Gruppe zu.':
+      'Every assignment improves recognition right away. <b>Check again</b> shows what was added. Green suggestions like “Anna?” assign a whole group.',
+    '<b>Personen merken</b> speichert die bestätigten Gesichter als Wissen: diese Personen werden dann auch in anderen Ordnern erkannt.':
+      '<b>Remember people</b> stores the confirmed faces as knowledge: these people are then recognised in other folders too.',
     'Hierher kommt, was du mit ✕ entfernst. Später auf eine Person ziehen.': 'Whatever you remove with ✕ ends up here. Drag it onto a person later.',
     'Kein Gesicht / endgültig ausblenden': 'Not a face / hide for good',
     'Klick: wieder aufklappen · Gesichter hierher ziehen = {0}': 'Click: expand again · drag faces here = {0}',
@@ -160,7 +166,7 @@ const I18n = (() => {
     'Mit ✕ entfernte Gesichter landen unten in „Nicht zugeordnet“ und lassen sich später zuweisen.': 'Faces removed with ✕ go to “Unassigned” at the bottom and can be assigned later.',
     'Name der Person:': 'Name of the person:', 'Neue Person': 'New person', 'Neue Person …': 'New person …',
     'Nicht diese Person – nach „Nicht zugeordnet“': 'Not this person – move to “Unassigned”', 'Nicht zugeordnet': 'Unassigned', 'Nicht zugeordnet ({0})': 'Unassigned ({0})',
-    'Ziehen zum Verschieben, Strg+Klick wählt mehrere aus': 'Drag to move, Ctrl+click selects several', 'fertige Personen ausblenden': 'hide finished people',
+    'fertige Personen ausblenden': 'hide finished people',
     '{0} Gesichter ausgewählt – ziehen oder:': '{0} faces selected – drag them or:',
     '„Fertig“ legt eine Person klein oben ab – sie bleibt Ziel zum Hineinziehen.': '“Done” puts a person small at the top – you can still drag faces onto it.',
     'Fotos': 'Photos', 'Weniger': 'Less', 'Diese Gruppe ignorieren (keine Person)': 'Ignore this group (not a person)', 'Ignorieren': 'Ignore',
@@ -171,6 +177,29 @@ const I18n = (() => {
     'Quelle: {0}\nDatum: {1} ({2})\nKlick: Bildansicht': 'Source: {0}\nDate: {1} ({2})\nClick: viewer',
     'Dateiname': 'File name', 'Dateiname (UTC)': 'File name (UTC)', 'Dateiname (nur Datum)': 'File name (date only)', 'Video-Metadaten': 'Video metadata',
     'Änderungsdatum': 'Modification date',
+
+    // --- Personen: Auswahl, Rechtsklick, Lernen ---
+    'Alle Gesichter dieser Gruppe auswählen (dann Rechtsklick oder ziehen)': 'Select all faces of this group (then right-click or drag)',
+    'Alle gemerkten Personen löschen': 'Delete all remembered people',
+    'Alle nicht bestätigten Gesichter mit dem Wissen aus den bisher zugeordneten neu vergleichen': 'Compare all unconfirmed faces again using what was assigned so far',
+    'Benannte Personen merken: sie werden dann auch in anderen Ordnern wiedererkannt (nur Merkmale, keine Bilder)': 'Remember named people: they are then recognised in other folders too (features only, no pictures)',
+    'Diese Personen merken, damit sie auch in anderen Ordnern und später wiedererkannt werden?\n\n{0}\n\nGespeichert werden nur Gesichtsmerkmale (Zahlen, keine Bilder) und nur in diesem Browser. Je mehr bestätigte Gesichter, desto besser.':
+      'Remember these people so they are recognised in other folders and later on?\n\n{0}\n\nOnly face features are stored (numbers, no pictures), and only in this browser. The more confirmed faces, the better.',
+    'Erneut prüfen': 'Check again', 'Es sind keine Personen gemerkt.': 'No people are remembered.',
+    'Gemerkte Personen löschen?\n\n{0}\n\nDie Namen in diesem Ordner bleiben erhalten.': 'Delete remembered people?\n\n{0}\n\nThe names in this folder are kept.',
+    'Gemerkte Personen verwenden': 'Use remembered people', 'Gemerkte löschen': 'Forget people', 'Kein Gesicht (ausblenden)': 'Not a face (hide)', 'Lernen': 'Learning',
+    'Mit „Personen merken“ gespeicherte Personen werden auch in anderen Ordnern wiedererkannt. Gespeichert werden nur Gesichtsmerkmale (Zahlen), keine Bilder – nur in diesem Browser.':
+      'People saved with “Remember people” are recognised in other folders too. Only face features (numbers) are stored, no pictures – only in this browser.',
+    'Name eintippen …': 'Type a name …', 'Namen zuweisen …': 'Assign name …',
+    'Neu geprüft mit {0} bekannten Personen: {1} Gesichter neu zugeordnet (zum Prüfen), {2} Gruppen mit Namensvorschlag.':
+      'Checked again with {0} known people: {1} faces newly assigned (to review), {2} groups with a name suggestion.',
+    'Neue Person „{0}“': 'New person “{0}”', 'Noch keine Person mit bestätigten Gesichtern.': 'No person with confirmed faces yet.',
+    'Noch keine Personen – Namen eintippen und Enter.': 'No people yet – type a name and press Enter.', 'Personen merken': 'Remember people',
+    'Strg+Klick: auswählen · Umschalt+Klick: Bereich · auf freier Fläche ziehen: Rahmen · Rechtsklick: Namen zuweisen':
+      'Ctrl+click: select · Shift+click: range · drag on empty space: frame · right-click: assign name',
+    'Zuerst „Gesichter erkennen“.': 'Run “Detect faces” first.', '{0} Gesichter zuweisen an:': 'Assign {0} faces to:',
+    '{0} Personen gemerkt.': '{0} people remembered.', '{0} gemerkt': '{0} remembered',
+    'Ähnelt {0} ({1} %) – Klick ordnet die ganze Gruppe {0} zu': 'Looks like {0} ({1} %) – click assigns the whole group to {0}',
 
     // --- Fotoübersicht (_fotos.html) ---
     '_fotos': '_photos', 'Fotoübersicht': 'Photo overview', 'Alle Ereignisse': 'All events', 'Alle Personen': 'All people',

@@ -237,6 +237,20 @@ body.dragging-faces .pcard, body.dragging-faces .chip { border-style:dashed; }
 .pcard.newp { width:150px; align-items:center; justify-content:center; text-align:center; border-style:dashed; cursor:pointer; }
 .pcard.newp .big-plus { font-size:30px; line-height:1; color:var(--tab); }
 .pcard .hint { margin:4px 0 2px; }
+.pcard-foot .suggest { color:var(--tab); border-color:var(--tab); font-weight:600; }
+.lasso { position:fixed; z-index:50; border:1px solid var(--acc); background:rgba(76,187,108,.12); pointer-events:none; }
+#pplGroups { user-select:none; }
+#pplGroups input { user-select:text; }
+.ctxmenu { position:fixed; z-index:3000; width:250px; max-height:70vh; display:flex; flex-direction:column; gap:2px; padding:6px; background:var(--panel); border:1px solid var(--line); border-radius:8px; box-shadow:0 6px 24px rgba(0,0,0,.5); }
+.ctxmenu .cm-head { font-size:12px; color:var(--muted); padding:0 2px 4px; }
+.ctxmenu input { margin-bottom:4px; }
+.ctxmenu .cm-list { overflow:auto; min-height:0; display:flex; flex-direction:column; gap:1px; }
+.ctxmenu hr { width:100%; border:0; border-top:1px solid var(--line); margin:4px 0; }
+.cm-item { display:flex; align-items:center; gap:8px; text-align:left; padding:4px 6px; border:0; background:none; border-radius:5px; }
+.cm-item:hover, .cm-item:focus { background:#353a41; }
+.cm-item img { width:24px; height:24px; border-radius:50%; object-fit:cover; }
+.cm-item b { flex:1; font-weight:500; }
+.cm-item.new { color:var(--tab); }
 
 /* ---------- Eigene Kategorien ---------- */
 .cat { border:1px solid var(--line); border-radius:8px; padding:6px; margin:8px 0; background:var(--panel); }
