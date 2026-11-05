@@ -490,12 +490,27 @@ const Faces = (() => {
     const confirmed = new Map();
     for (const g of groups) if (g.name) confirmed.set(g.name, new Set(g.fixed.map(f => f.item.id)));
     const blocked = (name, f) => confirmed.get(name)?.has(f.item.id) || forbidden(f) === name;
+    // taken: Person ist auf dem Foto schon vorhanden (bestaetigt oder automatisch an einem anderen Gesicht)
+    const present = new Map();
+    for (const g of groups) if (g.name) present.set(g.name, new Map(g.fixed.concat(g.members).map(f => [f.item.id, f.id])));
+    const taken = (name, f) => blocked(name, f) || (present.get(name)?.has(f.item.id) && present.get(name).get(f.item.id) !== f.id);
+    // Aenderungen, wenn Gesichter einer Gruppe der Person name gegeben werden: wo sie schon bestaetigt ist = sicher
+    // nicht sie ('!name'), wo sie automatisch schon an einem anderen Gesicht haengt = offen lassen
+    const assignTo = (faces, name, skip = new Set()) => {
+      const ch = {}, real = name && name[0] !== '#';
+      for (const f of faces) {
+        if (real && blocked(name, f)) ch[f.id] = '!' + name;
+        else if (skip.has(f.id)) { if (real) ch[f.id] = '!' + name; }
+        else if (!(real && taken(name, f))) ch[f.id] = name;
+      }
+      return ch;
+    };
     const known = groups.filter(g => g.name && g.p?.length);
     for (const g of groups) {
       if (g.name || !known.length) continue;
       let bn = null, bs = minSim - 0.1;
       for (const k of known) {
-        const ok = g.members.filter(f => !blocked(k.name, f));
+        const ok = g.members.filter(f => !taken(k.name, f));
         if (ok.length * 2 <= g.members.length) continue;
         let s = 0;
         for (const f of ok) s += score(f.d, k);
@@ -517,7 +532,7 @@ const Faces = (() => {
       }
     }
     const unassigned = all.filter(f => names[f.id] === '#none').map(f => ({ ...f, auto: false }));
-    return { groups, byItem, unassigned, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length, minSim, score, blocked,
+    return { groups, byItem, unassigned, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length, minSim, score, blocked, taken, assignTo,
       sig: [threshold, months, lib ? Object.keys(lib).length : -1].join() };
   }
 

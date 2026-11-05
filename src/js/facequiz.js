@@ -13,7 +13,6 @@ const FaceQuiz = (() => {
 
   const dot = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
   const people = () => app.st.people;
-  const real = n => n && n[0] !== '#' && n[0] !== '!';
 
   // ---------- Fragen ----------
   function nextGroupQuestion() {
@@ -51,12 +50,7 @@ const FaceQuiz = (() => {
   // Gruppe: ausgewaehlte = name, abgewaehlte = sicher nicht diese Person ('!name').
   // Ist die Person auf einem Foto schon bestaetigt, kann das Gesicht dort nicht sie sein.
   function answerGroup(name) {
-    const ch = {};
-    for (const f of q.faces) {
-      if (!excluded.has(f.id) && !(real(name) && people().blocked(name, f))) ch[f.id] = name;
-      else if (real(name)) ch[f.id] = '!' + name;
-    }
-    apply(ch);
+    apply(people().assignTo(q.faces, name, excluded));
     show();
   }
   function answerOne(name) {
@@ -137,7 +131,7 @@ const FaceQuiz = (() => {
     else {
       // Vorschlag: im Schnitt aehnlichste bekannte Person – ohne Gesichter von Fotos, auf denen sie schon bestaetigt ist
       const avg = people().groups.filter(x => x.name).map(x => {
-        const ok = faces.filter(f => !people().blocked(x.name, f));
+        const ok = faces.filter(f => !people().taken(x.name, f));
         return { g: x, s: ok.length * 2 > faces.length ? ok.reduce((a, f) => a + people().score(f.d, x), 0) / ok.length : -1 };
       }).filter(c => c.s > -1).sort((a, b) => b.s - a.s);
       if (avg[0] && avg[0].s >= m - 0.12) sugg = avg[0].g.name;
@@ -149,9 +143,9 @@ const FaceQuiz = (() => {
     context(rep, img, my);
     const inp = nameInput(n => answerGroup(n));
     const tiles = h('div', { class: 'qz-tiles' }, People.byYear(faces, f => {
-      const blk = sugg && kind !== 'auto' && people().blocked(sugg, f);
+      const blk = sugg && kind !== 'auto' && people().taken(sugg, f);
       const t = h('div', { class: 'qz-tile' + (blk ? ' blk' : ''), title: f.item.name + ' · ' + Util.fmtDate(f.item.date) + '\n' +
-        (blk ? T('{0} ist auf diesem Foto schon bestätigt – wird nicht {0} zugeordnet', sugg) : T('Klick: falsch / richtig')) },
+        (blk ? T('{0} ist auf diesem Foto schon – wird nicht {0} zugeordnet', sugg) : T('Klick: falsch / richtig')) },
         h('img', { src: f.crop }), h('span', {}, '✕'));
       t.onclick = () => { excluded.has(f.id) ? excluded.delete(f.id) : excluded.add(f.id); t.classList.toggle('off', excluded.has(f.id)); count(); };
       t.oncontextmenu = e => { e.preventDefault(); app.openViewer([f.item], 0); };

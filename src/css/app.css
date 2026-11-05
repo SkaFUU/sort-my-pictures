@@ -389,3 +389,6 @@ dialog { background:var(--panel); color:var(--fg); }
   .v-side { display:none; }
   .v-wrap img, .v-wrap video { max-width:100vw; }
 }
+
+.pcard .face.blk img { opacity:.35; }
+.pcard .face.blk::after { content:'≠'; position:absolute; left:3px; bottom:0; font-weight:700; color:var(--warn); text-shadow:0 0 3px #000; }

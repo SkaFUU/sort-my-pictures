@@ -198,9 +198,11 @@ const People = (() => {
   // Ein Gesicht: ziehen, Strg+Klick auswaehlen, Klick oeffnet die Bildansicht
   function faceEl(f, list, { group = null, removeTo = '#none', small = false } = {}) {
     order.push(f.id);
-    const el = h('div', { class: 'face' + (f.auto && group?.name ? ' auto' : '') + (sel.has(f.id) ? ' sel' : '') + (small ? ' small' : ''), draggable: 'true', 'data-id': f.id },
+    // unbenannte Gruppe mit Vorschlag: Gesichter auf Fotos, auf denen die vorgeschlagene Person schon ist, markieren
+    const blk = group && !group.name && group.suggest && app.st.people.taken(group.suggest.name, f);
+    const el = h('div', { class: 'face' + (f.auto && group?.name ? ' auto' : '') + (sel.has(f.id) ? ' sel' : '') + (small ? ' small' : '') + (blk ? ' blk' : ''), draggable: 'true', 'data-id': f.id },
       h('img', { src: f.crop, draggable: 'false',
-        title: f.item.name + (f.auto && group?.name ? ` (${T('automatisch zugeordnet')}, ${Math.round(f.sim * 100)} %)` : '') + '\n' +
+        title: f.item.name + (blk ? '\n' + T('{0} ist auf diesem Foto schon – wird nicht {0} zugeordnet', group.suggest.name) : '') + (f.auto && group?.name ? ` (${T('automatisch zugeordnet')}, ${Math.round(f.sim * 100)} %)` : '') + '\n' +
           T('Strg+Klick: auswählen · Umschalt+Klick: Bereich · auf freier Fläche ziehen: Rahmen · Rechtsklick: Namen zuweisen') }),
       small ? null : [
         f.auto && group?.name ? h('button', { class: 'ok', title: T('Ja, das ist {0}', group.name), onclick: e => { e.stopPropagation(); assign([f.id], group.name); } }, '✓') : null,
@@ -331,7 +333,7 @@ const People = (() => {
           onchange: e => { const n = e.target.value.trim(); if (g.name && done.has(g.name)) { done.delete(g.name); if (n) done.add(n); saveDone(); } app.setFaceNames(ids, n || null); } }),
         h('span', { class: 'hint' }, T('{0} Gesichter · {1} Fotos', g.faces.length, g.photos) + (autoCount ? T(' · {0} zu prüfen', autoCount) : '')),
         g.suggest ? h('button', { class: 'suggest', title: T('Ähnelt {0} ({1} %) – Klick ordnet die ganze Gruppe {0} zu', g.suggest.name, Math.round(g.suggest.sim * 100)),
-          onclick: () => assign(ids, g.suggest.name) }, T('{0}?', g.suggest.name)) : null,
+          onclick: () => { sel.clear(); closeMenu(); app.applyFaceNames(app.st.people.assignTo(g.faces, g.suggest.name)); } }, T('{0}?', g.suggest.name)) : null,
         h('button', { title: T('Alle Gesichter dieser Gruppe auswählen (dann Rechtsklick oder ziehen)'),
           onclick: () => { const all = ids.every(id => sel.has(id)); for (const id of ids) all ? sel.delete(id) : sel.add(id); refreshSel(); } }, '☐'),
         h('button', { onclick: () => app.openViewer(items(), 0) }, T('Fotos')),
