@@ -150,6 +150,13 @@ const I18n = (() => {
     'Unbenannt – Namen eintippen (gleicher Name = zusammenführen)': 'Unnamed – type names (same name = merge)', '… und {0} weitere Gruppen': '… and {0} more groups',
     'automatisch zugeordnet': 'assigned automatically', 'Ja, das ist {0}': 'Yes, this is {0}',
     '{0} automatisch zugeordnet – ✓ bestätigt, ✕ entfernt.': '{0} assigned automatically – ✓ confirms, ✕ removes.',
+    'Klick: Namen zuweisen': 'Click: assign a name',
+    '{0} ist auf diesem Foto schon vorhanden.\n\nOK = trotzdem zuordnen (wird bei „Erneut prüfen“ als Fehler gemeldet)\nAbbrechen = nichts ändern':
+      '{0} is already on this photo.\n\nOK = assign anyway (will be reported as an error by “Check again”)\nCancel = change nothing',
+    '{0} ist auf {1} dieser Fotos schon vorhanden.\n\nOK = trotzdem alle zuordnen (wird bei „Erneut prüfen“ als Fehler gemeldet)\nAbbrechen = diese Gesichter auslassen, die anderen zuordnen':
+      '{0} is already on {1} of these photos.\n\nOK = assign all anyway (will be reported as an error by “Check again”)\nCancel = leave out these faces, assign the others',
+    '{0} ist auf manchen Fotos mehrmals zugeordnet – Klick: einzeln prüfen': '{0} is assigned more than once on some photos – click: check one by one',
+    '⚠ {0} doppelt': '⚠ {0} twice',
     '{0} ist auf diesem Foto schon – passt am zweitbesten zu {1}, wird {1} zugeordnet': '{0} is already on this photo – second best match is {1}, will be assigned to {1}',
     '{0} ist auf diesem Foto schon – wird nicht {0} zugeordnet': '{0} is already on this photo – will not be assigned to {0}',
     '{0} bestätigt': '{0} confirmed', 'Name …': 'Name …', '{0} Gesichter · {1} Fotos': '{0} faces · {1} photos', '· {0} zu prüfen': '· {0} to review',

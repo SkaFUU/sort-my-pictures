@@ -105,6 +105,8 @@ Editing groups:
 - **Drag and drop:** drag faces onto another person with the mouse. Ctrl+click selects several. Dropping onto an unnamed group asks for a name, dropping onto **New person** creates one.
 - **Quick assign** (fastest with many photos): shows every open group in turn, including the automatically assigned faces of a person (“Are these all Anna?”). Click the wrong faces, then `Enter` for the suggestion, `1`–`9` for another person, or type a name. Deselected faces are no longer assigned to that person afterwards. It recalculates after every answer. More keys: `Del` stranger/not a face, `→` skip, `←` undo.
 - **Many at once:** drag a frame on empty space, Shift+click selects a range, ☐ the whole group. Then **right-click** → type a name (Enter) or pick a person from the list.
+- **In the viewer** click a face box (yellow frame) to assign a name directly.
+- If the person is already on that photo, a warning appears. Confirmed people that appear twice on one photo are marked **2×** on their card; **⚠ twice** goes through them one by one.
 - **✕** removes a face from the person. It goes to **Unassigned** at the bottom and can be assigned later.
 - **Review** shows a person’s automatically assigned faces: ✓ confirms. Faces are always shown by date taken, with the year as a divider between the years.
 - **✓ Done** puts a person small at the top to keep the overview clear. You can still drag faces onto it. “Hide finished people” hides them completely.

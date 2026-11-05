@@ -6,7 +6,8 @@ const People = (() => {
   const DONE_KEY = 'fotosortierer.peopleDone';
   let app, expanded = null;
   const sel = new Set();  // ausgewaehlte Gesichter (Strg/Umschalt + Klick, Rahmen)
-  let order = [], lastClicked = null;  // Reihenfolge der angezeigten Gesichter (fuer Umschalt+Klick)
+  let order = [], lastClicked = null;
+  let twice = new Set();  // bestaetigte Gesichter einer Person, die auf demselben Foto mehrmals vorkommt  // Reihenfolge der angezeigten Gesichter (fuer Umschalt+Klick)
   // Feste Reihenfolge der unbenannten Gruppen: eine Gruppe behaelt ihren Platz, solange sie im Wesentlichen
   // dieselben Gesichter enthaelt (sonst wuerde alles nach jeder Zuordnung neu nach Groesse springen)
   const rankOf = new Map();  // Schluessel -> Platz
@@ -76,7 +77,8 @@ const People = (() => {
   }
 
   // Namen setzen und Auswahl leeren
-  const assign = (ids, name) => { sel.clear(); closeMenu(); app.setFaceNames(ids, name); };
+  let afterAssign = null;  // z. B. Bildansicht neu zeichnen
+  const assign = (ids, name) => { sel.clear(); closeMenu(); app.setFaceNames(ids, name); const f = afterAssign; afterAssign = null; f?.(); };
   const askName = () => (prompt(T('Name der Person:')) || '').trim();
   const refreshSel = () => {
     document.querySelectorAll('#pplGroups .face').forEach(el => el.classList.toggle('sel', sel.has(el.dataset.id)));
@@ -86,10 +88,11 @@ const People = (() => {
   // ---------- Rechtsklick-Menue: ausgewaehlte Gesichter einer Person zuweisen ----------
   let menu = null;
   function closeMenu() { menu?.remove(); menu = null; }
-  function showMenu(x, y) {
+  // ids: zuzuweisende Gesichter (Standard: Auswahl); onDone: nach dem Zuweisen (z. B. aus der Bildansicht)
+  function showMenu(x, y, ids = [...sel], onDone = null) {
     closeMenu();
+    afterAssign = onDone;
     const named = app.st.people.groups.filter(g => g.name).sort((a, b) => a.name.localeCompare(b.name));
-    const ids = [...sel];
     const inp = h('input', { type: 'text', placeholder: T('Name eintippen …') });
     const list = h('div', { class: 'cm-list' });
     const item = (label, fn, cls = '') => h('button', { class: 'cm-item ' + cls, onclick: fn }, label);
@@ -114,7 +117,7 @@ const People = (() => {
       h('div', { class: 'cm-head' }, T('{0} Gesichter zuweisen an:', ids.length)), inp, list, h('hr'),
       item(T('Nicht zugeordnet'), () => assign(ids, '#none')),
       item(T('Kein Gesicht (ausblenden)'), () => assign(ids, '#ignore')),
-      item(T('Auswahl aufheben'), () => { sel.clear(); closeMenu(); refreshSel(); }));
+      onDone ? null : item(T('Auswahl aufheben'), () => { sel.clear(); closeMenu(); refreshSel(); }));
     document.body.append(menu);
     const r = menu.getBoundingClientRect();
     menu.style.left = Math.max(4, Math.min(x, innerWidth - r.width - 4)) + 'px';
@@ -208,9 +211,10 @@ const People = (() => {
     order.push(f.id);
     // unbenannte Gruppe mit Vorschlag: Gesichter auf Fotos, auf denen die vorgeschlagene Person schon ist, markieren
     const blk = group && !group.name && group.suggest ? taken(group.suggest.name, f) : null;
-    const el = h('div', { class: 'face' + (f.auto && group?.name ? ' auto' : '') + (sel.has(f.id) ? ' sel' : '') + (small ? ' small' : '') + (blk ? ' blk' : ''), draggable: 'true', 'data-id': f.id, 'data-alt': blk?.mark },
+    const two = group?.name && twice.has(f.id);
+    const el = h('div', { class: 'face' + (f.auto && group?.name ? ' auto' : '') + (sel.has(f.id) ? ' sel' : '') + (small ? ' small' : '') + (blk ? ' blk' : '') + (two ? ' twice' : ''), draggable: 'true', 'data-id': f.id, 'data-alt': blk?.mark },
       h('img', { src: f.crop, draggable: 'false',
-        title: f.item.name + (blk ? '\n' + blk.title : '') + (f.auto && group?.name ? ` (${T('automatisch zugeordnet')}, ${Math.round(f.sim * 100)} %)` : '') + '\n' +
+        title: f.item.name + (blk ? '\n' + blk.title : '') + (two ? '\n' + T('{0} ist auf diesem Foto mehrmals zugeordnet – das geht nicht.', group.name) : '') + (f.auto && group?.name ? ` (${T('automatisch zugeordnet')}, ${Math.round(f.sim * 100)} %)` : '') + '\n' +
           T('Strg+Klick: auswählen · Umschalt+Klick: Bereich · auf freier Fläche ziehen: Rahmen · Rechtsklick: Namen zuweisen') }),
       small ? null : [
         f.auto && group?.name ? h('button', { class: 'ok', title: T('Ja, das ist {0}', group.name), onclick: e => { e.stopPropagation(); assign([f.id], group.name); } }, '✓') : null,
@@ -270,6 +274,12 @@ const People = (() => {
     if (!p && app.st.oldFaces) { info.textContent = T('Die Gesichtserkennung wurde verbessert (neues Modell). Bitte „Gesichter erkennen“ neu starten – vergebene Namen werden auf die neu gefundenen Gesichter übertragen.'); return; }
     if (!p) { info.textContent = T('Noch keine Gesichtserkennung für diesen Ordner. „Gesichter erkennen“ startet sie (lokal, nutzt alle Prozessorkerne, ca. 3–10 min für 5000 Fotos, kann jederzeit abgebrochen und fortgesetzt werden).'); return; }
     const named = p.groups.filter(g => g.name).sort((a, b) => a.name.localeCompare(b.name));
+    twice = new Set();
+    for (const g of named) {
+      const by = new Map();
+      for (const f of g.faces) if (!f.auto) { if (!by.has(f.item.id)) by.set(f.item.id, []); by.get(f.item.id).push(f.id); }
+      for (const v of by.values()) if (v.length > 1) v.forEach(id => twice.add(id));
+    }
     for (const n of [...done]) if (!named.some(g => g.name === n)) done.delete(n);
     const minG = app.st.s.faceMinGroup;
     const showSmall = $('#pplSmall').checked;
@@ -334,12 +344,16 @@ const People = (() => {
     } else body = h('div', { class: 'faces' }, byYear(isOpen ? g.faces : g.faces.slice(0, 8), f => faceEl(f, g.faces, { group: g })));
     const items = () => [...new Set(g.faces.map(f => f.item))].sort((a, b) => a.date - b.date);
     const autoCount = g.name ? g.faces.filter(f => f.auto).length : 0;
+    const twiceFaces = g.name ? g.faces.filter(f => twice.has(f.id)) : [];
     const el = h('div', { class: 'pcard' + (isOpen ? ' open' : '') + (g.name ? ' named' : '') },
       body,
       h('div', { class: 'pcard-foot' },
         h('input', { type: 'text', list: 'personNames', value: g.name || '', placeholder: T('Name …'),
           onchange: e => { const n = e.target.value.trim(); if (g.name && done.has(g.name)) { done.delete(g.name); if (n) done.add(n); saveDone(); } app.setFaceNames(ids, n || null); } }),
         h('span', { class: 'hint' }, T('{0} Gesichter · {1} Fotos', g.faces.length, g.photos) + (autoCount ? T(' · {0} zu prüfen', autoCount) : '')),
+        twiceFaces.length ? h('button', { class: 'twice-btn', title: T('{0} ist auf manchen Fotos mehrmals zugeordnet – Klick: einzeln prüfen', g.name),
+          onclick: () => FaceQuiz.check(app, Faces.anomalies(app.st.people).filter(a => a.kind === 'twice' && a.name === g.name)) },
+          T('⚠ {0} doppelt', new Set(twiceFaces.map(f => f.item.id)).size)) : null,
         g.suggest ? h('button', { class: 'suggest', title: T('Ähnelt {0} ({1} %) – Klick ordnet die ganze Gruppe {0} zu', g.suggest.name, Math.round(g.suggest.sim * 100)),
           onclick: () => { sel.clear(); closeMenu(); app.applyFaceNames(app.st.people.assignTo(g.faces, g.suggest.name)); } }, T('{0}?', g.suggest.name)) : null,
         h('button', { title: T('Alle Gesichter dieser Gruppe auswählen (dann Rechtsklick oder ziehen)'),
@@ -357,5 +371,5 @@ const People = (() => {
     });
   }
 
-  return { init, render, byYear, taken };
+  return { init, render, byYear, taken, nameMenu: showMenu };
 })();

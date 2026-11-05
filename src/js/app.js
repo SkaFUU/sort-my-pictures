@@ -415,7 +415,31 @@
     recompute();
     People.render();
   }
-  const setFaceNames = (ids, name, quick = false) => applyFaceNames(Object.fromEntries(ids.map(id => [id, name])), quick);
+  // Gesichter, deren Foto die Person schon hat (bestaetigt an einem anderen Gesicht oder mehrmals in ids)
+  function samePhoto(ids, name) {
+    const photo = id => id.slice(0, id.lastIndexOf('#'));
+    const own = new Set(ids), has = new Set(), out = [];
+    for (const [id, n] of Object.entries(st.faceNames)) if (n === name && !own.has(id)) has.add(photo(id));
+    for (const id of ids) { const ph = photo(id); if (has.has(ph)) out.push(id); else has.add(ph); }
+    return out;
+  }
+  function setFaceNames(ids, name, quick = false) {
+    if (name && name[0] !== '#' && name[0] !== '!') {
+      const clash = samePhoto(ids, name);
+      if (clash.length) {
+        const n = new Set(clash.map(id => id.slice(0, id.lastIndexOf('#')))).size;
+        const all = clash.length === ids.length;
+        if (!confirm(all
+          ? T('{0} ist auf diesem Foto schon vorhanden.\n\nOK = trotzdem zuordnen (wird bei „Erneut prüfen“ als Fehler gemeldet)\nAbbrechen = nichts ändern', name)
+          : T('{0} ist auf {1} dieser Fotos schon vorhanden.\n\nOK = trotzdem alle zuordnen (wird bei „Erneut prüfen“ als Fehler gemeldet)\nAbbrechen = diese Gesichter auslassen, die anderen zuordnen', name, n))) {
+          if (all) return;
+          const skip = new Set(clash);
+          ids = ids.filter(id => !skip.has(id));
+        }
+      }
+    }
+    applyFaceNames(Object.fromEntries(ids.map(id => [id, name])), quick);
+  }
   function undoFaceNames(quick = false) {
     const last = faceHistory.pop();
     if (!last) { status(T('Nichts zum Rückgängigmachen.')); return false; }

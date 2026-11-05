@@ -105,6 +105,8 @@ Gruppen bearbeiten:
 - **Ziehen und Ablegen:** Gesichter mit der Maus auf eine andere Person ziehen. Strg+Klick wählt mehrere aus. Auf eine unbenannte Gruppe ziehen fragt nach einem Namen, auf **Neue Person** legt eine neue an.
 - **Schnell zuordnen** (am schnellsten bei vielen Fotos): zeigt jede offene Gruppe nacheinander, auch die automatisch zugeordneten Gesichter einer Person („Sind das alle Anna?“). Falsche Gesichter anklicken, dann `Enter` für den Vorschlag, `1`–`9` für eine andere Person oder einen Namen tippen. Abgewählte Gesichter werden dieser Person danach nicht mehr zugeordnet. Nach jeder Antwort wird neu gerechnet. Weitere Tasten: `Entf` fremd/kein Gesicht, `→` überspringen, `←` rückgängig.
 - **Viele auf einmal:** Auf freier Fläche einen Rahmen ziehen, Umschalt+Klick wählt einen Bereich, ☐ die ganze Gruppe. Dann **Rechtsklick** → Namen eintippen (Enter) oder eine Person aus der Liste wählen.
+- **In der Bildansicht** einen Gesichtsrahmen (gelber Kasten) anklicken und direkt einen Namen zuweisen.
+- Ist die Person auf dem Foto schon, kommt eine Meldung. Bestätigte Personen, die auf einem Foto doppelt vorkommen, sind in ihrer Karte mit **2×** markiert; **⚠ doppelt** geht sie einzeln durch.
 - **✕** entfernt ein Gesicht aus der Person. Es landet unten in **Nicht zugeordnet** und lässt sich später zuweisen.
 - **Prüfen** zeigt die automatisch zugeordneten Gesichter einer Person: ✓ bestätigt. Gesichter stehen überall nach Aufnahmedatum, mit der Jahreszahl als Trenner zwischen den Jahren.
 - **✓ Fertig** legt eine Person klein oben ab, damit die Übersicht frei bleibt. Man kann weiter Gesichter darauf ziehen. „Fertige Personen ausblenden“ blendet sie ganz aus.

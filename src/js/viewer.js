@@ -77,14 +77,8 @@ const Viewer = (() => {
       media = url ? h('img', { src: url }) : h('div', { class: 'v-loading' }, T('Keine Vorschau für dieses Format'));
     }
     const wrap = h('div', { class: 'v-wrap' }, media);
-    // Gesichtsrahmen mit Namen
     const faces = app.facesOf(it);
-    faces.forEach((f, i) => {
-      const [x, y, w, hh] = f.box;
-      const name = app.faceName(it, i);
-      wrap.append(h('div', { class: 'v-face', style: `left:${x * 100}%;top:${y * 100}%;width:${w * 100}%;height:${hh * 100}%` },
-        name ? h('span', {}, name) : null));
-    });
+    drawFaces(wrap, it);
     stage.innerHTML = '';
     stage.append(wrap);
 
@@ -139,6 +133,24 @@ const Viewer = (() => {
       body.append(h('div', { class: 'v-group' }, group.toUpperCase()));
       body.append(h('table', {}, Object.entries(vals).map(([k, v]) => h('tr', {}, h('th', {}, k), h('td', {}, fmtVal(v))))));
     }
+  }
+
+  // Gesichtsrahmen mit Namen; Klick auf einen Rahmen = Namen zuweisen
+  function drawFaces(wrap, it) {
+    wrap.querySelectorAll('.v-face').forEach(e => e.remove());
+    app.facesOf(it).forEach((f, i) => {
+      const [x, y, w, hh] = f.box;
+      const name = app.faceName(it, i);
+      const id = `${it.path}#${i}`;
+      const pick = e => {
+        e.preventDefault(); e.stopPropagation();
+        if (!app.st.people) return;
+        People.nameMenu(e.clientX, e.clientY, [id], () => { if (list[idx] === it) drawFaces(wrap, it); });
+      };
+      wrap.append(h('div', { class: 'v-face' + (name ? '' : ' none'), title: T('Klick: Namen zuweisen'), onclick: pick, oncontextmenu: pick,
+        style: `left:${x * 100}%;top:${y * 100}%;width:${w * 100}%;height:${hh * 100}%` },
+        name ? h('span', {}, name) : null));
+    });
   }
 
   function fmtVal(v) {
