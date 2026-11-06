@@ -989,25 +989,30 @@
   }
 
   // Seitenleiste: ein-/ausklappen und Breite ziehen (wird gemerkt)
+  // Seitenleisten rechts (Einstellungen) und links (Ordnerbaum): ein-/ausklappen und Breite ziehen (wird gemerkt)
   function initProps() {
-    const props = $('#props'), grip = $('#propsGrip'), tog = $('#togProps');
-    const w = parseInt(localStorage.getItem('fotosortierer.propsW'));
-    if (w) props.style.width = w + 'px';
+    pane('props', 'propsGrip', 'togProps', true, 240, 700);
+    pane('nav', 'navGrip', 'togNav', false, 180, 560);
+  }
+  function pane(id, gripId, togId, right, min, max) {
+    const el = $('#' + id), grip = $('#' + gripId), tog = $('#' + togId);
+    const w = parseInt(localStorage.getItem(`fotosortierer.${id}W`));
+    if (w) el.style.width = w + 'px';
     const setHidden = hide => {
-      props.classList.toggle('hide', hide); grip.classList.toggle('hide', hide);
-      tog.textContent = hide ? '‹' : '›';
-      localStorage.setItem('fotosortierer.propsHide', hide ? '1' : '');
+      el.classList.toggle('hide', hide); grip.classList.toggle('hide', hide);
+      tog.textContent = hide === right ? '‹' : '›';
+      localStorage.setItem(`fotosortierer.${id}Hide`, hide ? '1' : '');
       setTimeout(MapView.invalidate, 0);
     };
-    setHidden(!!localStorage.getItem('fotosortierer.propsHide'));
-    tog.onclick = () => setHidden(!props.classList.contains('hide'));
+    setHidden(!!localStorage.getItem(`fotosortierer.${id}Hide`));
+    tog.onclick = () => setHidden(!el.classList.contains('hide'));
     grip.onpointerdown = e => {
       grip.setPointerCapture(e.pointerId); grip.classList.add('drag');
-      const x0 = e.clientX, w0 = props.offsetWidth;
-      grip.onpointermove = ev => { props.style.width = Math.max(240, Math.min(700, w0 - (ev.clientX - x0))) + 'px'; MapView.invalidate(); };
+      const x0 = e.clientX, w0 = el.offsetWidth;
+      grip.onpointermove = ev => { el.style.width = Math.max(min, Math.min(max, w0 + (ev.clientX - x0) * (right ? -1 : 1))) + 'px'; MapView.invalidate(); };
       grip.onpointerup = () => {
         grip.onpointermove = grip.onpointerup = null; grip.classList.remove('drag');
-        localStorage.setItem('fotosortierer.propsW', props.offsetWidth);
+        localStorage.setItem(`fotosortierer.${id}W`, el.offsetWidth);
       };
     };
   }

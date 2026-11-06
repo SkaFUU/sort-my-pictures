@@ -112,6 +112,15 @@ kbd { font-family:ui-monospace,Consolas,monospace; font-size:10.5px; border:1px 
 .paneTog { position:absolute; top:50%; right:0; transform:translateY(-50%); z-index:1002; width:18px; height:58px; margin:0; padding:0;
            background:rgba(39,43,48,.92); color:var(--fg); font-size:16px; line-height:58px; border-radius:6px 0 0 6px; box-shadow:0 1px 6px rgba(0,0,0,.5); }
 .paneTog:hover { background:#3c4148; }
+/* linke Leiste: Ordnerbaum */
+#nav { flex:none; width:260px; background:var(--panel); overflow-y:auto; overflow-x:hidden; padding:12px 10px; display:flex; flex-direction:column; }
+#nav h2 { margin:0 0 8px; font-size:13px; text-transform:uppercase; letter-spacing:.5px; color:var(--muted); }
+#nav.hide, #navGrip.hide { display:none; }
+#navGrip { flex:none; width:6px; cursor:col-resize; background:var(--bg); border-right:1px solid #000; }
+#navGrip:hover, #navGrip.drag { background:var(--tab); }
+.paneTog.left { right:auto; left:0; border-radius:0 6px 6px 0; }
+#nav .ftree { max-height:none; }
+#nav .proj-info { margin-top:10px; }
 
 /* Einstellungen in der Seitenleiste */
 .sec { border-top:1px solid var(--line); margin-top:10px; }
@@ -394,7 +403,8 @@ dialog { background:var(--panel); color:var(--fg); }
 @media (max-width:800px) {
   #main { flex-direction:column; }
   #props { width:100% !important; max-height:40%; border-top:1px solid #000; }
-  #propsGrip, .paneTog { display:none; }
+  #nav { width:100% !important; max-height:30%; order:-1; border-bottom:1px solid #000; }
+  #propsGrip, #navGrip, .paneTog { display:none; }
   #qat .qtxt { display:none; }
   .v-side { display:none; }
   .v-wrap img, .v-wrap video { max-width:100vw; }

@@ -103,10 +103,10 @@ const FolderTree = (() => {
       h('button', { class: 'mini', onclick: pickRoot }, T('Anderen Hauptordner …'))));
   }
 
-  // Ribbon-Knopf „Ordnerbaum“: ohne Freigabe gleich das Laufwerk waehlen lassen, sonst Seitenleiste zeigen und hinspringen
+  // Ribbon-Knopf „Ordnerbaum“: ohne Freigabe gleich das Laufwerk waehlen lassen, sonst die linke Leiste zeigen und hinspringen
   async function focus() {
     if (!root) return pickRoot();
-    if (document.getElementById('props').classList.contains('hide')) document.getElementById('togProps')?.click();
+    if (document.getElementById('nav').classList.contains('hide')) document.getElementById('togNav')?.click();
     if (!access) await renew();
     const box = $();
     box.scrollIntoView({ behavior: 'smooth', block: 'start' });

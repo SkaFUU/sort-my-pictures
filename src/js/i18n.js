@@ -147,8 +147,8 @@ const I18n = (() => {
     'automatisch zugeordnet': 'assigned automatically', 'Ja, das ist {0}': 'Yes, this is {0}',
     '{0} automatisch zugeordnet – ✓ bestätigt, ✕ entfernt.': '{0} assigned automatically – ✓ confirms, ✕ removes.',
     'Klick: Namen zuweisen': 'Click: assign a name',
-    '<b>Ordner wählen</b> oder oben im Ordnerbaum klicken: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.':
-      '<b>Choose folder</b> or click in the folder tree above: folder with photos and videos on the PC, network drives too.',
+    '<b>Ordner wählen</b> oder links im Ordnerbaum klicken: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.':
+      '<b>Choose folder</b> or click in the folder tree on the left: folder with photos and videos on the PC, network drives too.',
     'Anderen Hauptordner …':
       'Other main folder …',
     'Anderen Ordner …':
@@ -181,7 +181,7 @@ const I18n = (() => {
       'Allow access',
     '„{0}“ konnte nicht geschrieben werden: {1}':
       '“{0}” could not be written: {1}',
-    'Ignoriert ({0}) – fremd oder kein Gesicht': 'Ignored ({0}) – stranger or not a face', 'Ignorierte zeigen': 'Show ignored', 'Ordnerbaum': 'Folder tree',
+    'Ignoriert ({0}) – fremd oder kein Gesicht': 'Ignored ({0}) – stranger or not a face', 'Ignorierte zeigen': 'Show ignored', 'Ordnerleiste ein-/ausblenden': 'Show/hide folder panel', 'Ordnerbaum': 'Folder tree',
     'Als fremd oder „kein Gesicht“ markierte Gesichter zeigen – daraus lassen sich neue Personen machen': 'Show faces marked as stranger or “not a face” – new people can be made from them',
     'Einmal ein Laufwerk oder den Hauptordner freigeben, dann die Unterordner direkt in der Seitenleiste wählen': 'Share a drive or the main folder once, then choose subfolders directly in the side panel',
     'Für eine neue Person: Namen eintippen oder Gesichter markieren und Rechtsklick. „Zurückholen“ macht die Gruppe wieder offen.':

@@ -162,7 +162,15 @@
   </header>
 
   <div id="main">
+    <!-- Links: Ordnerbaum (wie im Feldeditor), rechts nur Einstellungen und Rueckfragen -->
+    <aside id="nav">
+      <h2>Ordner</h2>
+      <div id="libTree" data-noi18n></div>
+      <div id="projInfo" class="proj-info" data-noi18n></div>
+    </aside>
+    <div id="navGrip" title="Ziehen ändert die Breite"></div>
     <div id="center">
+      <button id="togNav" class="paneTog left" title="Ordnerleiste ein-/ausblenden">‹</button>
       <!-- Karte: Schritte 1 und 2 -->
       <section class="view" data-view="map">
         <div id="map" data-noi18n></div>
@@ -205,12 +213,9 @@
       <div class="pp" data-tab="quelle">
         <h2>Quelle</h2>
         <div class="info" id="srcInfo">Noch keine Quelle gewählt.</div>
-        <div id="projInfo" class="proj-info" data-noi18n></div>
         <div id="unsupported" class="muted warn" hidden data-i18n-html>Dieser Browser kann keine lokalen Ordner lesen und schreiben. Bitte <b>Chrome</b>, <b>Edge</b>, <b>Brave</b> oder <b>Opera</b> verwenden.</div>
-        <h3 class="sec">Ordner</h3>
-        <div id="libTree" data-noi18n></div>
         <ul class="muted">
-          <li data-i18n-html><b>Ordner wählen</b> oder oben im Ordnerbaum klicken: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.</li>
+          <li data-i18n-html><b>Ordner wählen</b> oder links im Ordnerbaum klicken: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.</li>
           <li data-i18n-html>Fotos werden nur gelesen, nie verändert. In den Quellordner kommt nur die kleine Datei <b>_sortmypictures.json</b> mit deinem Stand (Namen, geprüfte Ereignisse) – so geht nichts verloren, auch mit einem anderen Browser oder PC.</li>
         </ul>
         <div class="settings" data-sections="Quelle"></div>
