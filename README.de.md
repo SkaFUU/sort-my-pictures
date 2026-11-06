@@ -31,8 +31,8 @@ Die Oberfläche führt Schritt für Schritt durch die Register von links nach re
 - **Weiter** führt zum nächsten Schritt.
 - Erledigte Schritte bekommen ein ✓.
 
-1. **Quelle:** Wähle einen Ordner (auch Netzlaufwerk) und klicke auf **Einlesen**. Fotos vom Handy vorher auf den PC kopieren, z. B. per USB-Kabel im Explorer. Aufnahmedatum und GPS kommen aus EXIF bzw. aus den MP4/MOV-Metadaten.
-2. **Orte:** Lege auf der Karte Zonen an (Zuhause, Alltagsort, Dienstort, Benannter Ort). Optional holst du dir hier Ortsnamen und den Kartenhintergrund von OpenStreetMap (🌐).
+1. **Quelle:** Gib einmal ein Laufwerk oder deinen Hauptordner frei, dann wählst du die Unterordner direkt im **Ordnerbaum** in der Seitenleiste (● = gespeicherter Stand vorhanden). Oder wähle einen Ordner (auch Netzlaufwerk) und klicke auf **Einlesen**. Fotos vom Handy vorher auf den PC kopieren, z. B. per USB-Kabel im Explorer. Aufnahmedatum und GPS kommen aus EXIF bzw. aus den MP4/MOV-Metadaten.
+2. **Orte:** Lege auf der Karte Zonen an (Zuhause, Alltagsort, Dienstort, Benannter Ort). Optional schaltest du hier Ortsnamen von OpenStreetMap ein (🌐, sie werden gleich und nach jedem Einlesen geholt) und einen Kartenhintergrund.
 3. **Ereignisse:** Ändere Art und Ortsname je Ereignis. Ein Klick auf eine Zeile zeigt die Bilder, dort lassen sich einzelne Bilder herausnehmen. Hier legst du auch **eigene Kategorien** an (siehe unten).
 4. **Prüfen:** Klicke die Ereignisse nacheinander durch, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `5`–`9` deine eigenen Kategorien. `Enter` übernimmt den Vorschlag, `←`/`→` blättert. **Neu prüfen** markiert alles wieder als ungeprüft (die Auswahl bleibt als Vorschlag), mit Rückfrage.
 5. **Personen** (optional): Lass die Gesichter erkennen und benenne die Gruppen, siehe [Gesichtserkennung](#gesichtserkennung).
@@ -48,7 +48,7 @@ Die Originale werden nur gelesen. Vorhandene Dateien im Ziel werden nie übersch
 
 ### Wo dein Stand gespeichert ist
 
-Alles liegt im Browser (IndexedDB/localStorage), nichts im Fotoordner. Schließt du die Seite oder brichst ab, bleibt der Stand erhalten: Ordner wieder öffnen und **Einlesen** klicken.
+Der Stand liegt im Browser (IndexedDB/localStorage) **und** als kleine Datei `_sortmypictures.json` im Quellordner. Die Fotos selbst werden nie verändert, nur diese eine Datei wird geschrieben (dafür fragt der Browser einmal nach Schreibzugriff). Schließt du die Seite oder brichst ab, bleibt der Stand erhalten: Ordner wieder öffnen und **Einlesen** klicken. Mit einem anderen Browser oder PC wird der Stand aus der Datei übernommen; gilt immer der neuere. Ohne Schreibzugriff bleibt er nur im Browser.
 
 - **Je Quellordner:** Namen der Gesichter, Änderungen und Haken an Ereignissen, fertige Personen. Öffnest du zwischendurch einen anderen Ordner, behält jeder seinen eigenen Stand. Der Ordner wird über seinen Zugriff erkannt, nicht nur über den Namen.
 - **Für alle Ordner:** Einstellungen, Zonen, gemerkte Personen, Ortsnamen, Ergebnisse der Gesichtserkennung.

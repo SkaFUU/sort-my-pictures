@@ -108,7 +108,7 @@ const Settings = (() => {
     ]},
     { section: 'Ortsnamen', online: true, items: [
       { key: 'geocode', label: 'Ortsnamen von OpenStreetMap', type: 'bool', def: false, online: true,
-        help: 'Sendet pro Ereignis einen Koordinatenpunkt an nominatim.openstreetmap.org. Ergebnisse werden lokal gespeichert. Aus: Koordinaten bzw. Namen von Zonen.' },
+        help: 'Holt fehlende Ortsnamen beim Einschalten und nach jedem Einlesen: sendet pro Ereignis einen Koordinatenpunkt an nominatim.openstreetmap.org (höchstens einen pro Sekunde). Ergebnisse werden lokal gespeichert. Aus: Koordinaten bzw. Namen von Zonen.' },
       { key: 'geocodeZoom', label: 'Genauigkeit', type: 'select', def: '10', dep: 'geocode',
         options: [['5', 'Bundesland'], ['8', 'Bezirk'], ['10', 'Stadt / Gemeinde'], ['14', 'Ortsteil']] },
       { key: 'geocodeLang', label: 'Sprache', type: 'text', def: 'de', en: 'en', dep: 'geocode' },

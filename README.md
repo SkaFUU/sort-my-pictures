@@ -31,8 +31,8 @@ The interface guides you step by step through the tabs from left to right:
 - **Next** takes you to the next step.
 - Finished steps get a ✓.
 
-1. **Source:** Choose a folder (network drives work too) and click **Scan**. Copy photos from a phone to the PC first, e.g. with a USB cable in Explorer. Date taken and GPS come from EXIF or from the MP4/MOV metadata.
-2. **Places:** Add zones on the map (Home, Everyday place, Work place, Named place). Optionally get place names and the map background from OpenStreetMap (🌐).
+1. **Source:** Share a drive or your main folder once, then pick subfolders directly in the **folder tree** in the side panel (● = saved progress available). Or choose a folder (network drives work too) and click **Scan**. Copy photos from a phone to the PC first, e.g. with a USB cable in Explorer. Date taken and GPS come from EXIF or from the MP4/MOV metadata.
+2. **Places:** Add zones on the map (Home, Everyday place, Work place, Named place). Optionally switch on place names from OpenStreetMap (🌐, they are fetched right away and after every scan) and a map background.
 3. **Events:** Change type and place name per event. Clicking a row shows its pictures, where you can take single pictures out. This is also where you create **custom categories** (see below).
 4. **Review:** Go through the events one by one, uncertain ones first. Keys `1`–`4` choose holiday, day trip, business trip or no folder, `5`–`9` your custom categories. `Enter` accepts the suggestion, `←`/`→` browse. **Review again** marks everything as not reviewed (your choices stay as suggestions), after asking.
 5. **People** (optional): Detect faces and name the groups, see [Face recognition](#face-recognition).
@@ -48,7 +48,7 @@ Originals are only read. Existing files in the target are never overwritten, a s
 
 ### Where your progress is stored
 
-Everything is stored in the browser (IndexedDB/localStorage), nothing in the photo folder. If you close the page or cancel, the state is kept: open the folder again and click **Scan**.
+Your progress is stored in the browser (IndexedDB/localStorage) **and** as a small file `_sortmypictures.json` in the source folder. The photos themselves are never changed, only this one file is written (the browser asks once for write access). If you close the page or cancel, the state is kept: open the folder again and click **Scan**. With another browser or PC the progress is taken from the file; the newer one always wins. Without write access it stays in the browser only.
 
 - **Per source folder:** face names, changes and ticks on events, finished people. If you open another folder in between, each keeps its own state. The folder is recognised by its access, not just its name.
 - **For all folders:** settings, zones, remembered people, place names, face detection results.

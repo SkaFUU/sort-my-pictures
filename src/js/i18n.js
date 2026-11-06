@@ -12,8 +12,6 @@ const I18n = (() => {
     'Ohne Karte': 'No map', 'Karte 🌐': 'Map 🌐', 'Satellit 🌐': 'Satellite 🌐', 'Gelände 🌐': 'Terrain 🌐', 'Kartenhintergrund': 'Map background',
     'OpenStreetMap auf der Webseite, Esri-Straßenkarte, wenn die Datei direkt geöffnet ist': 'OpenStreetMap on the website, Esri street map when the file is opened directly',
     'Satellitenbild von Esri': 'Satellite image from Esri', 'Geländekarte von OpenTopoMap': 'Terrain map from OpenTopoMap',
-    'Ortsnamen holen': 'Get place names', 'Ortsnamen holen 🌐': 'Get place names 🌐', 'Ortsnamen holen ({0})': 'Get place names ({0})',
-    'Sendet einen Koordinatenpunkt pro Ereignis an nominatim.openstreetmap.org': 'Sends one coordinate point per event to nominatim.openstreetmap.org',
     'Erkennung': 'Detection', 'Erkennen': 'Detect', 'Art': 'Type', 'Alle': 'All', 'Jahr': 'Year', 'Alle Jahre': 'All years', 'Ort': 'Place',
     'suchen …': 'search …', 'Anzeigen': 'Show', 'Neue Kategorie': 'New category', 'Kategorien': 'Categories',
     'Eigene Kategorie mit eigenen Regeln und eigenem Ordner': 'Custom category with its own rules and folder',
@@ -31,8 +29,6 @@ const I18n = (() => {
     'Noch keine Quelle gewählt.': 'No source chosen yet.', 'Noch nicht eingelesen.': 'Not scanned yet.',
     'Dieser Browser kann keine lokalen Ordner lesen und schreiben. Bitte <b>Chrome</b>, <b>Edge</b>, <b>Brave</b> oder <b>Opera</b> verwenden.':
       'This browser cannot read and write local folders. Please use <b>Chrome</b>, <b>Edge</b>, <b>Brave</b> or <b>Opera</b>.',
-    '<b>Ordner wählen</b>: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.': '<b>Choose folder</b>: a folder with photos and videos on the PC, network drives work too.',
-    'Originale werden nur gelesen, nie verändert.': 'Originals are only read, never changed.',
     '<b>Zuhause</b> – Mittelpunkt für alle Entfernungen.': '<b>Home</b> – centre for all distances.',
     '<b>Alltagsort</b> – Arbeit, Familie: zählt nie als Ausflug.': '<b>Everyday place</b> – work, family: never counts as a day trip.',
     '<b>Dienstort</b> – Fahrten dorthin sind immer Dienstreisen.': '<b>Work place</b> – trips there are always business trips.',
@@ -69,7 +65,6 @@ const I18n = (() => {
     'Geändert: bitte neu einlesen („Einlesen“).': 'Changed: please scan again (“Scan”).',
     'Lese Dateien …': 'Reading files …', 'Suche Dateien … {0}': 'Searching files … {0}', 'Lese Metadaten … {0} / {1}': 'Reading metadata … {0} / {1}',
     'Eingelesen: {0} Dateien aus „{1}“ in {2} s': 'Scanned: {0} files from “{1}” in {2} s', 'Fehler beim Einlesen: {0}': 'Error while scanning: {0}',
-    'Zuerst „Ortsnamen von OpenStreetMap“ einschalten.': 'First switch on “Place names from OpenStreetMap”.',
     'Ortsnamen geholt: {0}': 'Place names fetched: {0}', ', Fehler: {0}': ', errors: {0}', 'Ortsnamen (online) … {0} / {1}': 'Place names (online) … {0} / {1}',
     'Unbekannt': 'Unknown',
     'Lade Gesichtsmodelle …': 'Loading face models …',
@@ -152,6 +147,40 @@ const I18n = (() => {
     'automatisch zugeordnet': 'assigned automatically', 'Ja, das ist {0}': 'Yes, this is {0}',
     '{0} automatisch zugeordnet – ✓ bestätigt, ✕ entfernt.': '{0} assigned automatically – ✓ confirms, ✕ removes.',
     'Klick: Namen zuweisen': 'Click: assign a name',
+    '<b>Ordner wählen</b> oder oben im Ordnerbaum klicken: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.':
+      '<b>Choose folder</b> or click in the folder tree above: folder with photos and videos on the PC, network drives too.',
+    'Anderen Hauptordner …':
+      'Other main folder …',
+    'Anderen Ordner …':
+      'Other folder …',
+    'Einmal ein Laufwerk oder einen Hauptordner freigeben (z. B. den Ordner mit allen Fotos). Danach lassen sich hier die Unterordner direkt als Quelle wählen.':
+      'Share a drive or main folder once (e.g. the folder with all your photos). Then its subfolders can be chosen as source right here.',
+    'Erlauben':
+      'Allow',
+    'Fotos werden nur gelesen, nie verändert. In den Quellordner kommt nur die kleine Datei <b>_sortmypictures.json</b> mit deinem Stand (Namen, geprüfte Ereignisse) – so geht nichts verloren, auch mit einem anderen Browser oder PC.':
+      'Photos are only read, never changed. Only the small file <b>_sortmypictures.json</b> with your progress (names, reviewed events) is written into the source folder – so nothing gets lost, even with another browser or PC.',
+    'Gespeicherter Stand vorhanden':
+      'Saved progress available',
+    'Laufwerk oder Hauptordner freigeben …':
+      'Share drive or main folder …',
+    'Neu laden':
+      'Reload',
+    'Ordner neu lesen':
+      'Read folders again',
+    'Stand aus „{0}“ im Ordner übernommen (gespeichert {1}).':
+      'Progress taken from “{0}” in the folder (saved {1}).',
+    'Stand gespeichert in „{0}“ ({1})':
+      'Progress saved in “{0}” ({1})',
+    'Stand nur im Browser – für „{0}“ im Ordner fehlt der Schreibzugriff.':
+      'Progress only in the browser – write access for “{0}” in the folder is missing.',
+    'Stand wird im Browser und in „{0}“ im Ordner gespeichert.':
+      'Progress is saved in the browser and in “{0}” in the folder.',
+    'Zugriff auf „{0}“ muss nach dem Neustart des Browsers einmal bestätigt werden.':
+      'Access to “{0}” has to be confirmed once after the browser restarts.',
+    'Zugriff erlauben':
+      'Allow access',
+    '„{0}“ konnte nicht geschrieben werden: {1}':
+      '“{0}” could not be written: {1}',
     'Ignoriert ({0}) – fremd oder kein Gesicht': 'Ignored ({0}) – stranger or not a face', 'Verbergen': 'Hide', 'Zeigen': 'Show',
     'Für eine neue Person: Namen eintippen oder Gesichter markieren und Rechtsklick. „Zurückholen“ macht die Gruppe wieder offen.':
       'For a new person: type a name or select faces and right-click. “Bring back” makes the group open again.',
@@ -373,8 +402,8 @@ const I18n = (() => {
     'Gruppen zeigen ab Gesichtern': 'Show groups from faces',
     // Ortsnamen, Karte
     'Ortsnamen von OpenStreetMap': 'Place names from OpenStreetMap',
-    'Sendet pro Ereignis einen Koordinatenpunkt an nominatim.openstreetmap.org. Ergebnisse werden lokal gespeichert. Aus: Koordinaten bzw. Namen von Zonen.':
-      'Sends one coordinate point per event to nominatim.openstreetmap.org. Results are stored locally. Off: coordinates or zone names.',
+    'Holt fehlende Ortsnamen beim Einschalten und nach jedem Einlesen: sendet pro Ereignis einen Koordinatenpunkt an nominatim.openstreetmap.org (höchstens einen pro Sekunde). Ergebnisse werden lokal gespeichert. Aus: Koordinaten bzw. Namen von Zonen.':
+      'Fetches missing place names when switched on and after every scan: sends one coordinate point per event to nominatim.openstreetmap.org (at most one per second). Results are stored locally. Off: coordinates or zone names.',
     'Genauigkeit': 'Precision', 'Bundesland': 'State', 'Bezirk': 'District', 'Stadt / Gemeinde': 'Town / municipality', 'Ortsteil': 'Neighbourhood',
     'Sprache': 'Language', 'Heimatland (ohne Land im Namen)': 'Home country (no country in the name)',
     'So geschrieben, wie OpenStreetMap das Land in der gewählten Sprache nennt.': 'Spelled the way OpenStreetMap names the country in the chosen language.',

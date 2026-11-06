@@ -20,15 +20,67 @@
   // Im Browser (IndexedDB) getrennt je Quellordner gespeichert: Namen der Gesichter, Aenderungen und Haken an
   // Ereignissen, fertige Personen. Einstellungen, Zonen, gemerkte Personen und Ortsnamen gelten fuer alle Ordner.
   // Der Ordner wird ueber seinen Zugriff (FileSystemHandle.isSameEntry) wiedererkannt, nicht nur ueber den Namen.
-  let proj = null;
+  // Zusaetzlich liegt der Stand als „_sortmypictures.json“ im Quellordner (braucht Schreibzugriff auf den Ordner, die Fotos
+  // selbst bleiben unberuehrt). So ist er unabhaengig vom Browser; beim Oeffnen gilt der neuere der beiden.
+  let proj = null, fileTimer = null;
   const projKey = id => 'project:' + id;
+  const STATE_FILE = '_sortmypictures.json';
   function saveProject() {
     if (!proj) return;
-    Util.idb.set(projKey(proj.id), { faceNames: st.faceNames, overrides: st.overrides, done: People.getDone() }).catch(() => {});
+    proj.saved = Date.now();
+    Util.idb.set(projKey(proj.id), { saved: proj.saved, faceNames: st.faceNames, overrides: st.overrides, done: People.getDone() }).catch(() => {});
+    clearTimeout(fileTimer);
+    const p = proj;
+    fileTimer = setTimeout(() => writeStateFile(p), 1500);  // gesammelt, nicht bei jedem Klick aufs Netzlaufwerk
+  }
+  let fileInfo = { state: '', time: 0, msg: '' };
+  function showFileInfo(state, msg = '') {
+    fileInfo = { state, time: Date.now(), msg };
+    const el = $('#projInfo');
+    if (!el) return;
+    el.innerHTML = '';
+    el.className = 'proj-info ' + state;
+    if (!proj) return;
+    if (state === 'ok') el.append(T('Stand gespeichert in „{0}“ ({1})', STATE_FILE, Util.fmtDateTime(new Date(fileInfo.time)).split(' ').pop()));
+    else if (state === 'noperm') el.append(T('Stand nur im Browser – für „{0}“ im Ordner fehlt der Schreibzugriff.', STATE_FILE), ' ',
+      h('button', { class: 'mini', onclick: async () => { if (await proj.handle.requestPermission({ mode: 'readwrite' }) === 'granted') writeStateFile(proj); } }, T('Erlauben')));
+    else if (state === 'err') el.append(T('„{0}“ konnte nicht geschrieben werden: {1}', STATE_FILE, msg));
+    else el.append(T('Stand wird im Browser und in „{0}“ im Ordner gespeichert.', STATE_FILE));
+  }
+  async function writeStateFile(p) {
+    if (p !== proj) return;
+    const hd = p.handle;
+    try {
+      if ((await hd.queryPermission({ mode: 'readwrite' })) !== 'granted') { showFileInfo('noperm'); return; }
+      const fh = await hd.getFileHandle(STATE_FILE, { create: true });
+      const w = await fh.createWritable();
+      await w.write(JSON.stringify({ app: 'Sort My Pictures', version: 1, folder: hd.name, saved: p.saved,
+        faceNames: st.faceNames, overrides: st.overrides, done: People.getDone() }));
+      await w.close();
+      showFileInfo('ok');
+    } catch (e) { showFileInfo('err', e.message); }
+  }
+  // Stand aus der Datei im Ordner uebernehmen, wenn sie neuer ist als der im Browser (anderer Browser/PC hat weitergearbeitet)
+  async function loadStateFile() {
+    if (!proj) return false;
+    let j = null;
+    try { j = JSON.parse(await (await (await proj.handle.getFileHandle(STATE_FILE)).getFile()).text()); } catch { return false; }
+    if (!j?.faceNames || !(j.saved > (proj.saved || 0))) return false;
+    st.faceNames = j.faceNames;
+    st.overrides = j.overrides || { events: {}, files: {} };
+    People.setDone(j.done || []);
+    faceHistory.length = 0;
+    proj.saved = j.saved;
+    Util.idb.set(projKey(proj.id), { saved: j.saved, faceNames: st.faceNames, overrides: st.overrides, done: People.getDone() }).catch(() => {});
+    log(T('Stand aus „{0}“ im Ordner übernommen (gespeichert {1}).', STATE_FILE, Util.fmtDateTime(new Date(j.saved))));
+    return true;
   }
   const saveOverrides = saveProject;
+  // im Browser ablegen, ohne den Zeitstempel zu aendern (der zaehlt beim Vergleich mit der Datei im Ordner)
+  const persist = p => Util.idb.set(projKey(p.id), { saved: p.saved || 0, faceNames: st.faceNames, overrides: st.overrides, done: People.getDone() }).catch(() => {});
   async function openProject(handle) {
-    saveProject();  // bisherigen Ordner sicher ablegen
+    // bisherigen Ordner sicher ablegen, ausstehende Datei gleich schreiben
+    if (proj) { persist(proj); if (fileTimer) { clearTimeout(fileTimer); fileTimer = null; await writeStateFile(proj); } }
     let list = [];
     try { list = (await Util.idb.get('projects')) || []; } catch { /* leer */ }
     let p = null;
@@ -52,7 +104,10 @@
     st.overrides = data?.overrides || { events: {}, files: {} };
     People.setDone(data?.done || []);
     faceHistory.length = 0;
-    saveProject();
+    p.saved = data?.saved || 0;
+    persist(p);
+    showFileInfo('');
+    await loadStateFile();  // klappt nur, wenn schon Lesezugriff besteht – sonst beim Einlesen
     const named = Object.values(st.faceNames).filter(n => n[0] !== '#' && n[0] !== '!').length;
     const evs = Object.keys(st.overrides.events || {}).length;
     if (named || evs) log(T('Gespeicherter Stand für „{0}“: {1} Gesichter benannt, {2} Ereignisse geändert oder geprüft.', handle.name, named, evs));
@@ -74,7 +129,7 @@
     const b = document.body.classList.contains('busy');
     $('#btnScan').disabled = b || !st.src;
     $('#btnCopy').disabled = $('#btnCopy2').disabled = $('#btnMapExport').disabled = $('#btnIndex').disabled = b || !st.plan || !st.plan.ops.length;
-    for (const id of ['#btnSrc', '#btnDst', '#btnFaces', '#btnGeocode']) $(id).disabled = b;
+    for (const id of ['#btnSrc', '#btnDst', '#btnFaces']) $(id).disabled = b;
     document.querySelectorAll('[data-lang]').forEach(x => { x.disabled = b; });
     updateSteps();
   }
@@ -236,6 +291,7 @@
     if (it.level === 'date' && st.items) for (const i of st.items) Meta.applyDate(i, st.s);
     if (it.key === 'customCats') kindsChanged();
     recompute();
+    if (it.key === 'geocode' && st.s.geocode) geocode();  // eingeschaltet: fehlende Ortsnamen gleich holen
   }
 
   // ---------------- Eigene Kategorien ----------------
@@ -346,8 +402,6 @@
     if (curTab === 'review') Review.render();
     if (curTab === 'people') People.render();
     updateButtons();
-    const missing = st.s.geocode ? st.analysis.events.filter(e => !Geo.lookup(e.lat, e.lon)).length : 0;
-    $('#btnGeocode span').textContent = (st.s.geocode && missing ? T('Ortsnamen holen ({0})', missing) : T('Ortsnamen holen')) + ' 🌐';
     const evs = st.analysis.events.filter(e => e.kind !== 'none' && e.passCount);
     $('#cntEvents').textContent = evs.length;
     const open = st.analysis.events.filter(e => e.passCount && !e.ok).length;
@@ -373,15 +427,21 @@
   const fsSupported = 'showDirectoryPicker' in window;
 
   async function pickSrc() {
-    try {
-      st.src = await showDirectoryPicker({ id: 'fs-src', mode: 'read' });
-      await Util.idb.set('srcHandle', st.src);
-      await openProject(st.src);
-      st.items = null;
-      setSrcName();
-      updateButtons();
-      scan();
-    } catch (e) { if (e.name !== 'AbortError') Ask.alert(e.message); }
+    let dir;
+    try { dir = await showDirectoryPicker({ id: 'fs-src', mode: 'readwrite' }); }
+    catch (e) { if (e.name !== 'AbortError') Ask.alert(e.message); return; }
+    await useSource(dir);
+    FolderTree.render();
+  }
+  // Quelle setzen (aus dem Windows-Ordnerfenster oder dem Ordnerbaum), Stand dieses Ordners laden, einlesen
+  async function useSource(dir) {
+    st.src = dir;
+    await Util.idb.set('srcHandle', dir).catch(() => {});
+    await openProject(dir);
+    st.items = st.people = st.faceCache = null;
+    setSrcName();
+    updateButtons();
+    await scan();
   }
   async function pickDst() {
     try {
@@ -399,7 +459,12 @@
   }
 
   async function scan() {
-    if (!st.src || !(await ensurePermission(st.src, 'read'))) return;
+    if (!st.src) return;
+    // Schreibzugriff nur fuer die Stand-Datei im Ordner; abgelehnt = nur lesen, Stand bleibt im Browser
+    const rw = await ensurePermission(st.src, 'readwrite').catch(() => false);
+    if (!rw && !(await ensurePermission(st.src, 'read'))) return;
+    await loadStateFile();
+    if (!rw) showFileInfo('noperm');
     st.abort = new AbortController();
     busy(true);
     status(T('Lese Dateien …'), -1);
@@ -412,17 +477,18 @@
       recompute();
       MapView.fitAll(st.analysis);
       log(T('Eingelesen: {0} Dateien aus „{1}“ in {2} s', st.items.length, st.src.name, ((Date.now() - t0) / 1000).toFixed(0)));
-    } catch (e) { busy(false); status(T('Fehler beim Einlesen: {0}', e.message)); }
+    } catch (e) { busy(false); status(T('Fehler beim Einlesen: {0}', e.message)); return; }
+    if (st.s.geocode) geocode();
   }
 
+  // Fehlende Ortsnamen holen (nur wenn „Ortsnamen (OSM)“ eingeschaltet ist; laeuft nach dem Einlesen und beim Einschalten)
   async function geocode() {
-    if (!st.analysis) return;
-    if (!st.s.geocode) { Ask.alert(T('Zuerst „Ortsnamen von OpenStreetMap“ einschalten.'), { kind: 'info' }); return; }
+    if (!st.analysis || !st.s.geocode || document.body.classList.contains('busy')) return;
     st.abort = new AbortController();
     busy(true);
     try {
       const r = await Geo.fetchMissing(st.analysis.events, st.s, t => status(t, -1), st.abort.signal);
-      log(T('Ortsnamen geholt: {0}', r.fetched) + (r.errors ? T(', Fehler: {0}', r.errors) : ''));
+      if (r.fetched || r.errors) log(T('Ortsnamen geholt: {0}', r.fetched) + (r.errors ? T(', Fehler: {0}', r.errors) : ''));
     } finally { busy(false); recompute(); }
   }
 
@@ -961,7 +1027,7 @@
 
     // Kontext fuer Bildansicht, Pruefmodus und Personen
     const appCtx = {
-      st, recompute, saveOverrides, saveProject, loadThumb, scanFaces, setFaceNames, applyFaceNames, undoFaceNames, canUndo: () => faceHistory.length > 0, faceName, status,
+      st, recompute, saveOverrides, saveProject, useSource, loadThumb, scanFaces, setFaceNames, applyFaceNames, undoFaceNames, canUndo: () => faceHistory.length > 0, faceName, status,
       openViewer: (list, i) => Viewer.open(list, i),
       opsOf: it => st.plan?.byItem.get(it.id) || [],
       facesOf: it => Faces.facesOf(it, st.faceCache),
@@ -972,6 +1038,7 @@
     Viewer.init(appCtx);
     Review.init(appCtx);
     People.init(appCtx);
+    FolderTree.init(appCtx);
     applyLang();
     setTiles();
     initProps();
@@ -992,7 +1059,6 @@
         setSetting(Settings.byKey.tiles, !!v);
       };
     });
-    $('#btnGeocode').onclick = geocode;
     $('#btnExport').onclick = exportConfig;
     $('#btnImport').onclick = importConfig;
     $('#btnReset').onclick = resetConfig;
@@ -1027,7 +1093,7 @@
   }
 
   // Fuer Tests und Fehlersuche in der Browser-Konsole
-  window.Fotosortierer = { state: st, recompute, showTab, openProject, setLang, kindsChanged, renderCats, fitAll: () => MapView.fitAll(st.analysis) };
+  window.Fotosortierer = { state: st, recompute, showTab, openProject, saveProject, setLang, kindsChanged, renderCats, fitAll: () => MapView.fitAll(st.analysis) };
 
   start();
 })();

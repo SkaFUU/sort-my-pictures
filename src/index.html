@@ -83,7 +83,6 @@
           <button class="big c-online" data-tiles="topo" title="Geländekarte von OpenTopoMap"><svg class="ic"><use href="#i-trip"/></svg><span>Gelände 🌐</span></button>
         </div><div class="gcap">Kartenhintergrund</div></div>
         <div class="grp"><div class="gbody">
-          <button class="big c-online" id="btnGeocode" title="Sendet einen Koordinatenpunkt pro Ereignis an nominatim.openstreetmap.org"><svg class="ic"><use href="#i-globe"/></svg><span>Ortsnamen holen 🌐</span></button>
           <div class="gchecks" data-checks="geocode,homeAuto,autoDaily"></div>
         </div><div class="gcap">Erkennung</div></div>
       </div>
@@ -204,10 +203,13 @@
       <div class="pp" data-tab="quelle">
         <h2>Quelle</h2>
         <div class="info" id="srcInfo">Noch keine Quelle gewählt.</div>
+        <div id="projInfo" class="proj-info" data-noi18n></div>
         <div id="unsupported" class="muted warn" hidden data-i18n-html>Dieser Browser kann keine lokalen Ordner lesen und schreiben. Bitte <b>Chrome</b>, <b>Edge</b>, <b>Brave</b> oder <b>Opera</b> verwenden.</div>
+        <h3 class="sec">Ordner</h3>
+        <div id="libTree" data-noi18n></div>
         <ul class="muted">
-          <li data-i18n-html><b>Ordner wählen</b>: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.</li>
-          <li>Originale werden nur gelesen, nie verändert.</li>
+          <li data-i18n-html><b>Ordner wählen</b> oder oben im Ordnerbaum klicken: Ordner mit Fotos und Videos am PC, auch Netzlaufwerk.</li>
+          <li data-i18n-html>Fotos werden nur gelesen, nie verändert. In den Quellordner kommt nur die kleine Datei <b>_sortmypictures.json</b> mit deinem Stand (Namen, geprüfte Ereignisse) – so geht nichts verloren, auch mit einem anderen Browser oder PC.</li>
         </ul>
         <div class="settings" data-sections="Quelle"></div>
       </div>
@@ -305,6 +307,7 @@
   <script src="js/review.js"></script>
   <script src="js/facequiz.js"></script>
   <script src="js/people.js"></script>
+<script src="js/foldertree.js"></script>
   <script src="js/app.js"></script>
 </body>
 </html>
