@@ -126,6 +126,7 @@ const Transfer = (() => {
     for (const op of ops) { if (!groups.has(op.item)) groups.set(op.item, []); groups.get(op.item).push(op); }
     let todo = [...groups.entries()];
     const log = [], moves = [], placed = new Map();  // placed: Item -> relativer Pfad, an dem es jetzt liegt
+    const created = [];  // Umsortieren: angelegte Kopien [Pfad der Kopie, Pfad des Originals]
     const failed = new Set();
     let done = 0, bytes = 0, movedN = 0, copies = 0, skipped = 0, errors = 0, dupN = 0;
     const total = todo.length + dups.length;
@@ -135,6 +136,7 @@ const Transfer = (() => {
 
     // eine Datei mit allen ihren Zielen; 'later' = Name am Hauptplatz noch belegt (wird vielleicht gleich frei)
     async function one(it, list, last) {
+      if (inplace) return oneInplace(it, list, last);
       const main = list.find(o => o.kind === 'month') || list[0];
       const rest = list.filter(o => o !== main);
       const mainRel = relOf(main);
@@ -185,6 +187,41 @@ const Transfer = (() => {
       entry(it.path, mainRel, T('verschoben'));
     }
 
+    // Umsortieren: das Original an seinen einen Platz (nie in einen Personenordner), danach die Personenordner als Kopien
+    // von dort. Jede angelegte Kopie kommt ins Journal, damit „Zurücknehmen“ sie wieder entfernt.
+    async function oneInplace(it, list, last) {
+      const main = list.find(o => o.kind !== 'person') || null;
+      const rest = list.filter(o => o !== main);
+      let at = it.path;
+      if (main && relOf(main).toLowerCase() !== it.path.toLowerCase()) {
+        const mainRel = relOf(main);
+        const dir = await getDir(main.dir);
+        if (await exists(dir, main.name)) {
+          if (!last) return 'later';
+          failed.add(mainRel); skipped++;
+          entry(it.path, mainRel, T('Name am Ziel schon belegt – Datei bleibt, wo sie ist'));
+        } else {
+          const file = await moveFile(src, it, dir, main.name);
+          moves.push({ item: it, from: it.path, to: mainRel, mtime: file.lastModified });
+          movedN++; bytes += it.size; at = mainRel;
+          entry(it.path, mainRel, T('verschoben'));
+        }
+      } else if (main) { skipped++; entry(it.path, it.path, T('liegt schon richtig')); }
+      placed.set(it, at);
+      for (const o of rest) {
+        const rel = relOf(o);
+        try {
+          const d = await getDir(o.dir);
+          if (await exists(d, o.name)) { entry(at, rel, T('existiert – übersprungen')); continue; }
+          const [pd, pn] = await parentOf(src, at);
+          await copyVerified(await (await pd.getFileHandle(pn)).getFile(), d, o.name);
+          created.push([rel, at]);
+          copies++; bytes += it.size;
+          entry(at, rel, T('kopiert'));
+        } catch (e) { failed.add(rel); entry(at, rel, T('FEHLER: {0}', e.message || e.name), true); }
+      }
+    }
+
     // mehrere Durchgaenge: was auf einen Namen wartet, der erst durch ein anderes Verschieben frei wird, kommt danach dran
     let last = false;
     while (todo.length && !signal?.aborted) {
@@ -231,9 +268,9 @@ const Transfer = (() => {
     const logName = `_${T('protokoll')}_${inplace ? T('umsortiert') : T('verschoben')}_${s}.csv`;
     await writeText(root, logName, '﻿' + csvOf(log)).catch(() => {});
     let journal = null;
-    if (inplace && moves.length) {
+    if (inplace && (moves.length || created.length)) {
       journal = `_${T('umsortiert')}_${s}.json`;
-      await writeText(src, journal, JSON.stringify({ app: 'Sort My Pictures', created: Date.now(), moves: moves.map(m => [m.from, m.to]) })).catch(() => { journal = null; });
+      await writeText(src, journal, JSON.stringify({ app: 'Sort My Pictures', created: Date.now(), moves: moves.map(m => [m.from, m.to]), copies: created })).catch(() => { journal = null; });
     }
     return { moved: movedN, copies, skipped, errors, dups: dupN, emptied, bytes, aborted: !!signal?.aborted, logName, journal, log, moves, placed, failed };
   }
@@ -249,8 +286,20 @@ const Transfer = (() => {
   async function undo(src, journalName, onProgress, signal) {
     const j = JSON.parse(await (await (await src.getFileHandle(journalName)).getFile()).text());
     const getDir = dirGetter(src);
-    const back = [], log = [];
+    const back = [], log = [], removedCopies = [];
     let done = 0, errors = 0;
+    // zuerst die angelegten Kopien (Personenordner) – nur wenn sie noch genau dem Original gleichen
+    for (const [rel, of] of j.copies || []) {
+      if (signal?.aborted) break;
+      try {
+        const [cd, cn] = await parentOf(src, rel), [od, on] = await parentOf(src, of);
+        const copy = await (await cd.getFileHandle(cn)).getFile(), orig = await (await od.getFileHandle(on)).getFile();
+        if (!(await sameFile(copy, orig))) throw new Error(T('Kopie wurde verändert – bleibt'));
+        await cd.removeEntry(cn);
+        removedCopies.push(rel);
+        log.push({ quelle: rel, ziel: '', status: T('Kopie entfernt') });
+      } catch (e) { if (e.name !== 'NotFoundError') { errors++; log.push({ quelle: rel, ziel: '', status: T('FEHLER: {0}', e.message || e.name) }); } }
+    }
     const list = [...j.moves].reverse();
     for (const [from, to] of list) {
       if (signal?.aborted) break;
@@ -266,12 +315,12 @@ const Transfer = (() => {
       } catch (e) { errors++; log.push({ quelle: to, ziel: from, status: T('FEHLER: {0}', e.message || e.name) }); }
       onProgress?.(++done, list.length);
     }
-    await removeEmptyDirs(src, back.map(b => b[0]));
+    await removeEmptyDirs(src, back.map(b => b[0]).concat(removedCopies));
     const s = stamp();
     await writeText(src, `_${T('protokoll')}_${T('zurück')}_${s}.csv`, '﻿' + csvOf(log)).catch(() => {});
     // Journal nur entfernen, wenn alles zurueck ist – sonst kann man es noch einmal versuchen
     if (!errors && !signal?.aborted) await src.removeEntry(journalName).catch(() => {});
-    return { back, errors, total: list.length, aborted: !!signal?.aborted };
+    return { back, copies: removedCopies.length, errors, total: list.length, aborted: !!signal?.aborted };
   }
 
   return { run, undo, lastJournal, sameFile };

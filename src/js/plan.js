@@ -119,11 +119,16 @@ const Plan = (() => {
       const tokens = itemTokens(it, s);
       const rule = rules.find(r => r.re.test(it.name));
       // In der Quelle umsortieren: jedes Foto bekommt genau einen Platz (Ereignis, sonst Sonderordner, sonst Monat),
-      // sonst laegen danach Kopien in der Quelle, die beim naechsten Einlesen als Duplikate auftauchen
+      // sonst laegen danach Kopien in der Quelle, die beim naechsten Einlesen als Duplikate auftauchen.
+      // Ausnahme Personenordner: die werden beim Einlesen uebersprungen (Meta.personDirTest)
       if (single) {
         if (it.event && evDir.has(it.event)) add(it, evDir.get(it.event), it.event.kind, it.event);
         else if (rule) add(it, Util.templatePath(s.rulesTpl, { ...tokens, REGEL: rule.folder, RULE: rule.folder }), 'rule');
         else if (s.monthFolders) add(it, Util.templatePath(s.monthTpl, tokens), 'month');
+        // Personenordner auf Wunsch als zusaetzliche Kopien (werden beim Einlesen nicht als Fotos mitgezaehlt)
+        if (s.personFolders && it.persons) {
+          for (const p of [...it.persons].sort()) add(it, Util.templatePath(s.personTpl, { ...tokens, PERSON: p }), 'person');
+        }
         continue;
       }
       if (rule) add(it, Util.templatePath(s.rulesTpl, { ...tokens, REGEL: rule.folder, RULE: rule.folder }), 'rule');

@@ -129,7 +129,7 @@
   const modeInfo = (m, dup = T('_Duplikate')) => ({
     copy: () => [T('Kopieren'), T('Sortierte Kopien in den Zielordner. Die Originale bleiben unverändert.')],
     move: () => [T('Verschieben'), T('Sortiert in den Zielordner, danach in der Quelle entfernt – jede Datei erst, wenn sie im Ziel vollständig geprüft ist. Der Browser löscht ohne Papierkorb. Duplikate kommen in den Ordner „{0}“ im Ziel, Gesichtsnamen und geprüfte Ereignisse werden mitgenommen.', dup)],
-    inplace: () => [T('In der Quelle umsortieren'), T('Die Quelle selbst wird umbenannt und in Ordner einsortiert – ohne Zielordner und ohne zusätzlichen Platz. Jedes Foto bekommt genau einen Platz (Ereignis, sonst Sonderordner, sonst Monat), Personenordner entfallen. Duplikate kommen in den Ordner „{0}“. Programme, die auf die alten Pfade zeigen, finden die Dateien danach nicht mehr. „Umsortieren zurücknehmen“ bringt alles zurück.', dup)],
+    inplace: () => [T('In der Quelle umsortieren'), T('Die Quelle selbst wird umbenannt und in Ordner einsortiert – ohne Zielordner und ohne zusätzlichen Platz. Jedes Foto bekommt genau einen Platz (Ereignis, sonst Sonderordner, sonst Monat). Personenordner kommen auf Wunsch als Kopien dazu. Duplikate kommen in den Ordner „{0}“. Programme, die auf die alten Pfade zeigen, finden die Dateien danach nicht mehr. „Umsortieren zurücknehmen“ bringt alles zurück.', dup)],
     '': () => [T('Fotos bleiben, wo sie sind'), T('Es wird nur die Übersicht geschrieben, mit Links auf die Originale. Beim Start wählst du den Ordner dafür – am einfachsten den Quellordner.')],
   })[m]?.();
   function runLabel() {
@@ -144,7 +144,6 @@
     $('#btnDst').hidden = !(m === 'copy' || m === 'move');
     $('#dstName').hidden = $('#btnDst').hidden;
     document.querySelector('.tog[data-key="outThumbs"]')?.classList.toggle('dis', !wantOverview());
-    document.querySelectorAll('.tog[data-key="personFolders"]').forEach(t => t.classList.toggle('dis', m === 'inplace'));
     const [title, text] = modeInfo(m) || modeInfo('copy');
     const box = $('#outInfo');
     if (box) box.replaceChildren(h('div', { class: 'out-mode' + (m === 'move' || m === 'inplace' ? ' warn' : '') }, h('b', {}, title), text));
@@ -765,9 +764,10 @@
     const bytes = items.reduce((a, it) => a + it.size, 0);
     const dups = st.s.dupSkip ? st.plan.dups : [];
     const DUP = T('_Duplikate');
-    const text = inplace
+    const personCopies = inplace ? st.plan.ops.filter(o => o.kind === 'person').length : 0;
+    const text = (inplace
       ? T('{0} Dateien in „{1}“ umbenennen und in Ordner einsortieren?\n\n{2} Duplikate kommen in den Ordner „{3}“. Leer gewordene Ordner werden entfernt.\nMit „Umsortieren zurücknehmen“ kommt alles wieder an den alten Platz.\n\nAchtung: Programme und Verknüpfungen, die auf die alten Pfade zeigen (z. B. Lightroom), finden die Dateien danach nicht mehr.', items.length, st.src.name, dups.length, DUP)
-      : T('{0} Dateien ({1}) von „{2}“ nach „{3}“ verschieben?\n\nJede Datei wird erst in der Quelle entfernt, wenn sie im Ziel vollständig geprüft ist. Der Browser löscht ohne Papierkorb.\n{4} Duplikate kommen in den Ordner „{5}“ im Ziel.', items.length, fmtBytes(bytes), st.src.name, st.dst.name, dups.length, DUP);
+      : T('{0} Dateien ({1}) von „{2}“ nach „{3}“ verschieben?\n\nJede Datei wird erst in der Quelle entfernt, wenn sie im Ziel vollständig geprüft ist. Der Browser löscht ohne Papierkorb.\n{4} Duplikate kommen in den Ordner „{5}“ im Ziel.', items.length, fmtBytes(bytes), st.src.name, st.dst.name, dups.length, DUP)) + (personCopies ? '\n\n' + T('Dazu kommen {0} Kopien in Personenordner (die Fotos bleiben dabei an ihrem einen Platz).', personCopies) : '');
     if (!await Ask.confirm(text, { title: inplace ? T('In der Quelle umsortieren') : T('Verschieben'), yes: inplace ? T('Umsortieren') : T('Verschieben') })) return;
 
     const word = inplace ? T('Umsortieren') : T('Verschieben');
@@ -817,7 +817,7 @@
     const j = await refreshUndo();
     if (!j || document.body.classList.contains('busy')) return;
     if (!(await ensurePermission(st.src, 'readwrite'))) return;
-    if (!await Ask.confirm(T('Das letzte Umsortieren in „{0}“ zurücknehmen?\n\nAlle Dateien kommen zurück an ihren alten Platz und bekommen ihren alten Namen. Duplikate kommen aus „{1}“ zurück.', st.src.name, T('_Duplikate')),
+    if (!await Ask.confirm(T('Das letzte Umsortieren in „{0}“ zurücknehmen?\n\nAlle Dateien kommen zurück an ihren alten Platz und bekommen ihren alten Namen. Duplikate kommen aus „{1}“ zurück, angelegte Kopien in Personenordnern werden entfernt.', st.src.name, T('_Duplikate')),
       { title: T('Umsortieren zurücknehmen'), yes: T('Zurücknehmen') })) return;
     st.abort = new AbortController();
     busy(true);
@@ -826,7 +826,8 @@
     let r;
     try { r = await Transfer.undo(st.src, j, (n, t) => status(T('Zurück an den alten Platz … {0} / {1}', n, t), n / t), st.abort.signal); }
     catch (e) { log(T('Fehler: {0}', e.message), 'err'); status(T('Fehler: {0}', e.message)); busy(false); return; }
-    const msg = T('Zurückgenommen: {0} von {1} Dateien wieder am alten Platz, {2} Fehler.', r.back.length, r.total, r.errors);
+    const msg = T('Zurückgenommen: {0} von {1} Dateien wieder am alten Platz, {2} Fehler.', r.back.length, r.total, r.errors) +
+      (r.copies ? ' ' + T('{0} Kopien in Personenordnern entfernt.', r.copies) : '');
     log(msg, r.errors ? 'err' : '');
     const moves = r.back.map(([from, to, mtime]) => ({ item: byPath.get(from), from, to, mtime })).filter(x => x.item);
     remapState(new Map(r.back.map(([from, to]) => [from, to])));

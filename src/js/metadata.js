@@ -5,13 +5,26 @@ const Meta = (() => {
   const SKIP_DIRS = ['_fotos', '_photos', '_karte', '_map', '_Duplikate', '_Duplicates'];
 
   // Ordner rekursiv auflisten
-  async function listFiles(dirHandle, { recursive, exts }, onProgress) {
+  // Personenordner (z. B. „Personen/Anna“) enthalten nur Kopien, die dieses Programm angelegt hat – nicht einlesen,
+  // sonst waeren sie beim naechsten Mal Duplikate. Aus der Vorlage wird ein Muster bis zum {PERSON}-Teil gebaut.
+  // Nur wenn davor ein fester Ordnername steht (sonst koennte das Muster normale Ordner treffen).
+  function personDirTest(tpl) {
+    const segs = String(tpl || '').split('/').map(x => x.trim()).filter(Boolean);
+    const i = segs.findIndex(x => x.includes('{PERSON}'));
+    if (i < 1) return () => false;
+    const pre = segs.slice(0, i + 1);
+    if (!pre.slice(0, i).some(x => !x.includes('{'))) return () => false;
+    const re = new RegExp('^' + pre.map(x => x.split(/\{[^}]*\}/).map(p => p.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('[^/]*')).join('/') + '$', 'i');
+    return path => re.test(path);
+  }
+
+  async function listFiles(dirHandle, { recursive, exts, skipDir = () => false }, onProgress) {
     const out = [];
     async function walk(dir, prefix) {
       for await (const [name, h] of dir.entries()) {
         if (h.kind === 'directory') {
-          // eigene Vorschaubilder der Fotoübersicht nicht mit einlesen
-          if (recursive && !SKIP_DIRS.includes(name)) await walk(h, prefix + name + '/');
+          // eigene Vorschaubilder der Fotoübersicht und Personenordner (Kopien) nicht mit einlesen
+          if (recursive && !SKIP_DIRS.includes(name) && !skipDir(prefix + name)) await walk(h, prefix + name + '/');
           continue;
         }
         const ext = name.includes('.') ? name.split('.').pop().toLowerCase() : '';
@@ -134,7 +147,7 @@ const Meta = (() => {
   // Alle Dateien lesen (parallel), bereits bekannte aus dem Cache
   async function scan(dirHandle, s, onProgress, signal) {
     const exts = [...(s.includePhotos ? PHOTO : []), ...(s.includeVideos ? VIDEO : [])];
-    const files = await listFiles(dirHandle, { recursive: s.recursive, exts }, n => onProgress?.(T('Suche Dateien … {0}', n)));
+    const files = await listFiles(dirHandle, { recursive: s.recursive, exts, skipDir: personDirTest(s.personTpl) }, n => onProgress?.(T('Suche Dateien … {0}', n)));
     const cacheKey = 'cache:' + dirHandle.name;
     let cache = {};
     try { cache = (await Util.idb.get(cacheKey)) || {}; } catch { /* ohne Cache weiter */ }
@@ -174,5 +187,5 @@ const Meta = (() => {
     it.dateSrc = r.src;
   }
 
-  return { scan, applyDate, PHOTO, VIDEO };
+  return { scan, applyDate, personDirTest, PHOTO, VIDEO };
 })();
