@@ -30,7 +30,8 @@ const MapExport = (() => {
   // opts.failed: Set relativer Zielpfade, die nicht kopiert werden konnten
   // opts.linkBase: gesetzt = nichts wurde kopiert, Links gehen auf die Originale (linkBase + Pfad in der Quelle)
   async function write(root, plan, analysis, s, opts, onProgress, signal) {
-    const { failed = new Set(), linkBase = null } = opts || {};
+    // opts.thumbs: false = keine Vorschaubilder schreiben, die Seite zeigt dann die Originale
+    const { failed = new Set(), linkBase = null, thumbs: withThumbs = true } = opts || {};
     const index = linkBase !== null;
     const folder = T('_fotos');
     const pageName = folder + '.html';
@@ -51,7 +52,7 @@ const MapExport = (() => {
     const evIdx = new Map(events.map((e, i) => [e, i]));
     const persons = [...new Set([...byItem.keys()].flatMap(it => it.persons ? [...it.persons] : []))].sort();
 
-    const thumbs = await root.getDirectoryHandle(folder, { create: true });
+    const thumbs = withThumbs ? await root.getDirectoryHandle(folder, { create: true }) : null;
     const list = [...byItem.entries()];
     const items = new Array(list.length);
     let done = 0, next = 0;
@@ -61,7 +62,7 @@ const MapExport = (() => {
         const [it, { rel }] = list[i];
         const tname = it.path.replace(/[\\/:*?"<>|]/g, '_').replace(/\.[^.]+$/, '') + '.jpg';
         let thumb = '';
-        if (!it.isVideo) {
+        if (thumbs && !it.isVideo) {
           try {
             if (!(await exists(thumbs, tname))) await writeFile(thumbs, tname, await thumbOf(await it.handle.getFile()));
             thumb = enc(`${folder}/${tname}`);
@@ -158,7 +159,7 @@ $('#fp').innerHTML='<option value="">'+T('Alle Personen')+'</option>'+D.persons.
 if(!D.persons.length)$('#fp').hidden=true;
 const ok=p=>{const y=$('#fy').value,e=$('#fe').value,pp=$('#fp').value;return(!y||new Date(p.t).getFullYear()==y)&&(e===''||p.ev==e)&&(pp===''||p.pe.includes(+pp))};
 function fig(p,cap,list){const f=document.createElement('figure');
- f.innerHTML=(p.th?'<img loading="lazy" src="'+p.th+'">':'<div class="vid">'+(p.vid?'🎬':'🖼')+'</div>')+'<figcaption>'+esc(cap)+'</figcaption>';
+ f.innerHTML=(p.th||!p.vid?'<img loading="lazy" decoding="async" src="'+(p.th||p.src)+'">':'<div class="vid">'+(p.vid?'🎬':'🖼')+'</div>')+'<figcaption>'+esc(cap)+'</figcaption>';
  f.title=cap;f.onclick=()=>openLb(list,p);return f}
 
 // ---- Ansicht wechseln ----

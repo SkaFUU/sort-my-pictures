@@ -234,7 +234,7 @@ const FaceQuiz = (() => {
 
   function start(appCtx, m, list = []) {
     app = appCtx;
-    if (!app.st.people) { alert(T('Zuerst „Gesichter erkennen“.')); return; }
+    if (!app.st.people) { Ask.alert(T('Zuerst „Gesichter erkennen“.'), { kind: 'info' }); return; }
     close();
     mode = m;
     checks = list;

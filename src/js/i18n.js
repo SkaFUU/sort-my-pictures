@@ -20,7 +20,7 @@ const I18n = (() => {
     'Zurück': 'Back', 'Überspringen': 'Skip', 'Auf Karte': 'On map', 'Ereignis': 'Event', 'Nur ungeprüfte': 'Only unreviewed',
     'Reihenfolge': 'Order', 'unsichere zuerst': 'uncertain first', 'nach Datum': 'by date',
     'Gesichter erkennen': 'Detect faces', 'Läuft komplett lokal im Browser': 'Runs completely locally in the browser',
-    'Namen zurücksetzen': 'Reset names', 'Erkennung (lokal)': 'Detection (local)', 'kleine Gruppen zeigen': 'show small groups', 'Ordner': 'Folder',
+    'Namen zurücksetzen': 'Reset names', 'Erkennung (lokal)': 'Detection (local)', 'Ordner': 'Folder',
     'Ziel wählen': 'Choose target', 'Ziel': 'Target', 'Struktur': 'Structure', 'Filter zurücksetzen': 'Reset filter',
     'Alle Filter zurücksetzen': 'Reset all filters', 'aktiv': 'active', 'Weiter: {0} {1}': 'Next: {0} {1}', 'Nächster Schritt': 'Next step',
     'Ort (bearbeitbar)': 'Place (editable)', 'Zeitraum': 'Period', 'Tage': 'Days', 'Davon Samstag/Sonntag': 'Of which Saturday/Sunday',
@@ -151,6 +151,32 @@ const I18n = (() => {
     'automatisch zugeordnet': 'assigned automatically', 'Ja, das ist {0}': 'Yes, this is {0}',
     '{0} automatisch zugeordnet – ✓ bestätigt, ✕ entfernt.': '{0} assigned automatically – ✓ confirms, ✕ removes.',
     'Klick: Namen zuweisen': 'Click: assign a name',
+    'Auch Gruppen mit nur wenigen Gesichtern anzeigen':
+      'Also show groups with only a few faces',
+    'Bereits geprüfte Ereignisse überspringen':
+      'Skip events that have already been reviewed',
+    'Es wird nichts kopiert oder verschoben. Es entsteht nur „{0}“ (Karte + Ordnerübersicht) mit Links auf die Originale.\n\nMit Vorschaubildern: zusätzlich kleine Bilder (ca. 10–20 KB je Foto) im Ordner „{1}“ – die Übersicht blättert damit schnell.\nOhne: nur die eine Datei, die Übersicht lädt dann jedes Original (langsamer, vor allem übers Netzwerk).\n\nDanach den Ordner wählen, in den die Übersicht kommt – am einfachsten der Quellordner selbst.':
+      'Nothing is copied or moved. Only “{0}” is created (map + folder overview) with links to the originals.\n\nWith thumbnails: additionally small pictures (about 10–20 KB per photo) in the folder “{1}” – the overview browses quickly with them.\nWithout: just the one file, the overview then loads every original (slower, especially over the network).\n\nThen choose the folder for the overview – easiest is the source folder itself.',
+    'Fertige ausblenden':
+      'Hide finished',
+    'Kleine Gruppen':
+      'Small groups',
+    'Mit Vorschaubildern':
+      'With thumbnails',
+    'Mit „Fertig“ abgelegte Personen ganz ausblenden':
+      'Hide people marked “Done” completely',
+    'Ohne Vorschaubilder':
+      'Without thumbnails',
+    'Schreibe Fotoübersicht …':
+      'Writing photo overview …',
+    'OK': 'OK',
+    'Neu prüfen': 'Review again',
+    'Neu starten': 'Start over',
+    'Alles verwerfen': 'Discard everything',
+    'Es ist noch nichts geprüft.': 'Nothing has been reviewed yet.',
+    'Alle Ereignisse wieder als ungeprüft markieren und von vorne durchgehen (mit Rückfrage)': 'Mark all events as not reviewed and go through them again (asks first)',
+    '{0} geprüfte Ereignisse wieder als ungeprüft markieren und von vorne durchgehen?\n\nDie gewählten Arten und Namen bleiben als Vorauswahl erhalten.':
+      'Mark {0} reviewed events as not reviewed and go through them again?\n\nThe chosen types and names stay as a preselection.',
     '{0} ist auf diesem Foto schon vorhanden.\n\nOK = trotzdem zuordnen (wird bei „Erneut prüfen“ als Fehler gemeldet)\nAbbrechen = nichts ändern':
       '{0} is already on this photo.\n\nOK = assign anyway (will be reported as an error by “Check again”)\nCancel = change nothing',
     '{0} ist auf {1} dieser Fotos schon vorhanden.\n\nOK = trotzdem alle zuordnen (wird bei „Erneut prüfen“ als Fehler gemeldet)\nAbbrechen = diese Gesichter auslassen, die anderen zuordnen':
@@ -175,7 +201,6 @@ const I18n = (() => {
     'Mit ✕ entfernte Gesichter landen unten in „Nicht zugeordnet“ und lassen sich später zuweisen.': 'Faces removed with ✕ go to “Unassigned” at the bottom and can be assigned later.',
     'Name der Person:': 'Name of the person:', 'Neue Person': 'New person', 'Neue Person …': 'New person …',
     'Nicht diese Person – nach „Nicht zugeordnet“': 'Not this person – move to “Unassigned”', 'Nicht zugeordnet': 'Unassigned', 'Nicht zugeordnet ({0})': 'Unassigned ({0})',
-    'fertige Personen ausblenden': 'hide finished people',
     '{0} Gesichter ausgewählt – ziehen oder:': '{0} faces selected – drag them or:',
     '„Fertig“ legt eine Person klein oben ab – sie bleibt Ziel zum Hineinziehen.': '“Done” puts a person small at the top – you can still drag faces onto it.',
     'Fotos': 'Photos', 'Weniger': 'Less', 'Diese Gruppe ignorieren (keine Person)': 'Ignore this group (not a person)', 'Ignorieren': 'Ignore',
@@ -263,8 +288,6 @@ const I18n = (() => {
     'Fotoübersicht (Karte + Ordner) mit den kopierten Fotos ins Ziel schreiben, ohne erneut zu kopieren': 'Write the photo overview (map + folders) of the copied photos to the target without copying again',
     'Verzeichnis ohne Kopieren': 'Index without copying', 'Nur Links': 'Links only',
     'Nichts kopieren: nur eine Fotoübersicht (Karte + Ordner) schreiben, die direkt auf die Originale verlinkt': 'Copy nothing: only write a photo overview (map + folders) that links directly to the originals',
-    'Verzeichnis ohne Kopieren:\n\nEs wird nichts kopiert oder verschoben. Es entsteht nur „{0}“ (Karte + Ordnerübersicht) mit Links auf die Originale und kleinen Vorschaubildern im Ordner „{1}“.\n\nIm nächsten Fenster den Ordner wählen, in den die Übersicht kommt – am einfachsten der Quellordner selbst.':
-      'Index without copying:\n\nNothing is copied or moved. Only “{0}” (map + folder overview) is written, with links to the originals and small thumbnails in the folder “{1}”.\n\nIn the next window choose the folder for the overview – the easiest is the source folder itself.',
     'Der gewählte Ordner liegt nicht neben der Quelle „{0}“.\nDamit die Links funktionieren, bitte den vollständigen Pfad der Quelle eingeben (aus der Adresszeile des Explorers kopieren):':
       'The chosen folder is not next to the source “{0}”.\nFor the links to work, please enter the full path of the source (copy it from the Explorer address bar):',
     'Schreibe Fotoübersicht … {0} / {1} Vorschaubilder': 'Writing photo overview … {0} / {1} thumbnails',

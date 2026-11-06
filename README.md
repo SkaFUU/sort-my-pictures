@@ -34,7 +34,7 @@ The interface guides you step by step through the tabs from left to right:
 1. **Source:** Choose a folder (network drives work too) and click **Scan**. Copy photos from a phone to the PC first, e.g. with a USB cable in Explorer. Date taken and GPS come from EXIF or from the MP4/MOV metadata.
 2. **Places:** Add zones on the map (Home, Everyday place, Work place, Named place). Optionally get place names and the map background from OpenStreetMap (🌐).
 3. **Events:** Change type and place name per event. Clicking a row shows its pictures, where you can take single pictures out. This is also where you create **custom categories** (see below).
-4. **Review:** Go through the events one by one, uncertain ones first. Keys `1`–`4` choose holiday, day trip, business trip or no folder, `5`–`9` your custom categories. `Enter` accepts the suggestion, `←`/`→` browse.
+4. **Review:** Go through the events one by one, uncertain ones first. Keys `1`–`4` choose holiday, day trip, business trip or no folder, `5`–`9` your custom categories. `Enter` accepts the suggestion, `←`/`→` browse. **Review again** marks everything as not reviewed (your choices stay as suggestions), after asking.
 5. **People** (optional): Detect faces and name the groups, see [Face recognition](#face-recognition).
 6. **Target & copy:** Set folder structure, file names and filters, check the folder tree. Then choose the **target** and click **Copy**.
 
@@ -59,7 +59,10 @@ After copying, the target contains **`_photos.html`** (can be switched off with 
 
 ### Index without copying
 
-If you don't want to use storage twice: **6 Target → Index without copying**. Nothing is copied or moved. Only `_photos.html` is written, with thumbnails, the map and the folder structure you set up. It links directly to the originals.
+If you don't want to use storage twice: **6 Target → Index without copying**. Nothing is copied or moved. Only `_photos.html` is written, with the map and the folder structure you set up. It links directly to the originals.
+
+- **With thumbnails:** small pictures (about 10–20 KB per photo) are added in the folder `_photos`. The overview browses quickly with them.
+- **Without thumbnails:** just the one file. The overview then loads every original, which is slower, especially over the network.
 
 - The easiest is to put the overview into the source folder itself (or a folder above it). Then the links are relative and keep working when the folder is moved.
 - If it goes somewhere else, the program asks for the full path of the source (e.g. `D:\Photos\Camera`).

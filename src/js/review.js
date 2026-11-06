@@ -51,6 +51,7 @@ const Review = (() => {
     $('#rvPrev').onclick = () => { pos = Math.max(0, pos - 1); render(); };
     $('#rvNext').onclick = () => { pos++; render(); };
     $('#rvMap').onclick = () => { const ev = current(); if (ev) app.showEventOnMap(ev); };
+    $('#rvRestart').onclick = restart;
     document.addEventListener('keydown', e => {
       if (app.tab !== 'review' || !$('#viewer').hidden || document.querySelector('dialog[open]')) return;
       if (e.target.matches?.('input,select,textarea')) { if (e.key === 'Enter') e.target.blur(); return; }
@@ -73,6 +74,21 @@ const Review = (() => {
       if (ev && ev.autoKind === b.dataset.kind) b.append(h('span', { class: 'sug' }, T('Vorschlag')));
     });
     for (const id of ['#rvAccept', '#rvPrev', '#rvNext', '#rvMap']) $(id).disabled = !ev;
+  }
+
+  // Neu pruefen: alle Haken entfernen (gewaehlte Arten und Namen bleiben) oder alles verwerfen
+  async function restart() {
+    const ovs = app.st.overrides;
+    const n = Object.values(ovs.events).filter(o => o.ok).length;
+    if (!n) { Ask.alert(T('Es ist noch nichts geprüft.'), { kind: 'info' }); return; }
+    const r = await Ask.confirm(T('{0} geprüfte Ereignisse wieder als ungeprüft markieren und von vorne durchgehen?\n\nDie gewählten Arten und Namen bleiben als Vorauswahl erhalten.', n),
+      { title: T('Neu prüfen'), yes: T('Neu prüfen'), extra: [{ label: T('Alles verwerfen'), value: 'all' }] });
+    if (!r) return;
+    if (r === 'all') app.st.overrides = { events: {}, files: {} };
+    else for (const [id, o] of Object.entries(ovs.events)) { delete o.ok; if (!Object.keys(o).length) delete ovs.events[id]; }
+    pos = 0;
+    app.saveOverrides();
+    app.recompute();
   }
 
   // Auswahl speichern; kind = null bedeutet: aktuelle Art bestaetigen

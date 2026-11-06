@@ -34,7 +34,7 @@ Die Oberfläche führt Schritt für Schritt durch die Register von links nach re
 1. **Quelle:** Wähle einen Ordner (auch Netzlaufwerk) und klicke auf **Einlesen**. Fotos vom Handy vorher auf den PC kopieren, z. B. per USB-Kabel im Explorer. Aufnahmedatum und GPS kommen aus EXIF bzw. aus den MP4/MOV-Metadaten.
 2. **Orte:** Lege auf der Karte Zonen an (Zuhause, Alltagsort, Dienstort, Benannter Ort). Optional holst du dir hier Ortsnamen und den Kartenhintergrund von OpenStreetMap (🌐).
 3. **Ereignisse:** Ändere Art und Ortsname je Ereignis. Ein Klick auf eine Zeile zeigt die Bilder, dort lassen sich einzelne Bilder herausnehmen. Hier legst du auch **eigene Kategorien** an (siehe unten).
-4. **Prüfen:** Klicke die Ereignisse nacheinander durch, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `5`–`9` deine eigenen Kategorien. `Enter` übernimmt den Vorschlag, `←`/`→` blättert.
+4. **Prüfen:** Klicke die Ereignisse nacheinander durch, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `5`–`9` deine eigenen Kategorien. `Enter` übernimmt den Vorschlag, `←`/`→` blättert. **Neu prüfen** markiert alles wieder als ungeprüft (die Auswahl bleibt als Vorschlag), mit Rückfrage.
 5. **Personen** (optional): Lass die Gesichter erkennen und benenne die Gruppen, siehe [Gesichtserkennung](#gesichtserkennung).
 6. **Ziel & Kopieren:** Lege Ordnerstruktur, Dateinamen und Filter fest und prüfe den Ordnerbaum. Dann wählst du das **Ziel** und klickst **Kopieren**.
 
@@ -59,7 +59,10 @@ Nach dem Kopieren liegt im Ziel **`_fotos.html`**, abschaltbar unter „Fotoübe
 
 ### Verzeichnis ohne Kopieren
 
-Wer keinen Speicherplatz doppelt belegen will: **6 Ziel → Verzeichnis ohne Kopieren**. Dann wird nichts kopiert oder verschoben. Es entsteht nur `_fotos.html` mit Vorschaubildern, Karte und der gewünschten Ordnerstruktur. Diese verlinkt direkt auf die Originale.
+Wer keinen Speicherplatz doppelt belegen will: **6 Ziel → Verzeichnis ohne Kopieren**. Dann wird nichts kopiert oder verschoben. Es entsteht nur `_fotos.html` mit Karte und der gewünschten Ordnerstruktur. Diese verlinkt direkt auf die Originale.
+
+- **Mit Vorschaubildern:** Zusätzlich kommen kleine Bilder (ca. 10–20 KB je Foto) in den Ordner `_fotos`. Damit blättert die Übersicht schnell.
+- **Ohne Vorschaubilder:** Es entsteht nur die eine Datei. Die Übersicht lädt dann jedes Original, das ist langsamer, vor allem übers Netzwerk.
 
 - Am einfachsten legst du die Übersicht in den Quellordner selbst (oder in einen Ordner darüber). Dann sind die Links relativ und funktionieren auch, wenn der Ordner verschoben wird.
 - Liegt sie woanders, fragt das Programm nach dem vollständigen Pfad der Quelle (z. B. `D:\Fotos\Kamera`).

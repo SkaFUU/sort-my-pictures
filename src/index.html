@@ -110,11 +110,16 @@
           <button class="big c-view" id="rvNext"><svg class="ic"><use href="#i-next"/></svg><span>Überspringen <kbd>→</kbd></span></button>
           <button class="big c-zone" id="rvMap"><svg class="ic"><use href="#i-pin"/></svg><span>Auf Karte</span></button>
         </div><div class="gcap">Ereignis</div></div>
-        <div class="grp"><div class="gbody"><div class="rf">
-          <label for="rvOpen">Nur ungeprüfte</label><input id="rvOpen" type="checkbox" checked>
+        <div class="grp"><div class="gbody">
+          <button class="big c-del" id="rvRestart" title="Alle Ereignisse wieder als ungeprüft markieren und von vorne durchgehen (mit Rückfrage)"><svg class="ic"><use href="#i-reset"/></svg><span>Neu prüfen</span></button>
+        </div><div class="gcap">Neu starten</div></div>
+        <div class="grp"><div class="gbody">
+          <label class="big tog c-view" data-icon="i-filter" title="Bereits geprüfte Ereignisse überspringen"><input id="rvOpen" type="checkbox" checked>Nur ungeprüfte</label>
+          <div class="rf">
           <label for="rvOrder">Reihenfolge</label>
           <select id="rvOrder"><option value="unsure">unsichere zuerst</option><option value="date">nach Datum</option></select>
-        </div></div><div class="gcap">Anzeigen</div></div>
+          </div>
+        </div><div class="gcap">Anzeigen</div></div>
       </div>
       <!-- 5 Personen -->
       <div class="rpanel" data-tab="people">
@@ -129,10 +134,10 @@
           <button class="big c-ok" id="btnLearn" title="Benannte Personen merken: sie werden dann auch in anderen Ordnern wiedererkannt (nur Merkmale, keine Bilder)"><svg class="ic"><use href="#i-check"/></svg><span>Personen merken</span></button>
           <button class="big c-del" id="btnForget" title="Alle gemerkten Personen löschen"><svg class="ic"><use href="#i-trash"/></svg><span>Gemerkte löschen</span></button>
         </div><div class="gcap">Lernen <span id="libInfo" data-noi18n></span></div></div>
-        <div class="grp"><div class="gbody"><div class="gchecks">
-          <label class="check"><input id="pplSmall" type="checkbox"> kleine Gruppen zeigen</label>
-          <label class="check"><input id="pplHideDone" type="checkbox"> fertige Personen ausblenden</label>
-        </div></div><div class="gcap">Anzeigen</div></div>
+        <div class="grp"><div class="gbody">
+          <label class="big tog c-view" data-icon="i-grid" title="Auch Gruppen mit nur wenigen Gesichtern anzeigen"><input id="pplSmall" type="checkbox">Kleine Gruppen</label>
+          <label class="big tog c-ok" data-icon="i-check" title="Mit „Fertig“ abgelegte Personen ganz ausblenden"><input id="pplHideDone" type="checkbox">Fertige ausblenden</label>
+        </div><div class="gcap">Anzeigen</div></div>
         <div class="grp"><div class="gbody"><div class="gchecks" data-checks="personFolders"></div></div><div class="gcap">Ordner</div></div>
       </div>
       <!-- 6 Ziel -->
@@ -284,6 +289,7 @@
   <script src="vendor/face-models.js"></script>
   <script src="js/i18n.js"></script>
   <script src="js/util.js"></script>
+<script src="js/ask.js"></script>
   <script src="js/settings.js"></script>
   <script src="js/metadata.js"></script>
   <script src="js/geocode.js"></script>

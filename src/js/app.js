@@ -77,7 +77,7 @@
         for (const it of sec.items) body.append(it.type === 'cats' ? h('div', { id: 'catEditor' }) : settingRow(it));
         if (sec.section === 'Ortsnamen') {
           body.append(h('div', { class: 'row' },
-            h('button', { onclick: () => { if (confirm(T('Gespeicherte Ortsnamen löschen?'))) { Geo.clear(); recompute(); } } }, T('Cache leeren')),
+            h('button', { onclick: async () => { if (await Ask.confirm(T('Gespeicherte Ortsnamen löschen?'))) { Geo.clear(); recompute(); } } }, T('Cache leeren')),
             h('span', { id: 'geoCacheInfo', class: 'hint' })));
         }
         const closed = ['Sonderordner', 'Bilder ohne GPS', 'Ortsnamen', 'Karte'].includes(sec.section) || (sec.section === 'Filter' && !filterActive());
@@ -93,7 +93,8 @@
         const it = Settings.byKey[key];
         const cb = h('input', { type: 'checkbox', 'data-skey': key, checked: !!st.s[key] });
         cb.onchange = () => setSetting(it, cb.checked);
-        box.append(h('label', { class: 'check', 'data-key': key, title: it.help ? T(it.help) : '' }, cb, ribbonLabel(it), it.online ? ' 🌐' : ''));
+        const [ic, cls] = RIBBON_ICONS[key] || ['i-check', 'c-view'];
+        box.append(toggleBtn(cb, ic, cls, ribbonLabel(it) + (it.online ? ' 🌐' : ''), it.help ? T(it.help) : '', key));
       }
     }
     renderCats();
@@ -103,6 +104,19 @@
     homeAuto: 'Wohnort automatisch', autoDaily: 'Alltagsorte automatisch', vacEnabled: 'Urlaube', tripEnabled: 'Ausflüge',
     workEnabled: 'Dienstreisen', personFolders: 'Personenordner anlegen', monthFolders: 'Monatsordner', dupSkip: 'Duplikate überspringen', lowerExt: 'Endung klein', mapExport: 'Fotoübersicht (_fotos.html)' };
   const ribbonLabel = it => T(RIBBON_LABELS[it.key] || it.label);
+  const RIBBON_ICONS = { vacEnabled: ['i-vac', 'c-vac'], tripEnabled: ['i-trip', 'c-trip'], workEnabled: ['i-work', 'c-work'],
+    personFolders: ['i-faces', 'c-face'], monthFolders: ['i-folder', 'c-file'], dupSkip: ['i-copy', 'c-view'], lowerExt: ['i-tag', 'c-view'], mapExport: ['i-map', 'c-zone'] };
+  // Ein-/Aus-Schalter im Ribbon: grosser Knopf mit Symbol, eingeschaltet = hinterlegt (das Kaestchen ist unsichtbar)
+  function toggleBtn(cb, ic, cls, text, title = '', key = null) {
+    return h('label', { class: `big tog ${cls}`, title, 'data-key': key },
+      cb, icon(ic), h('span', {}, text));
+  }
+  // feste Schalter aus index.html (<label class="big tog" data-icon=… > <input> Text</label>) mit Symbol versehen
+  for (const l of document.querySelectorAll('label.tog[data-icon]')) {
+    const text = [...l.childNodes].filter(n => n.nodeType === 3).map(n => n.textContent).join('').trim();
+    [...l.childNodes].filter(n => n.nodeType === 3).forEach(n => n.remove());
+    l.append(icon(l.dataset.icon), h('span', {}, text));
+  }
 
   // Wert setzen und alle Eingaben dafuer (Seitenleiste + Ribbon) angleichen
   function setSetting(it, val) {
@@ -154,8 +168,8 @@
     for (const it of Settings.SCHEMA.flatMap(s => s.items)) {
       let on = true;
       for (let d = it.dep; d && on; d = Settings.byKey[d]?.dep) on = !!st.s[d];
-      for (const row of document.querySelectorAll(`.row[data-key="${it.key}"], .check[data-key="${it.key}"]`)) {
-        row.classList.toggle(row.classList.contains('check') ? 'dis' : 'disabled', !on);
+      for (const row of document.querySelectorAll(`.row[data-key="${it.key}"], .tog[data-key="${it.key}"]`)) {
+        row.classList.toggle(row.classList.contains('tog') ? 'dis' : 'disabled', !on);
         row.querySelectorAll('input,select,textarea').forEach(e => { e.disabled = !on; });
       }
     }
@@ -233,7 +247,7 @@
           nameIn,
           h('button', { class: 'mini', title: T('Nach oben (wird zuerst geprüft)'), disabled: i === 0, onclick: () => { [cats[i - 1], cats[i]] = [cats[i], cats[i - 1]]; commit(true); } }, '▲'),
           h('button', { class: 'mini', title: T('Nach unten'), disabled: i === cats.length - 1, onclick: () => { [cats[i + 1], cats[i]] = [cats[i], cats[i + 1]]; commit(true); } }, '▼'),
-          h('button', { class: 'mini', title: T('Löschen'), onclick: () => { if (confirm(T('Kategorie „{0}“ löschen?', c.name))) { cats.splice(i, 1); commit(true); } } }, icon('i-trash'))),
+          h('button', { class: 'mini', title: T('Löschen'), onclick: async () => { if (await Ask.confirm(T('Kategorie „{0}“ löschen?', c.name))) { cats.splice(i, 1); commit(true); } } }, icon('i-trash'))),
         h('div', { class: 'cat-grid' },
           h('label', {}, T('Gilt für')), sel('from', CAT_FROM),
           h('label', {}, T('Entfernung (km)')), h('span', { class: 'range' }, num('kmMin', T('ab')), '–', num('kmMax', T('bis'))),
@@ -325,17 +339,17 @@
       setSrcName();
       updateButtons();
       scan();
-    } catch (e) { if (e.name !== 'AbortError') alert(e.message); }
+    } catch (e) { if (e.name !== 'AbortError') Ask.alert(e.message); }
   }
   async function pickDst() {
     try {
       st.dst = await showDirectoryPicker({ id: 'fs-dst', mode: 'readwrite' });
-      if (st.src && await st.src.isSameEntry(st.dst)) { alert(T('Ziel darf nicht gleich der Quelle sein.')); st.dst = null; return; }
+      if (st.src && await st.src.isSameEntry(st.dst)) { Ask.alert(T('Ziel darf nicht gleich der Quelle sein.')); st.dst = null; return; }
       await Util.idb.set('dstHandle', st.dst);
       setDstName();
       if (st.plan) renderPreview();
       updateButtons();
-    } catch (e) { if (e.name !== 'AbortError') alert(e.message); }
+    } catch (e) { if (e.name !== 'AbortError') Ask.alert(e.message); }
   }
   async function ensurePermission(handle, mode) {
     if ((await handle.queryPermission({ mode })) === 'granted') return true;
@@ -361,7 +375,7 @@
 
   async function geocode() {
     if (!st.analysis) return;
-    if (!st.s.geocode) { alert(T('Zuerst „Ortsnamen von OpenStreetMap“ einschalten.')); return; }
+    if (!st.s.geocode) { Ask.alert(T('Zuerst „Ortsnamen von OpenStreetMap“ einschalten.'), { kind: 'info' }); return; }
     st.abort = new AbortController();
     busy(true);
     try {
@@ -374,7 +388,7 @@
   async function scanFaces() {
     if (!st.items) {
       const t = st.src ? T('Zuerst in Schritt 1 „Einlesen“ klicken.') : T('Zuerst in Schritt 1 eine Quelle wählen und einlesen.');
-      status(t); alert(t); return;
+      status(t); Ask.alert(t, { kind: 'info' }); return;
     }
     if (!(await ensurePermission(st.src, 'read'))) return;
     st.abort = new AbortController();
@@ -423,13 +437,13 @@
     for (const id of ids) { const ph = photo(id); if (has.has(ph)) out.push(id); else has.add(ph); }
     return out;
   }
-  function setFaceNames(ids, name, quick = false) {
+  async function setFaceNames(ids, name, quick = false) {
     if (name && name[0] !== '#' && name[0] !== '!') {
       const clash = samePhoto(ids, name);
       if (clash.length) {
         const n = new Set(clash.map(id => id.slice(0, id.lastIndexOf('#')))).size;
         const all = clash.length === ids.length;
-        if (!confirm(all
+        if (!await Ask.confirm(all
           ? T('{0} ist auf diesem Foto schon vorhanden.\n\nOK = trotzdem zuordnen (wird bei „Erneut prüfen“ als Fehler gemeldet)\nAbbrechen = nichts ändern', name)
           : T('{0} ist auf {1} dieser Fotos schon vorhanden.\n\nOK = trotzdem alle zuordnen (wird bei „Erneut prüfen“ als Fehler gemeldet)\nAbbrechen = diese Gesichter auslassen, die anderen zuordnen', name, n))) {
           if (all) return;
@@ -468,7 +482,7 @@
     if (!(await ensurePermission(st.dst, 'readwrite'))) return;
     if (!(await ensurePermission(st.src, 'read'))) return;
     const bytes = st.plan.ops.reduce((a, o) => a + o.item.size, 0);
-    if (!confirm(T('{0} Kopien ({1}) nach „{2}“ schreiben?\n\nOriginale bleiben unverändert, vorhandene Dateien werden nicht überschrieben.', st.plan.ops.length, fmtBytes(bytes), st.dst.name))) return;
+    if (!await Ask.confirm(T('{0} Kopien ({1}) nach „{2}“ schreiben?\n\nOriginale bleiben unverändert, vorhandene Dateien werden nicht überschrieben.', st.plan.ops.length, fmtBytes(bytes), st.dst.name))) return;
     st.abort = new AbortController();
     busy(true);
     showLog(true);
@@ -490,7 +504,7 @@
   async function exportMap(dir = st.dst, opts = {}) {
     try {
       const r = await MapExport.write(dir, st.plan, st.analysis, st.s, opts,
-        (n, total) => status(T('Schreibe Fotoübersicht … {0} / {1} Vorschaubilder', n, total), n / total), st.abort?.signal);
+        (n, total) => status(opts.thumbs === false ? T('Schreibe Fotoübersicht …') : T('Schreibe Fotoübersicht … {0} / {1} Vorschaubilder', n, total), n / total), st.abort?.signal);
       if (r) {
         const msg = T('Fotoübersicht gespeichert: „{0}“ in „{1}“ ({2} Dateien, {3} mit Standort) – per Doppelklick öffnen.', r.name, dir.name, r.count, r.gps);
         log(msg); status(msg);
@@ -516,10 +530,12 @@
   };
   async function saveIndex() {
     if (!st.plan || !st.src) return;
-    if (!confirm(T('Verzeichnis ohne Kopieren:\n\nEs wird nichts kopiert oder verschoben. Es entsteht nur „{0}“ (Karte + Ordnerübersicht) mit Links auf die Originale und kleinen Vorschaubildern im Ordner „{1}“.\n\nIm nächsten Fenster den Ordner wählen, in den die Übersicht kommt – am einfachsten der Quellordner selbst.', T('_fotos') + '.html', T('_fotos')))) return;
+    const how = await Ask.confirm(T('Es wird nichts kopiert oder verschoben. Es entsteht nur „{0}“ (Karte + Ordnerübersicht) mit Links auf die Originale.\n\nMit Vorschaubildern: zusätzlich kleine Bilder (ca. 10–20 KB je Foto) im Ordner „{1}“ – die Übersicht blättert damit schnell.\nOhne: nur die eine Datei, die Übersicht lädt dann jedes Original (langsamer, vor allem übers Netzwerk).\n\nDanach den Ordner wählen, in den die Übersicht kommt – am einfachsten der Quellordner selbst.', T('_fotos') + '.html', T('_fotos')),
+      { title: T('Verzeichnis ohne Kopieren'), yes: T('Mit Vorschaubildern'), extra: [{ label: T('Ohne Vorschaubilder'), value: 'plain' }] });
+    if (!how) return;
     let dir;
     try { dir = await showDirectoryPicker({ id: 'fs-index', mode: 'readwrite', startIn: st.src }); }
-    catch (e) { if (e.name !== 'AbortError') alert(e.message); return; }
+    catch (e) { if (e.name !== 'AbortError') Ask.alert(e.message); return; }
     if (!(await ensurePermission(st.src, 'read'))) return;
     let base = null;
     const down = await dir.resolve(st.src);       // Quelle liegt im gewaehlten Ordner (oder ist es)
@@ -529,7 +545,7 @@
       if (up) base = '../'.repeat(up.length);
     }
     if (base === null) {
-      const p = prompt(T('Der gewählte Ordner liegt nicht neben der Quelle „{0}“.\nDamit die Links funktionieren, bitte den vollständigen Pfad der Quelle eingeben (aus der Adresszeile des Explorers kopieren):', st.src.name),
+      const p = await Ask.prompt(T('Der gewählte Ordner liegt nicht neben der Quelle „{0}“.\nDamit die Links funktionieren, bitte den vollständigen Pfad der Quelle eingeben (aus der Adresszeile des Explorers kopieren):', st.src.name),
         localStorage.getItem('fotosortierer.srcPath') || '');
       if (!p || !p.trim()) return;
       localStorage.setItem('fotosortierer.srcPath', p.trim());
@@ -538,7 +554,7 @@
     st.abort = new AbortController();
     busy(true);
     showLog(true);
-    try { await exportMap(dir, { linkBase: base }); } finally { busy(false); }
+    try { await exportMap(dir, { linkBase: base, thumbs: how !== 'plain' }); } finally { busy(false); }
   }
 
   function log(text, cls = '') {
@@ -811,18 +827,18 @@
           Faces.saveLib(st.faceLib).catch(() => {});
         }
         buildSettings(); kindsChanged(); netState(); setTiles(); recompute();
-      } catch (e) { alert(T('Datei ungültig: {0}', e.message)); }
+      } catch (e) { Ask.alert(T('Datei ungültig: {0}', e.message)); }
     };
     inp.click();
   }
-  function resetConfig() {
-    if (!confirm(T('Alle Einstellungen auf Standard zurücksetzen? (Zonen, eigene Kategorien und manuelle Änderungen bleiben)'))) return;
+  async function resetConfig() {
+    if (!await Ask.confirm(T('Alle Einstellungen auf Standard zurücksetzen? (Zonen, eigene Kategorien und manuelle Änderungen bleiben)'))) return;
     const cats = st.s.customCats;
     st.s = { ...Settings.defaults(), customCats: cats }; Settings.save(st.s);
     buildSettings(); kindsChanged(); netState(); setTiles(); recompute();
   }
-  function resetOverrides() {
-    if (!confirm(T('Alle manuellen Änderungen in der Ereignisliste verwerfen?'))) return;
+  async function resetOverrides() {
+    if (!await Ask.confirm(T('Alle manuellen Änderungen in der Ereignisliste verwerfen?'))) return;
     st.overrides = { events: {}, files: {} }; saveOverrides(); recompute();
   }
 

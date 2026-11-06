@@ -58,8 +58,8 @@ const People = (() => {
     $('#pplSmall').onchange = render;
     $('#pplHideDone').checked = localStorage.getItem('fotosortierer.peopleHideDone') === '1';
     $('#pplHideDone').onchange = e => { localStorage.setItem('fotosortierer.peopleHideDone', e.target.checked ? '1' : ''); render(); };
-    $('#btnFacesReset').onclick = () => {
-      if (!confirm(T('Alle Namen und Ausschlüsse der Gesichter löschen? (Die Erkennung selbst bleibt gespeichert.)'))) return;
+    $('#btnFacesReset').onclick = async () => {
+      if (!await Ask.confirm(T('Alle Namen und Ausschlüsse der Gesichter löschen? (Die Erkennung selbst bleibt gespeichert.)'))) return;
       done.clear(); saveDone();
       app.setFaceNames(Object.keys(app.st.faceNames), null);
     };
@@ -78,8 +78,8 @@ const People = (() => {
 
   // Namen setzen und Auswahl leeren
   let afterAssign = null;  // z. B. Bildansicht neu zeichnen
-  const assign = (ids, name) => { sel.clear(); closeMenu(); app.setFaceNames(ids, name); const f = afterAssign; afterAssign = null; f?.(); };
-  const askName = () => (prompt(T('Name der Person:')) || '').trim();
+  const assign = async (ids, name) => { sel.clear(); closeMenu(); await app.setFaceNames(ids, name); const f = afterAssign; afterAssign = null; f?.(); };
+  const askName = async () => ((await Ask.prompt(T('Name der Person:'))) || '').trim();
   const refreshSel = () => {
     document.querySelectorAll('#pplGroups .face').forEach(el => el.classList.toggle('sel', sel.has(el.dataset.id)));
     updateSelInfo();
@@ -157,8 +157,8 @@ const People = (() => {
   let lastCheck = null;  // automatisch zugeordnete je Person beim letzten Pruefen
   const autoCounts = p => new Map(p.groups.filter(g => g.name).map(g => [g.name, g.faces.filter(f => f.auto).length]));
   // Neu rechnen und Auffaelligkeiten unter den bestaetigten Gesichtern zum Nachpruefen anbieten
-  function recheck() {
-    if (!app.st.people) { alert(T('Zuerst „Gesichter erkennen“.')); return; }
+  async function recheck() {
+    if (!app.st.people) { Ask.alert(T('Zuerst „Gesichter erkennen“.'), { kind: 'info' }); return; }
     const before = lastCheck || new Map();
     app.recompute(true);  // ganz neu durchrechnen, nicht an der bisherigen Einteilung festhalten
     const p = app.st.people;
@@ -169,24 +169,24 @@ const People = (() => {
     const sug = p.groups.filter(g => !g.name && g.suggest).length;
     const odd = Faces.anomalies(p);
     app.status(T('Neu geprüft mit {0} bekannten Personen: {1} Gesichter neu zugeordnet (zum Prüfen), {2} Gruppen mit Namensvorschlag, {3} Auffälligkeiten.', after.size, more, sug, odd.length));
-    if (odd.length && confirm(T('{0} Auffälligkeiten gefunden (Person zweimal auf einem Foto oder Gesicht passt besser zu einer anderen Person). Jetzt durchgehen?', odd.length))) FaceQuiz.check(app, odd);
+    if (odd.length && await Ask.confirm(T('{0} Auffälligkeiten gefunden (Person zweimal auf einem Foto oder Gesicht passt besser zu einer anderen Person). Jetzt durchgehen?', odd.length))) FaceQuiz.check(app, odd);
     else document.querySelector('#pplGroups .suggest')?.scrollIntoView({ block: 'center', behavior: 'smooth' });
   }
   async function learnPeople() {
     const p = app.st.people;
     const named = p ? p.groups.filter(g => g.name && g.faces.some(f => !f.auto)) : [];
-    if (!named.length) { alert(T('Noch keine Person mit bestätigten Gesichtern.')); return; }
-    if (!confirm(T('Diese Personen merken, damit sie auch in anderen Ordnern und später wiedererkannt werden?\n\n{0}\n\nGespeichert werden nur Gesichtsmerkmale (Zahlen, keine Bilder) und nur in diesem Browser. Je mehr bestätigte Gesichter, desto besser.',
+    if (!named.length) { Ask.alert(T('Noch keine Person mit bestätigten Gesichtern.'), { kind: 'info' }); return; }
+    if (!await Ask.confirm(T('Diese Personen merken, damit sie auch in anderen Ordnern und später wiedererkannt werden?\n\n{0}\n\nGespeichert werden nur Gesichtsmerkmale (Zahlen, keine Bilder) und nur in diesem Browser. Je mehr bestätigte Gesichter, desto besser.',
       named.map(g => `${g.name} (${g.faces.filter(f => !f.auto).length})`).join(', ')))) return;
     const r = Faces.learn(p, app.st.faceLib);
-    await Faces.saveLib(app.st.faceLib).catch(e => alert(e.message));
+    await Faces.saveLib(app.st.faceLib).catch(e => Ask.alert(e.message));
     app.recompute();
     app.status(T('{0} Personen gemerkt.', Object.keys(r).length));
   }
   async function forget() {
     const names = Object.keys(app.st.faceLib);
-    if (!names.length) { alert(T('Es sind keine Personen gemerkt.')); return; }
-    if (!confirm(T('Gemerkte Personen löschen?\n\n{0}\n\nDie Namen in diesem Ordner bleiben erhalten.', names.join(', ')))) return;
+    if (!names.length) { Ask.alert(T('Es sind keine Personen gemerkt.'), { kind: 'info' }); return; }
+    if (!await Ask.confirm(T('Gemerkte Personen löschen?\n\n{0}\n\nDie Namen in diesem Ordner bleiben erhalten.', names.join(', ')))) return;
     app.st.faceLib = {};
     await Faces.saveLib({}).catch(() => {});
     app.recompute();
@@ -296,7 +296,7 @@ const People = (() => {
     // Auswahl-Leiste
     box.append(h('div', { id: 'pplSel', class: 'ppl-sel', hidden: !sel.size },
       h('span', {}), h('button', { onclick: e => { const r = e.target.getBoundingClientRect(); showMenu(r.left, r.bottom + 4); } }, T('Namen zuweisen …')),
-      h('button', { onclick: () => { const n = askName(); if (n) assign([...sel], n); } }, T('Neue Person …')),
+      h('button', { onclick: async () => { const n = await askName(); if (n) assign([...sel], n); } }, T('Neue Person …')),
       h('button', { onclick: () => assign([...sel], '#none') }, T('Nicht zugeordnet')),
       h('button', { onclick: () => { sel.clear(); render(); } }, T('Auswahl aufheben'))));
     updateSelInfo();
@@ -324,9 +324,9 @@ const People = (() => {
           h('span', { class: 'hint' }, ' ' + T('Hierher kommt, was du mit ✕ entfernst. Später auf eine Person ziehen.'))),
         h('div', { class: 'faces' }, byYear([...un].sort((a, b) => a.t - b.t).slice(0, 400), f => faceEl(f, un, { removeTo: '#ignore' }))),
         un.length > 400 ? h('div', { class: 'hint' }, T('… und {0} weitere', un.length - 400)) : null), ids => assign(ids, '#none')),
-      dropTarget(h('div', { class: 'pcard newp', onclick: () => { if (sel.size) { const n = askName(); if (n) assign([...sel], n); } } },
+      dropTarget(h('div', { class: 'pcard newp', onclick: async () => { if (sel.size) { const n = await askName(); if (n) assign([...sel], n); } } },
         h('div', { class: 'big-plus' }, '+'), h('div', {}, T('Neue Person')), h('div', { class: 'hint' }, T('Gesichter hierher ziehen'))),
-        ids => { const n = askName(); if (n) assign(ids, n); })));
+        async ids => { const n = await askName(); if (n) assign(ids, n); })));
   }
 
   function card(g) {
@@ -364,9 +364,9 @@ const People = (() => {
           onclick: () => { done.add(g.name); saveDone(); if (expanded === g.id) expanded = null; if (autoCount) assign(g.faces.filter(f => f.auto).map(f => f.id), g.name); else render(); } }, '✓ ' + T('Fertig'))
           : h('button', { title: T('Diese Gruppe ignorieren (keine Person)'), onclick: () => assign(ids, '#ignore') }, T('Ignorieren'))));
     // Gesichter auf eine Gruppe ziehen: benannt = dieser Person zuordnen, unbenannt = Gruppe zuerst benennen
-    return dropTarget(el, dropIds => {
+    return dropTarget(el, async dropIds => {
       if (g.name) return assign(dropIds, g.name);
-      const n = askName();
+      const n = await askName();
       if (n) assign([...new Set([...ids, ...dropIds])], n);
     });
   }
