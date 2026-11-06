@@ -9,13 +9,54 @@
   const st = {
     s: Settings.load(),
     zones: loadJson(ZKEY, []),
-    overrides: loadJson(OKEY, { events: {}, files: {} }),
+    overrides: { events: {}, files: {} },
     src: null, dst: null, items: null, analysis: null, plan: null,
     abort: null, selected: null, thumbUrls: [],
     faceCache: null, faceNames: {}, people: null, oldFaces: false, faceLib: {},
   };
   const saveZones = () => localStorage.setItem(ZKEY, JSON.stringify(st.zones));
-  const saveOverrides = () => localStorage.setItem(OKEY, JSON.stringify(st.overrides));
+
+  // ---------------- Stand je Quellordner ----------------
+  // Im Browser (IndexedDB) getrennt je Quellordner gespeichert: Namen der Gesichter, Aenderungen und Haken an
+  // Ereignissen, fertige Personen. Einstellungen, Zonen, gemerkte Personen und Ortsnamen gelten fuer alle Ordner.
+  // Der Ordner wird ueber seinen Zugriff (FileSystemHandle.isSameEntry) wiedererkannt, nicht nur ueber den Namen.
+  let proj = null;
+  const projKey = id => 'project:' + id;
+  function saveProject() {
+    if (!proj) return;
+    Util.idb.set(projKey(proj.id), { faceNames: st.faceNames, overrides: st.overrides, done: People.getDone() }).catch(() => {});
+  }
+  const saveOverrides = saveProject;
+  async function openProject(handle) {
+    saveProject();  // bisherigen Ordner sicher ablegen
+    let list = [];
+    try { list = (await Util.idb.get('projects')) || []; } catch { /* leer */ }
+    let p = null;
+    for (const x of list) { try { if (await x.handle.isSameEntry(handle)) { p = x; break; } } catch { /* Ordner weg */ } }
+    let data = null;
+    if (p) data = await Util.idb.get(projKey(p.id)).catch(() => null);
+    else {
+      p = { id: Date.now().toString(36) + Math.random().toString(36).slice(2, 6), handle };
+      // der bisher gemeinsame Stand (vor der Trennung je Ordner) gehoert zum ersten Ordner
+      if (!list.length) {
+        const fn = await Util.idb.get('faceNames').catch(() => null);
+        data = { faceNames: fn || {}, overrides: loadJson(OKEY, { events: {}, files: {} }), done: People.legacyDone() };
+      }
+      list.push(p);
+    }
+    p.name = handle.name;
+    p.last = Date.now();
+    await Util.idb.set('projects', list).catch(() => {});
+    proj = p;
+    st.faceNames = data?.faceNames || {};
+    st.overrides = data?.overrides || { events: {}, files: {} };
+    People.setDone(data?.done || []);
+    faceHistory.length = 0;
+    saveProject();
+    const named = Object.values(st.faceNames).filter(n => n[0] !== '#' && n[0] !== '!').length;
+    const evs = Object.keys(st.overrides.events || {}).length;
+    if (named || evs) log(T('Gespeicherter Stand für „{0}“: {1} Gesichter benannt, {2} Ereignisse geändert oder geprüft.', handle.name, named, evs));
+  }
 
   // ---------------- Status ----------------
   function status(text, progress) {
@@ -335,6 +376,7 @@
     try {
       st.src = await showDirectoryPicker({ id: 'fs-src', mode: 'read' });
       await Util.idb.set('srcHandle', st.src);
+      await openProject(st.src);
       st.items = null;
       setSrcName();
       updateButtons();
@@ -404,7 +446,7 @@
       }, st.abort.signal);
       st.faceCache = r.cache;
       st.oldFaces = false;
-      if (r.namesChanged) Util.idb.set('faceNames', st.faceNames).catch(() => {});
+      if (r.namesChanged) saveProject();
       log(st.abort.signal.aborted ? T('Gesichtserkennung abgebrochen – „Gesichter erkennen“ setzt fort.') : T('Gesichtserkennung fertig.'));
     } catch (e) {
       log(T('Gesichtserkennung fehlgeschlagen: {0}', e.message), 'err');
@@ -424,7 +466,7 @@
       if (faceHistory.length > 300) faceHistory.shift();
     }
     for (const [id, n] of Object.entries(changes)) { if (n) st.faceNames[id] = n; else delete st.faceNames[id]; }
-    Util.idb.set('faceNames', st.faceNames).catch(() => {});
+    saveProject();
     if (quick) { clusterPeople(); return; }
     recompute();
     People.render();
@@ -821,7 +863,7 @@
         if (j.settings) { st.s = { ...Settings.defaults(), ...j.settings }; Settings.save(st.s); }
         if (j.zones) { st.zones = j.zones; saveZones(); }
         if (j.overrides) { st.overrides = j.overrides; saveOverrides(); }
-        if (j.faceNames) { st.faceNames = j.faceNames; Util.idb.set('faceNames', st.faceNames).catch(() => {}); }
+        if (j.faceNames) { st.faceNames = j.faceNames; saveProject(); }
         if (j.faceLibrary) {
           st.faceLib = Object.fromEntries(Object.entries(j.faceLibrary).map(([n, vs]) => [n, vs.map(v => Float32Array.from(v))]));
           Faces.saveLib(st.faceLib).catch(() => {});
@@ -919,7 +961,7 @@
 
     // Kontext fuer Bildansicht, Pruefmodus und Personen
     const appCtx = {
-      st, recompute, saveOverrides, loadThumb, scanFaces, setFaceNames, applyFaceNames, undoFaceNames, canUndo: () => faceHistory.length > 0, faceName, status,
+      st, recompute, saveOverrides, saveProject, loadThumb, scanFaces, setFaceNames, applyFaceNames, undoFaceNames, canUndo: () => faceHistory.length > 0, faceName, status,
       openViewer: (list, i) => Viewer.open(list, i),
       opsOf: it => st.plan?.byItem.get(it.id) || [],
       facesOf: it => Faces.facesOf(it, st.faceCache),
@@ -968,13 +1010,13 @@
 
     updateButtons();
     status(T('Quelle wählen, um zu beginnen.'));
-    try { st.faceNames = (await Util.idb.get('faceNames')) || {}; } catch { /* leer */ }
     st.faceLib = await Faces.loadLib();
     // Zuletzt verwendete Ordner wiederherstellen (Zugriff muss per Klick erneut erlaubt werden)
     if (fsSupported) {
       try {
         st.src = await Util.idb.get('srcHandle') || null;
         st.dst = await Util.idb.get('dstHandle') || null;
+        if (st.src) await openProject(st.src);
       } catch { /* kein Zugriff auf IndexedDB */ }
       setDstName();
     }
@@ -985,7 +1027,7 @@
   }
 
   // Fuer Tests und Fehlersuche in der Browser-Konsole
-  window.Fotosortierer = { state: st, recompute, showTab, setLang, kindsChanged, renderCats, fitAll: () => MapView.fitAll(st.analysis) };
+  window.Fotosortierer = { state: st, recompute, showTab, openProject, setLang, kindsChanged, renderCats, fitAll: () => MapView.fitAll(st.analysis) };
 
   start();
 })();

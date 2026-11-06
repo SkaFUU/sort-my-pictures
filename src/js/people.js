@@ -4,7 +4,7 @@ const People = (() => {
   const { h } = Util;
   const $ = sel => document.querySelector(sel);
   const DONE_KEY = 'fotosortierer.peopleDone';
-  let app, expanded = null;
+  let app, expanded = null, showIgnored = false;
   const sel = new Set();  // ausgewaehlte Gesichter (Strg/Umschalt + Klick, Rahmen)
   let order = [], lastClicked = null;
   let twice = new Set();  // bestaetigte Gesichter einer Person, die auf demselben Foto mehrmals vorkommt  // Reihenfolge der angezeigten Gesichter (fuer Umschalt+Klick)
@@ -48,9 +48,10 @@ const People = (() => {
     }
     return out;
   }
+  // Fertige Personen gehoeren zum Stand des Quellordners (app.saveProject); DONE_KEY nur noch fuer die Uebernahme alter Daten
   let done = new Set();
-  try { done = new Set(JSON.parse(localStorage.getItem(DONE_KEY) || '[]')); } catch { /* leer */ }
-  const saveDone = () => localStorage.setItem(DONE_KEY, JSON.stringify([...done]));
+  const saveDone = () => app.saveProject();
+  const legacyDone = () => { try { return JSON.parse(localStorage.getItem(DONE_KEY) || '[]'); } catch { return []; } };
 
   function init(appCtx) {
     app = appCtx;
@@ -316,6 +317,18 @@ const People = (() => {
     for (const g of unnamed.slice(0, 200)) box.append(card(g));
     if (unnamed.length > 200) box.append(h('div', { class: 'hint' }, T('… und {0} weitere Gruppen', unnamed.length - 200)));
 
+    // Ignorierte (fremd / kein Gesicht): zugeklappt; aufgeklappt nach Aehnlichkeit gruppiert, um daraus Personen zu machen
+    const ig = p.ignoredGroups || [];
+    if (ig.length) {
+      const n = ig.reduce((a, g) => a + g.faces.length, 0);
+      box.append(h('h3', { class: 'ig-head' }, T('Ignoriert ({0}) – fremd oder kein Gesicht', n), ' ',
+        h('button', { onclick: () => { showIgnored = !showIgnored; render(); } }, showIgnored ? T('Verbergen') : T('Zeigen'))));
+      if (showIgnored) {
+        box.append(h('div', { class: 'hint' }, T('Für eine neue Person: Namen eintippen oder Gesichter markieren und Rechtsklick. „Zurückholen“ macht die Gruppe wieder offen.')));
+        for (const g of ig.slice(0, 200)) box.append(ignoredCard(g));
+      }
+    }
+
     // Unten: Nicht zugeordnet + neue Person (beides Ziele fuer Drag & Drop)
     const un = p.unassigned;
     box.append(h('div', { class: 'ppl-bottom' },
@@ -327,6 +340,18 @@ const People = (() => {
       dropTarget(h('div', { class: 'pcard newp', onclick: async () => { if (sel.size) { const n = await askName(); if (n) assign([...sel], n); } } },
         h('div', { class: 'big-plus' }, '+'), h('div', {}, T('Neue Person')), h('div', { class: 'hint' }, T('Gesichter hierher ziehen'))),
         async ids => { const n = await askName(); if (n) assign(ids, n); })));
+  }
+
+  function ignoredCard(g) {
+    const ids = g.faces.map(f => f.id);
+    return h('div', { class: 'pcard ignored' },
+      h('div', { class: 'faces' }, byYear(g.faces.slice(0, 8), f => faceEl(f, g.faces, { removeTo: '#none' }))),
+      h('div', { class: 'pcard-foot' },
+        h('input', { type: 'text', list: 'personNames', placeholder: T('Name …'), onchange: e => { const n = e.target.value.trim(); if (n) assign(ids, n); } }),
+        h('span', { class: 'hint' }, T('{0} Gesichter', g.faces.length)),
+        h('button', { title: T('Alle Gesichter dieser Gruppe auswählen (dann Rechtsklick oder ziehen)'),
+          onclick: () => { const all = ids.every(id => sel.has(id)); for (const id of ids) all ? sel.delete(id) : sel.add(id); refreshSel(); } }, '☐'),
+        h('button', { title: T('Wieder als offene Gruppe anzeigen'), onclick: () => assign(ids, null) }, T('Zurückholen'))));
   }
 
   function card(g) {
@@ -371,5 +396,6 @@ const People = (() => {
     });
   }
 
-  return { init, render, byYear, taken, nameMenu: showMenu };
+  return { init, render, byYear, taken, nameMenu: showMenu, legacyDone,
+    getDone: () => [...done], setDone: list => { done = new Set(list); } };
 })();

@@ -44,7 +44,15 @@ Ein Klick auf ein Bild (Vorschaubild, Kartenpunkt, Datei im Ordnerbaum) öffnet 
 
 Mit dem **Filter** wird nur ein Teil sortiert: nach Zeitraum, Uhrzeit (auch über Mitternacht), Wochentagen, Foto/Video, GPS, Zone, Kamera oder Personen.
 
-Die Originale werden nur gelesen. Vorhandene Dateien im Ziel werden nie überschrieben, ein zweiter Lauf überspringt sie. Einstellungen, Zonen und Änderungen bleiben im Browser gespeichert und lassen sich als JSON exportieren.
+Die Originale werden nur gelesen. Vorhandene Dateien im Ziel werden nie überschrieben, ein zweiter Lauf überspringt sie.
+
+### Wo dein Stand gespeichert ist
+
+Alles liegt im Browser (IndexedDB/localStorage), nichts im Fotoordner. Schließt du die Seite oder brichst ab, bleibt der Stand erhalten: Ordner wieder öffnen und **Einlesen** klicken.
+
+- **Je Quellordner:** Namen der Gesichter, Änderungen und Haken an Ereignissen, fertige Personen. Öffnest du zwischendurch einen anderen Ordner, behält jeder seinen eigenen Stand. Der Ordner wird über seinen Zugriff erkannt, nicht nur über den Namen.
+- **Für alle Ordner:** Einstellungen, Zonen, gemerkte Personen, Ortsnamen, Ergebnisse der Gesichtserkennung.
+- Der Speicher gehört zu diesem Browser und dieser Adresse. Die Webseite und die heruntergeladene HTML-Datei haben getrennte Speicher, andere Browser ebenso. Browserdaten löschen löscht ihn mit. **Exportieren** (Schritt 1) sichert Einstellungen, Zonen und Namen als JSON-Datei, z. B. für einen anderen PC.
 
 ## Fotoübersicht: Karte und Ordner
 
@@ -111,6 +119,7 @@ Gruppen bearbeiten:
 - **In der Bildansicht** einen Gesichtsrahmen (gelber Kasten) anklicken und direkt einen Namen zuweisen.
 - Ist die Person auf dem Foto schon, kommt eine Meldung. Bestätigte Personen, die auf einem Foto doppelt vorkommen, sind in ihrer Karte mit **2×** markiert; **⚠ doppelt** geht sie einzeln durch.
 - **✕** entfernt ein Gesicht aus der Person. Es landet unten in **Nicht zugeordnet** und lässt sich später zuweisen.
+- **Ignoriert** (fremd / kein Gesicht) ist unten zugeklappt. **Zeigen** listet die ignorierten Gesichter nach Ähnlichkeit gruppiert: Namen eintippen macht daraus eine neue Person, **Zurückholen** macht die Gruppe wieder offen.
 - **Prüfen** zeigt die automatisch zugeordneten Gesichter einer Person: ✓ bestätigt. Gesichter stehen überall nach Aufnahmedatum, mit der Jahreszahl als Trenner zwischen den Jahren.
 - **✓ Fertig** legt eine Person klein oben ab, damit die Übersicht frei bleibt. Man kann weiter Gesichter darauf ziehen. „Fertige Personen ausblenden“ blendet sie ganz aus.
 

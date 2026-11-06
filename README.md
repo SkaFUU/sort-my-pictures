@@ -44,7 +44,15 @@ Clicking a picture (thumbnail, map point, file in the folder tree) opens the **v
 
 With the **filter** only part of the pictures is sorted: by period, time of day (also across midnight), weekdays, photo/video, GPS, zone, camera or people.
 
-Originals are only read. Existing files in the target are never overwritten, a second run skips them. Settings, zones and changes are stored in the browser and can be exported as JSON.
+Originals are only read. Existing files in the target are never overwritten, a second run skips them.
+
+### Where your progress is stored
+
+Everything is stored in the browser (IndexedDB/localStorage), nothing in the photo folder. If you close the page or cancel, the state is kept: open the folder again and click **Scan**.
+
+- **Per source folder:** face names, changes and ticks on events, finished people. If you open another folder in between, each keeps its own state. The folder is recognised by its access, not just its name.
+- **For all folders:** settings, zones, remembered people, place names, face detection results.
+- The storage belongs to this browser and this address. The website and the downloaded HTML file have separate storage, so do other browsers. Clearing browsing data deletes it. **Export** (step 1) saves settings, zones and names as a JSON file for backup or another PC.
 
 ## Photo overview: map and folders
 
@@ -111,6 +119,7 @@ Editing groups:
 - **In the viewer** click a face box (yellow frame) to assign a name directly.
 - If the person is already on that photo, a warning appears. Confirmed people that appear twice on one photo are marked **2×** on their card; **⚠ twice** goes through them one by one.
 - **✕** removes a face from the person. It goes to **Unassigned** at the bottom and can be assigned later.
+- **Ignored** (stranger / not a face) is collapsed at the bottom. **Show** lists the ignored faces grouped by similarity: typing a name turns a group into a new person, **Bring back** makes the group open again.
 - **Review** shows a person’s automatically assigned faces: ✓ confirms. Faces are always shown by date taken, with the year as a divider between the years.
 - **✓ Done** puts a person small at the top to keep the overview clear. You can still drag faces onto it. “Hide finished people” hides them completely.
 

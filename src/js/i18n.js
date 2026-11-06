@@ -152,6 +152,12 @@ const I18n = (() => {
     'automatisch zugeordnet': 'assigned automatically', 'Ja, das ist {0}': 'Yes, this is {0}',
     '{0} automatisch zugeordnet – ✓ bestätigt, ✕ entfernt.': '{0} assigned automatically – ✓ confirms, ✕ removes.',
     'Klick: Namen zuweisen': 'Click: assign a name',
+    'Ignoriert ({0}) – fremd oder kein Gesicht': 'Ignored ({0}) – stranger or not a face', 'Verbergen': 'Hide', 'Zeigen': 'Show',
+    'Für eine neue Person: Namen eintippen oder Gesichter markieren und Rechtsklick. „Zurückholen“ macht die Gruppe wieder offen.':
+      'For a new person: type a name or select faces and right-click. “Bring back” makes the group open again.',
+    'Wieder als offene Gruppe anzeigen': 'Show as an open group again', 'Zurückholen': 'Bring back', '{0} Gesichter': '{0} faces',
+    'Gespeicherter Stand für „{0}“: {1} Gesichter benannt, {2} Ereignisse geändert oder geprüft.':
+      'Saved progress for “{0}”: {1} faces named, {2} events changed or reviewed.',
     'Auch Gruppen mit nur wenigen Gesichtern anzeigen':
       'Also show groups with only a few faces',
     'Bereits geprüfte Ereignisse überspringen':

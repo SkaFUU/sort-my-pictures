@@ -539,7 +539,18 @@ const Faces = (() => {
       }
     }
     const unassigned = all.filter(f => names[f.id] === '#none').map(f => ({ ...f, auto: false }));
-    return { groups, byItem, unassigned, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length, minSim, score, blocked, taken, altFor, assignTo,
+    // Ignorierte (fremd / kein Gesicht) nach Aehnlichkeit grob gruppiert, damit sich daraus spaeter Personen machen lassen
+    const ignoredGroups = [];
+    for (const f of all.filter(x => names[x.id] === '#ignore').sort((a, b) => (b.q ?? 1) - (a.q ?? 1))) {
+      let bg = null, bs = minSim;
+      for (const g of ignoredGroups) { const v = dot(f.d, g.c); if (v > bs) { bs = v; bg = g; } }
+      if (!bg) ignoredGroups.push(bg = { faces: [], sum: new Float32Array(128) });
+      bg.faces.push({ ...f, auto: false });
+      for (let i = 0; i < 128; i++) bg.sum[i] += f.d[i];
+      bg.c = unit(bg.sum);
+    }
+    ignoredGroups.sort((a, b) => b.faces.length - a.faces.length);
+    return { groups, byItem, unassigned, ignoredGroups, faceCount: all.length, ignored: all.filter(f => names[f.id] === '#ignore').length, minSim, score, blocked, taken, altFor, assignTo,
       sig: [threshold, months, lib ? Object.keys(lib).length : -1].join() };
   }
 
