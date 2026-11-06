@@ -43,7 +43,7 @@
     <div id="qat">
       <span class="logo"><svg class="ic"><use href="#i-logo"/></svg></span>
       <span id="docTitle" data-noi18n>Sort My Pictures <span class="fld" id="srcName"></span></span>
-      <button id="btnCopy" class="qbtn primary" disabled title="Alle geplanten Kopien in den Zielordner schreiben"><svg class="ic"><use href="#i-copy"/></svg><span class="qtxt">Kopieren</span></button>
+      <button id="btnCopy" class="qbtn primary" disabled title="Wie „Start“ in Schritt 6: ausführen, was dort gewählt ist"><svg class="ic"><use href="#i-check"/></svg><span class="qtxt" id="btnCopyText">Start</span></button>
       <span class="grow"></span>
       <span id="netState" class="net offline"></span>
       <div class="lang"><button data-lang="de" title="Deutsch">DE</button><button data-lang="en" title="English">EN</button></div>
@@ -54,7 +54,7 @@
       <button data-tab="events"><span class="step">3</span>Ereignisse <span id="cntEvents" class="pill"></span></button>
       <button data-tab="review"><span class="step">4</span>Prüfen <span id="cntReview" class="pill pill-open"></span></button>
       <button data-tab="people"><span class="step">5</span>Personen <i class="opt">optional</i></button>
-      <button data-tab="ziel"><span class="step">6</span>Ziel &amp; Kopieren</button>
+      <button data-tab="ziel"><span class="step">6</span>Ausgabe</button>
     </nav>
     <div id="ribbon">
       <!-- 1 Quelle -->
@@ -146,14 +146,17 @@
       <!-- 6 Ziel -->
       <div class="rpanel" data-tab="ziel">
         <div class="grp"><div class="gbody">
-          <button class="big c-dest" id="btnDst"><svg class="ic"><use href="#i-dest"/></svg><span>Ziel wählen</span></button>
-          <button class="big c-ok" id="btnCopy2" disabled><svg class="ic"><use href="#i-copy"/></svg><span>Kopieren</span></button>
-          <button class="big c-zone" id="btnMapExport" disabled title="Fotoübersicht (Karte + Ordner) mit den kopierten Fotos ins Ziel schreiben, ohne erneut zu kopieren"><svg class="ic"><use href="#i-map"/></svg><span>Übersicht speichern</span></button>
-        </div><div class="gcap">Ziel</div></div>
+          <button class="big tog c-ok" data-mode="copy" title="Sortierte Kopien in einen Zielordner schreiben. Die Originale bleiben unverändert."><svg class="ic"><use href="#i-copy"/></svg><span>Kopieren</span></button>
+          <button class="big tog c-zone" data-mode="move" title="Sortiert in einen Zielordner bringen und danach in der Quelle entfernen. Jede Datei wird erst entfernt, wenn sie im Ziel geprüft ist."><svg class="ic"><use href="#i-next"/></svg><span>Verschieben</span></button>
+          <button class="big tog c-del" data-mode="inplace" title="Die Quelle selbst umbenennen und in Ordner einsortieren – ohne Zielordner, ohne zusätzlichen Platz. Lässt sich zurücknehmen."><svg class="ic"><use href="#i-folder"/></svg><span>In Quelle umsortieren</span></button>
+        </div><div class="gcap">Fotos (eines oder keines)</div></div>
+        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="outIndex,outMap,outThumbs"></div></div><div class="gcap">Übersicht</div></div>
         <div class="grp"><div class="gbody">
-          <button class="big c-view" id="btnIndex" disabled title="Nichts kopieren: nur eine Fotoübersicht (Karte + Ordner) schreiben, die direkt auf die Originale verlinkt"><svg class="ic"><use href="#i-grid"/></svg><span>Verzeichnis ohne Kopieren</span></button>
-        </div><div class="gcap">Nur Links</div></div>
-        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="monthFolders,dupSkip,lowerExt,mapExport"></div></div><div class="gcap">Struktur</div></div>
+          <button class="big c-dest" id="btnDst"><svg class="ic"><use href="#i-dest"/></svg><span>Ziel wählen</span></button>
+          <button class="big c-ok" id="btnRun" disabled><svg class="ic"><use href="#i-check"/></svg><span id="btnRunText">Start</span></button>
+          <button class="big c-del" id="btnUndo" hidden title="Das letzte Umsortieren in diesem Ordner zurücknehmen: alle Dateien zurück an ihren alten Platz"><svg class="ic"><use href="#i-reset"/></svg><span>Umsortieren zurücknehmen</span></button>
+        </div><div class="gcap">Ausführen</div></div>
+        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="dupSkip,personFolders"></div></div><div class="gcap">Optionen</div></div>
         <div class="grp"><div class="gbody">
           <button class="big c-view" id="btnFilterReset" title="Alle Filter zurücksetzen"><svg class="ic"><use href="#i-filter"/></svg><span>Filter zurücksetzen</span></button>
         </div><div class="gcap">Filter <span id="filterBadge" class="badge-filter" hidden>aktiv</span></div></div>
@@ -269,12 +272,12 @@
         <div class="settings" data-sections="Personen"></div>
       </div>
       <div class="pp" data-tab="ziel">
-        <h2>Ziel</h2>
+        <h2>Ausgabe</h2>
+        <div id="outInfo" data-noi18n></div>
         <div class="info" id="dstName">Noch kein Zielordner gewählt.</div>
         <ul class="muted">
-          <li>Es wird nur kopiert. Vorhandene Dateien werden nie überschrieben, ein zweiter Lauf überspringt sie.</li>
-          <li data-i18n-html>Im Ziel entsteht ein Protokoll <i>_protokoll_….csv</i> und eine Fotoübersicht <i>_fotos.html</i> (Karte + Ordner) zum Suchen nach Standort.</li>
-          <li data-i18n-html><b>Verzeichnis ohne Kopieren</b> schreibt nur die Fotoübersicht mit Links auf die Originale – kein Speicherplatz doppelt belegt.</li>
+          <li data-i18n-html>Oben wählen, was mit den Fotos passiert – <b>Kopieren</b>, <b>Verschieben</b> oder <b>In Quelle umsortieren</b> – oder keines davon. Dazu unabhängig <b>Index</b> und/oder <b>Karte</b> als <i>_fotos.html</i>.</li>
+          <li>Vorhandene Dateien werden nie überschrieben, ein zweiter Lauf überspringt sie. Jeder Lauf schreibt ein Protokoll (_protokoll_….csv).</li>
         </ul>
         <div class="settings" data-sections="Ordner & Dateinamen,Filter,Sonderordner"></div>
       </div>
@@ -307,6 +310,7 @@
   <script src="js/analyze.js"></script>
   <script src="js/plan.js"></script>
   <script src="js/copy.js"></script>
+  <script src="js/transfer.js"></script>
   <script src="js/mapexport.js"></script>
   <script src="js/map.js"></script>
   <script src="js/faces.js"></script>

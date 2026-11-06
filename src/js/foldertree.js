@@ -4,7 +4,7 @@
 const FolderTree = (() => {
   const { h } = Util;
   const ROOT_KEY = 'rootHandle', OPEN_KEY = 'fotosortierer.treeOpen';
-  const SKIP = /^(\$|\.|System Volume Information$|_fotos$|_photos$|_karte$|_map$|@eaDir$|#recycle$)/i;
+  const SKIP = /^(\$|\.|System Volume Information$|_fotos$|_photos$|_karte$|_map$|_Duplikate$|_Duplicates$|@eaDir$|#recycle$)/i;
   let app, root = null, access = false;
   const kids = new Map();      // Pfad -> [{ name, handle }] (einmal gelesen, „Neu laden“ leert)
   const hasState = new Set();  // Pfade mit _sortmypictures.json

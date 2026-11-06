@@ -278,6 +278,20 @@ const Faces = (() => {
   async function loadCache(rootName) {
     try { return (await Util.idb.get(dbKey(rootName))) || null; } catch { return null; }
   }
+  // Nach dem Verschieben/Umsortieren: erkannte Gesichter auf die neuen Pfade umschreiben, damit nichts neu analysiert werden muss.
+  // moves: [{ item (alter Stand), to, mtime }]; fromCache: Cache der Quelle; toRoot: Ordnername, unter dem der Cache liegt
+  // sameRoot: innerhalb desselben Ordners (Umsortieren) – alte Eintraege werden ersetzt statt in einen anderen Cache kopiert
+  async function carryCache(fromCache, toRoot, moves, sameRoot = false) {
+    if (!fromCache) return null;
+    let cache = fromCache;
+    if (!sameRoot) { try { cache = (await Util.idb.get(dbKey(toRoot))) || {}; } catch { cache = {}; } }
+    // erst alles einsammeln, dann schreiben (ein neuer Pfad kann der alte eines anderen Fotos sein)
+    const moved = moves.map(m => [cacheKey(m.item), `${m.to}|${m.item.size}|${m.mtime}`]).filter(([k]) => k in fromCache).map(([k, n]) => [k, n, fromCache[k]]);
+    if (sameRoot) for (const [k] of moved) delete cache[k];
+    for (const [, n, v] of moved) cache[n] = v;
+    await Util.idb.set(dbKey(toRoot), cache).catch(() => {});
+    return cache;
+  }
 
   const dot = (a, b) => { let s = 0; for (let i = 0; i < a.length; i++) s += a[i] * b[i]; return s; };
   const unit = v => { const n = Math.sqrt(dot(v, v)) || 1; return v.map(x => x / n); };
@@ -581,5 +595,5 @@ const Faces = (() => {
   // Gesichter eines Bildes (fuer die Bildansicht)
   const facesOf = (it, cache) => (cache && cache[cacheKey(it)]) || [];
 
-  return { VERSION, load, detect, scanAll, loadCache, cluster, anomalies, facesOf, loadLib, saveLib, learn };
+  return { VERSION, load, detect, scanAll, loadCache, carryCache, cluster, anomalies, facesOf, loadLib, saveLib, learn };
 })();

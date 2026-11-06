@@ -125,10 +125,36 @@
     $('#btnCancel').hidden = !on;
     updateButtons();
   }
+  // Schritt 6: gewaehlten Modus anzeigen, Start-Knopf beschriften, Hinweis in der Seitenleiste
+  const modeInfo = (m, dup = T('_Duplikate')) => ({
+    copy: () => [T('Kopieren'), T('Sortierte Kopien in den Zielordner. Die Originale bleiben unverändert.')],
+    move: () => [T('Verschieben'), T('Sortiert in den Zielordner, danach in der Quelle entfernt – jede Datei erst, wenn sie im Ziel vollständig geprüft ist. Der Browser löscht ohne Papierkorb. Duplikate kommen in den Ordner „{0}“ im Ziel, Gesichtsnamen und geprüfte Ereignisse werden mitgenommen.', dup)],
+    inplace: () => [T('In der Quelle umsortieren'), T('Die Quelle selbst wird umbenannt und in Ordner einsortiert – ohne Zielordner und ohne zusätzlichen Platz. Jedes Foto bekommt genau einen Platz (Ereignis, sonst Sonderordner, sonst Monat), Personenordner entfallen. Duplikate kommen in den Ordner „{0}“. Programme, die auf die alten Pfade zeigen, finden die Dateien danach nicht mehr. „Umsortieren zurücknehmen“ bringt alles zurück.', dup)],
+    '': () => [T('Fotos bleiben, wo sie sind'), T('Es wird nur die Übersicht geschrieben, mit Links auf die Originale. Beim Start wählst du den Ordner dafür – am einfachsten den Quellordner.')],
+  })[m]?.();
+  function runLabel() {
+    const m = st.s.outMode, ov = [st.s.outIndex && T('Index'), st.s.outMap && T('Karte')].filter(Boolean).join(' + ');
+    if (!m) return ov ? T('{0} schreiben', ov) : T('Start');
+    return T({ copy: 'Kopieren', move: 'Verschieben', inplace: 'Umsortieren' }[m]) + (ov ? ' + ' + ov : '');
+  }
+  function renderOut() {
+    const m = st.s.outMode || '';
+    document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
+    $('#btnRunText').textContent = $('#btnCopyText').textContent = runLabel();
+    $('#btnDst').hidden = !(m === 'copy' || m === 'move');
+    $('#dstName').hidden = $('#btnDst').hidden;
+    document.querySelector('.tog[data-key="outThumbs"]')?.classList.toggle('dis', !wantOverview());
+    document.querySelectorAll('.tog[data-key="personFolders"]').forEach(t => t.classList.toggle('dis', m === 'inplace'));
+    const [title, text] = modeInfo(m) || modeInfo('copy');
+    const box = $('#outInfo');
+    if (box) box.replaceChildren(h('div', { class: 'out-mode' + (m === 'move' || m === 'inplace' ? ' warn' : '') }, h('b', {}, title), text));
+  }
   function updateButtons() {
+    renderOut();
     const b = document.body.classList.contains('busy');
     $('#btnScan').disabled = b || !st.src;
-    $('#btnCopy').disabled = $('#btnCopy2').disabled = $('#btnMapExport').disabled = $('#btnIndex').disabled = b || !st.plan || !st.plan.ops.length;
+    $('#btnCopy').disabled = $('#btnRun').disabled = b || !st.plan || !st.plan.ops.length || !(st.s.outMode || st.s.outIndex || st.s.outMap);
+    $('#btnUndo').disabled = b;
     for (const id of ['#btnSrc', '#btnDst', '#btnFaces']) $(id).disabled = b;
     document.querySelectorAll('[data-lang]').forEach(x => { x.disabled = b; });
     updateSteps();
@@ -198,10 +224,12 @@
   }
   const RIBBON_LABELS = { recursive: 'Unterordner', includePhotos: 'Fotos', includeVideos: 'Videos', geocode: 'Ortsnamen (OSM)',
     homeAuto: 'Wohnort automatisch', autoDaily: 'Alltagsorte automatisch', vacEnabled: 'Urlaube', tripEnabled: 'Ausflüge',
-    workEnabled: 'Dienstreisen', personFolders: 'Personenordner anlegen', monthFolders: 'Monatsordner', dupSkip: 'Duplikate überspringen', lowerExt: 'Endung klein', mapExport: 'Fotoübersicht (_fotos.html)' };
+    workEnabled: 'Dienstreisen', personFolders: 'Personenordner anlegen', monthFolders: 'Monatsordner', dupSkip: 'Duplikate überspringen', lowerExt: 'Endung klein',
+    outIndex: 'Index', outMap: 'Karte', outThumbs: 'Vorschaubilder' };
   const ribbonLabel = it => T(RIBBON_LABELS[it.key] || it.label);
   const RIBBON_ICONS = { vacEnabled: ['i-vac', 'c-vac'], tripEnabled: ['i-trip', 'c-trip'], workEnabled: ['i-work', 'c-work'],
-    personFolders: ['i-faces', 'c-face'], monthFolders: ['i-folder', 'c-file'], dupSkip: ['i-copy', 'c-view'], lowerExt: ['i-tag', 'c-view'], mapExport: ['i-map', 'c-zone'] };
+    personFolders: ['i-faces', 'c-face'], monthFolders: ['i-folder', 'c-file'], dupSkip: ['i-copy', 'c-view'], lowerExt: ['i-tag', 'c-view'],
+    outIndex: ['i-grid', 'c-view'], outMap: ['i-map', 'c-zone'], outThumbs: ['i-pin', 'c-view'] };
   // Ein-/Aus-Schalter im Ribbon: grosser Knopf mit Symbol, eingeschaltet = hinterlegt (das Kaestchen ist unsichtbar)
   function toggleBtn(cb, ic, cls, text, title = '', key = null) {
     return h('label', { class: `big tog ${cls}`, title, 'data-key': key },
@@ -285,6 +313,7 @@
   function onSettingChanged(it) {
     netState();
     $('#filterBadge').hidden = !filterActive();
+    if (it.key.startsWith('out')) { if (it.key === 'outMode') recompute(); else updateButtons(); return; }
     if (it.level === 'map') { setTiles(); return; }
     if (it.level === 'faces') { status(T('Gilt für Fotos, die neu analysiert werden.')); return; }
     if (it.level === 'scan') { if (st.items) status(T('Geändert: bitte neu einlesen („Einlesen“).')); return; }
@@ -436,6 +465,7 @@
   // Quelle setzen (aus dem Windows-Ordnerfenster oder dem Ordnerbaum), Stand dieses Ordners laden, einlesen
   async function useSource(dir) {
     st.src = dir;
+    $('#btnUndo').hidden = true;
     await Util.idb.set('srcHandle', dir).catch(() => {});
     await openProject(dir);
     st.items = st.people = st.faceCache = null;
@@ -477,6 +507,7 @@
       recompute();
       MapView.fitAll(st.analysis);
       log(T('Eingelesen: {0} Dateien aus „{1}“ in {2} s', st.items.length, st.src.name, ((Date.now() - t0) / 1000).toFixed(0)));
+      refreshUndo();
     } catch (e) { busy(false); status(T('Fehler beim Einlesen: {0}', e.message)); return; }
     if (st.s.geocode) geocode();
   }
@@ -603,13 +634,19 @@
       if (!r.aborted && !r.errors) st.copied = true;
       for (const l of r.log.filter(l => l.err).slice(0, 50)) log(`  ${l.quelle} → ${l.ziel}: ${l.status}`, 'err');
       status(msg);
-      if (!r.aborted && st.s.mapExport) await exportMap(st.dst, { failed: new Set(r.log.filter(l => l.err).map(l => l.ziel)) });
+      if (!r.aborted && wantOverview()) await exportMap(st.dst, { failed: new Set(r.log.filter(l => l.err).map(l => l.ziel)) });
     } catch (e) { log(T('Fehler: {0}', e.message), 'err'); status(T('Fehler: {0}', e.message)); }
     finally { busy(false); }
   }
 
   // Fotoübersicht (Karte + Ordner) schreiben: nach dem Kopieren ins Ziel oder ohne Kopieren mit Links auf die Originale
+  const wantOverview = () => !!(st.s.outIndex || st.s.outMap);
   async function exportMap(dir = st.dst, opts = {}) {
+    opts = { list: !!st.s.outIndex, map: !!st.s.outMap, thumbs: !!st.s.outThumbs, ...opts };
+    if (!opts.list && !st.analysis.withGps) {
+      log(T('Keine Fotos mit Standort – statt einer leeren Karte wird der Index geschrieben.'));
+      opts.list = true;
+    }
     try {
       const r = await MapExport.write(dir, st.plan, st.analysis, st.s, opts,
         (n, total) => status(opts.thumbs === false ? T('Schreibe Fotoübersicht …') : T('Schreibe Fotoübersicht … {0} / {1} Vorschaubilder', n, total), n / total), st.abort?.signal);
@@ -619,17 +656,7 @@
       }
     } catch (e) { log(T('Fotoübersicht konnte nicht geschrieben werden: {0}', e.message), 'err'); }
   }
-  async function saveMap() {
-    if (!st.plan) return;
-    if (!st.dst) { await pickDst(); if (!st.dst) return; }
-    if (!(await ensurePermission(st.dst, 'readwrite')) || !(await ensurePermission(st.src, 'read'))) return;
-    st.abort = new AbortController();
-    busy(true);
-    showLog(true);
-    try { await exportMap(); } finally { busy(false); }
-  }
-
-  // Verzeichnis ohne Kopieren: nur _fotos.html + Vorschaubilder, die Links zeigen auf die Originale.
+  // Nur Übersicht (kein Modus gewaehlt): nur _fotos.html + Vorschaubilder, die Links zeigen auf die Originale.
   // Liegt die Quelle im gewaehlten Ordner (oder umgekehrt), gehen relative Links; sonst braucht es den Pfad der Quelle.
   const fileUrl = p => {
     const s = p.trim().replace(/\\/g, '/').replace(/\/+$/, '');
@@ -638,9 +665,8 @@
   };
   async function saveIndex() {
     if (!st.plan || !st.src) return;
-    const how = await Ask.confirm(T('Es wird nichts kopiert oder verschoben. Es entsteht nur „{0}“ (Karte + Ordnerübersicht) mit Links auf die Originale.\n\nMit Vorschaubildern: zusätzlich kleine Bilder (ca. 10–20 KB je Foto) im Ordner „{1}“ – die Übersicht blättert damit schnell.\nOhne: nur die eine Datei, die Übersicht lädt dann jedes Original (langsamer, vor allem übers Netzwerk).\n\nDanach den Ordner wählen, in den die Übersicht kommt – am einfachsten der Quellordner selbst.', T('_fotos') + '.html', T('_fotos')),
-      { title: T('Verzeichnis ohne Kopieren'), yes: T('Mit Vorschaubildern'), extra: [{ label: T('Ohne Vorschaubilder'), value: 'plain' }] });
-    if (!how) return;
+    if (!await Ask.confirm(T('Die Fotos bleiben, wo sie sind. Es entsteht nur „{0}“ mit Links auf die Originale.\n\nIm nächsten Fenster den Ordner wählen, in den die Übersicht kommt – am einfachsten der Quellordner selbst.', T('_fotos') + '.html'),
+      { title: T('Nur Übersicht'), yes: T('Ordner wählen …') })) return;
     let dir;
     try { dir = await showDirectoryPicker({ id: 'fs-index', mode: 'readwrite', startIn: st.src }); }
     catch (e) { if (e.name !== 'AbortError') Ask.alert(e.message); return; }
@@ -662,7 +688,153 @@
     st.abort = new AbortController();
     busy(true);
     showLog(true);
-    try { await exportMap(dir, { linkBase: base, thumbs: how !== 'plain' }); } finally { busy(false); }
+    try { await exportMap(dir, { linkBase: base }); } finally { busy(false); }
+  }
+
+  // ---------------- Ausgabe: Start ----------------
+  // Modus (Kopieren / Verschieben / Umsortieren / keiner) plus unabhaengig Index und Karte
+  async function run() {
+    if (!st.plan || document.body.classList.contains('busy')) return;
+    const mode = st.s.outMode;
+    if (mode === 'copy') return copy();
+    if (mode === 'move' || mode === 'inplace') return transfer(mode);
+    if (wantOverview()) return saveIndex();
+  }
+
+  async function fileAt(root, rel) {
+    const segs = rel.split('/'), name = segs.pop();
+    let d = root;
+    for (const s of segs) d = await d.getDirectoryHandle(s);
+    return (await d.getFileHandle(name)).getFile();
+  }
+
+  // Namen der Gesichter und Aenderungen an Ereignissen haengen am Pfad – nach dem Umsortieren mitziehen
+  function remapState(m) {
+    const np = p => m.get(p) ?? p;
+    st.faceNames = Object.fromEntries(Object.entries(st.faceNames).map(([k, v]) => { const i = k.lastIndexOf('#'); return [np(k.slice(0, i)) + k.slice(i), v]; }));
+    for (const sec of ['events', 'files']) st.overrides[sec] = Object.fromEntries(Object.entries(st.overrides[sec] || {}).map(([k, v]) => [np(k), v]));
+    faceHistory.length = 0;
+    saveProject();
+  }
+  // gelesene Metadaten (Datum, GPS) mitnehmen, damit das erneute Einlesen schnell geht
+  async function carryMeta(fromName, toName, moves) {
+    try {
+      const from = (await Util.idb.get('cache:' + fromName)) || {};
+      const to = fromName === toName ? from : ((await Util.idb.get('cache:' + toName)) || {});
+      const list = moves.map(x => [`${x.item.path}|${x.item.size}|${x.item.mtime}`, `${x.to}|${x.item.size}|${x.mtime}`])
+        .filter(([k]) => k in from).map(([k, n]) => [k, n, from[k]]);
+      if (from === to) for (const [k] of list) delete to[k];
+      for (const [, n, v] of list) to[n] = v;
+      await Util.idb.set('cache:' + toName, to);
+    } catch { /* nur Beschleunigung */ }
+  }
+  // Verschieben: Gesichtsnamen und gepruefte Ereignisse fuer die verschobenen Fotos als Stand-Datei ins Ziel mitgeben
+  async function carryToTarget(moves) {
+    const m = new Map(moves.filter(x => !x.dup).map(x => [x.from, x.to]));
+    if (!m.size) return;
+    let j = {};
+    try { j = JSON.parse(await (await (await st.dst.getFileHandle(STATE_FILE)).getFile()).text()) || {}; } catch { /* neu */ }
+    const faceNames = { ...(j.faceNames || {}) };
+    for (const [k, v] of Object.entries(st.faceNames)) { const i = k.lastIndexOf('#'), p = k.slice(0, i); if (m.has(p)) faceNames[m.get(p) + k.slice(i)] = v; }
+    const overrides = { events: { ...(j.overrides?.events || {}) }, files: { ...(j.overrides?.files || {}) } };
+    for (const sec of ['events', 'files']) for (const [k, v] of Object.entries(st.overrides[sec] || {})) if (m.has(k)) overrides[sec][m.get(k)] = v;
+    try {
+      const fh = await st.dst.getFileHandle(STATE_FILE, { create: true });
+      const w = await fh.createWritable();
+      await w.write(JSON.stringify({ app: 'Sort My Pictures', version: 1, folder: st.dst.name, saved: Date.now(), faceNames, overrides,
+        done: [...new Set([...(j.done || []), ...People.getDone()])] }));
+      await w.close();
+      log(T('Gesichtsnamen und geprüfte Ereignisse mit ins Ziel genommen („{0}“).', STATE_FILE));
+    } catch (e) { log(T('„{0}“ konnte nicht geschrieben werden: {1}', STATE_FILE, e.message), 'err'); }
+    await Faces.carryCache(st.faceCache, st.dst.name, moves);
+    await carryMeta(st.src.name, st.dst.name, moves);
+  }
+
+  async function transfer(mode) {
+    const inplace = mode === 'inplace';
+    if (!inplace) {
+      if (!st.dst) { await pickDst(); if (!st.dst) return; }
+      if (!(await ensurePermission(st.dst, 'readwrite'))) return;
+    }
+    if (!(await ensurePermission(st.src, 'readwrite'))) { Ask.alert(T('Ohne Schreibzugriff auf die Quelle kann nichts verschoben werden.')); return; }
+    if (!inplace && ((await st.src.resolve(st.dst)) || (await st.dst.resolve(st.src)))) {
+      Ask.alert(T('Ziel und Quelle dürfen beim Verschieben nicht ineinander liegen. Zum Sortieren innerhalb der Quelle „In Quelle umsortieren“ wählen.'));
+      return;
+    }
+    const items = [...new Set(st.plan.ops.map(o => o.item))];
+    const bytes = items.reduce((a, it) => a + it.size, 0);
+    const dups = st.s.dupSkip ? st.plan.dups : [];
+    const DUP = T('_Duplikate');
+    const text = inplace
+      ? T('{0} Dateien in „{1}“ umbenennen und in Ordner einsortieren?\n\n{2} Duplikate kommen in den Ordner „{3}“. Leer gewordene Ordner werden entfernt.\nMit „Umsortieren zurücknehmen“ kommt alles wieder an den alten Platz.\n\nAchtung: Programme und Verknüpfungen, die auf die alten Pfade zeigen (z. B. Lightroom), finden die Dateien danach nicht mehr.', items.length, st.src.name, dups.length, DUP)
+      : T('{0} Dateien ({1}) von „{2}“ nach „{3}“ verschieben?\n\nJede Datei wird erst in der Quelle entfernt, wenn sie im Ziel vollständig geprüft ist. Der Browser löscht ohne Papierkorb.\n{4} Duplikate kommen in den Ordner „{5}“ im Ziel.', items.length, fmtBytes(bytes), st.src.name, st.dst.name, dups.length, DUP);
+    if (!await Ask.confirm(text, { title: inplace ? T('In der Quelle umsortieren') : T('Verschieben'), yes: inplace ? T('Umsortieren') : T('Verschieben') })) return;
+
+    const word = inplace ? T('Umsortieren') : T('Verschieben');
+    st.abort = new AbortController();
+    busy(true);
+    showLog(true);
+    log(T('{0} gestartet: {1} Dateien', word, items.length));
+    let r;
+    try {
+      r = await Transfer.run({ mode, src: st.src, dst: st.dst, ops: st.plan.ops, dups, signal: st.abort.signal,
+        onProgress: p => status(T('{0} … {1} / {2} · {3}/s', word, p.done, p.total, fmtBytes(p.rate)) + (p.errors ? T(' · {0} Fehler', p.errors) : ''), p.done / p.total) });
+    } catch (e) { log(T('Fehler: {0}', e.message), 'err'); status(T('Fehler: {0}', e.message)); busy(false); return; }
+    const msg = T('{0}: {1} verschoben, {2} zusätzliche Kopien, {3} übersprungen, {4} Duplikate abgelegt, {5} Fehler · Protokoll: {6}',
+      r.aborted ? T('Abgebrochen') : T('Fertig'), r.moved, r.copies, r.skipped, r.dups, r.errors, r.logName);
+    log(msg);
+    for (const l of r.log.filter(l => l.err).slice(0, 50)) log(`  ${l.quelle} → ${l.ziel}: ${l.status}`, 'err');
+    if (r.emptied) log(T('{0} leere Ordner entfernt', r.emptied));
+    if (!r.aborted && !r.errors) st.copied = true;
+    // Stand (Gesichter, gepruefte Ereignisse, Caches) mitnehmen
+    if (inplace) {
+      remapState(new Map(r.moves.map(x => [x.from, x.to])));
+      st.faceCache = await Faces.carryCache(st.faceCache, st.src.name, r.moves, true);
+      await carryMeta(st.src.name, st.src.name, r.moves);
+    } else {
+      await carryToTarget(r.moves);
+      if (wantOverview() && !r.aborted) await exportMap(st.dst, { at: r.placed, failed: r.failed, fileOf: it => fileAt(st.dst, r.placed.get(it)) });
+    }
+    busy(false);
+    status(msg);
+    // Quelle neu einlesen: die Pfade haben sich geaendert
+    await scan();
+    if (inplace && wantOverview() && !r.aborted && st.plan) {
+      st.abort = new AbortController();
+      busy(true);
+      try { await exportMap(st.src, { linkBase: '', note: false }); } finally { busy(false); }
+    }
+    status(msg);
+  }
+
+  // Letztes Umsortieren zuruecknehmen (Journal im Quellordner)
+  async function refreshUndo() {
+    const j = st.src && st.items ? await Transfer.lastJournal(st.src) : null;
+    $('#btnUndo').hidden = !j;
+    return j;
+  }
+  async function undoInplace() {
+    const j = await refreshUndo();
+    if (!j || document.body.classList.contains('busy')) return;
+    if (!(await ensurePermission(st.src, 'readwrite'))) return;
+    if (!await Ask.confirm(T('Das letzte Umsortieren in „{0}“ zurücknehmen?\n\nAlle Dateien kommen zurück an ihren alten Platz und bekommen ihren alten Namen. Duplikate kommen aus „{1}“ zurück.', st.src.name, T('_Duplikate')),
+      { title: T('Umsortieren zurücknehmen'), yes: T('Zurücknehmen') })) return;
+    st.abort = new AbortController();
+    busy(true);
+    showLog(true);
+    const byPath = new Map((st.items || []).map(i => [i.path, i]));
+    let r;
+    try { r = await Transfer.undo(st.src, j, (n, t) => status(T('Zurück an den alten Platz … {0} / {1}', n, t), n / t), st.abort.signal); }
+    catch (e) { log(T('Fehler: {0}', e.message), 'err'); status(T('Fehler: {0}', e.message)); busy(false); return; }
+    const msg = T('Zurückgenommen: {0} von {1} Dateien wieder am alten Platz, {2} Fehler.', r.back.length, r.total, r.errors);
+    log(msg, r.errors ? 'err' : '');
+    const moves = r.back.map(([from, to, mtime]) => ({ item: byPath.get(from), from, to, mtime })).filter(x => x.item);
+    remapState(new Map(r.back.map(([from, to]) => [from, to])));
+    st.faceCache = await Faces.carryCache(st.faceCache, st.src.name, moves, true);
+    await carryMeta(st.src.name, st.src.name, moves);
+    busy(false);
+    await scan();
+    status(msg);
   }
 
   function log(text, cls = '') {
@@ -696,7 +868,7 @@
   // Am Ende jedes Ribbons: Knopf zum naechsten Schritt
   function addNextButtons() {
     document.querySelectorAll('.grp.next').forEach(g => g.remove());
-    const names = { orte: 'Orte', events: 'Ereignisse', review: 'Prüfen', people: 'Personen', ziel: 'Ziel & Kopieren' };
+    const names = { orte: 'Orte', events: 'Ereignisse', review: 'Prüfen', people: 'Personen', ziel: 'Ausgabe' };
     TABS.forEach((t, i) => {
       const next = TABS[i + 1];
       if (!next) return;
@@ -874,17 +1046,18 @@
     sum.innerHTML = `
       <div class="cards">
         <div><b>${a.items.length - p.filtered}</b>${T('Dateien')}${p.filtered ? ` (${T('{0} gefiltert', p.filtered)})` : ''}</div>
-        <div><b>${p.ops.length}</b>${T('Kopien')}</div>
+        <div><b>${p.ops.length}</b>${{ move: T('Dateien im Ziel'), inplace: T('Dateien einsortieren'), '': T('Einträge in der Übersicht') }[st.s.outMode] || T('Kopien')}</div>
         <div><b>${fmtBytes(bytes)}</b>${T('Gesamt')}</div>
         <div><b>${a.withGps}</b>${T('mit GPS')}</div>
-        <div><b>${p.dups.length}</b>${T('Duplikate übersprungen')}</div>
+        <div><b>${p.dups.length}</b>${st.s.outMode === 'move' || st.s.outMode === 'inplace' ? T('Duplikate → {0}', T('_Duplikate')) : T('Duplikate übersprungen')}</div>
       </div>
       <div class="hint">${T('Kopien je Art')}: ${Object.entries(kinds).map(([k, n]) => `${esc(kindName(k))} ${n}`).join(' · ')}</div>
       <div class="hint">${T('Datum aus')}: ${Object.entries(srcCount).map(([k, n]) => `${esc(T(k))} ${n}`).join(' · ')}</div>`;
     const t = $('#previewTree');
     t.innerHTML = '';
     const root = Plan.tree(p.ops);
-    t.append(h('div', { class: 'tree-root' }, (st.dst ? st.dst.name : T('Ziel')) + '/'));
+    const rootName = st.s.outMode === 'inplace' ? st.src?.name : st.s.outMode ? st.dst?.name : null;
+    t.append(h('div', { class: 'tree-root' }, (rootName || T(st.s.outMode ? 'Ziel' : 'Übersicht')) + '/'));
     renderTreeLevel(t, root);
   }
 
@@ -1051,9 +1224,12 @@
     $('#btnSrc').onclick = pickSrc;
     $('#btnDst').onclick = pickDst;
     $('#btnScan').onclick = scan;
-    $('#btnCopy').onclick = $('#btnCopy2').onclick = copy;
-    $('#btnMapExport').onclick = saveMap;
-    $('#btnIndex').onclick = saveIndex;
+    $('#btnCopy').onclick = $('#btnRun').onclick = run;
+    $('#btnUndo').onclick = undoInplace;
+    // Modus: hoechstens einer; nochmal klicken = keiner (nur Übersicht)
+    document.querySelectorAll('[data-mode]').forEach(b => {
+      b.onclick = () => setSetting(Settings.byKey.outMode, st.s.outMode === b.dataset.mode ? '' : b.dataset.mode);
+    });
     $('#btnCancel').onclick = () => st.abort?.abort();
     $('#btnAddZone').onclick = () => { showTab('orte'); MapView.setAddMode(!MapView.addMode); };
     $('#btnFit').onclick = () => MapView.fitAll(st.analysis);
@@ -1098,7 +1274,7 @@
   }
 
   // Fuer Tests und Fehlersuche in der Browser-Konsole
-  window.Fotosortierer = { state: st, recompute, showTab, openProject, saveProject, setLang, kindsChanged, renderCats, fitAll: () => MapView.fitAll(st.analysis) };
+  window.Fotosortierer = { state: st, recompute, showTab, run, undoInplace, scan, openProject, saveProject, setLang, kindsChanged, renderCats, fitAll: () => MapView.fitAll(st.analysis) };
 
   start();
 })();

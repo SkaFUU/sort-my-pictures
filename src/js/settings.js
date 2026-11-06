@@ -46,8 +46,17 @@ const Settings = (() => {
       { key: 'videoWord', label: 'Wort für {TYP} bei Videos', type: 'text', def: 'Videos' },
       { key: 'dupSkip', label: 'Duplikate überspringen', type: 'bool', def: true,
         help: 'Gleiche Dateigröße und gleiches Aufnahmedatum gilt als Duplikat.' },
-      { key: 'mapExport', label: 'Fotoübersicht ins Ziel schreiben', type: 'bool', def: true,
-        help: 'Nach dem Kopieren entsteht im Ziel _fotos.html: Karte und Ordner zum Durchsuchen, auch offline und ohne dieses Programm. Vorschaubilder kommen in den Ordner _fotos.' },
+    ]},
+    // Schritt 6 (nur im Ribbon): was mit den Fotos passiert und welche Übersicht entsteht
+    { section: 'Ausgabe', items: [
+      { key: 'outMode', label: 'Fotos', type: 'select', def: 'copy',
+        options: [['', 'nichts (nur Übersicht)'], ['copy', 'Kopieren'], ['move', 'Verschieben'], ['inplace', 'In der Quelle umsortieren']] },
+      { key: 'outIndex', label: 'Index (Ordnerliste)', type: 'bool', def: true,
+        help: 'Schreibt _fotos.html mit der Ordneransicht: alle Fotos nach Ordnern zum Durchblättern, auch offline und ohne dieses Programm.' },
+      { key: 'outMap', label: 'Karte', type: 'bool', def: true,
+        help: 'Schreibt _fotos.html mit der Kartenansicht: Fotos nach Aufnahmeort. Sind Index und Karte an, steckt beides in derselben Datei.' },
+      { key: 'outThumbs', label: 'Vorschaubilder', type: 'bool', def: true,
+        help: 'Kleine Bilder (ca. 10–20 KB je Foto) im Ordner _fotos: die Übersicht blättert damit schnell. Aus: nur die eine Datei, sie lädt dann jedes Original (langsamer, vor allem übers Netzwerk).' },
     ]},
     { section: 'Wohnort', items: [
       { key: 'homeAuto', label: 'Automatisch erkennen', type: 'bool', def: true,
@@ -158,6 +167,9 @@ const Settings = (() => {
   function load() {
     let saved = {};
     try { saved = JSON.parse(localStorage.getItem(KEY) || '{}'); } catch { /* leer */ }
+    // frueher ein Schalter „Fotoübersicht ins Ziel“ fuer Index und Karte zusammen
+    if (saved.mapExport === false && !('outIndex' in saved)) saved.outIndex = saved.outMap = false;
+    delete saved.mapExport;
     return { ...defaults(), ...saved };
   }
   const save = s => localStorage.setItem(KEY, JSON.stringify(s));

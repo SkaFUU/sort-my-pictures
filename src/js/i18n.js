@@ -3,8 +3,8 @@
 const I18n = (() => {
   const EN = {
     // --- Oberflaeche: Register, Ribbon, Seitenleiste ---
-    'Quelle': 'Source', 'Orte': 'Places', 'Ereignisse': 'Events', 'Prüfen': 'Review', 'Personen': 'People', 'Ziel & Kopieren': 'Target & copy',
-    'Kopieren': 'Copy', 'Alle geplanten Kopien in den Zielordner schreiben': 'Write all planned copies to the target folder',
+    'Quelle': 'Source', 'Orte': 'Places', 'Ereignisse': 'Events', 'Prüfen': 'Review', 'Personen': 'People', 
+    'Kopieren': 'Copy', 
     'Ordner wählen': 'Choose folder','Einlesen': 'Scan', 'Dateien und Metadaten einlesen': 'Read files and metadata',
     'Dateien': 'Files', 'Exportieren': 'Export', 'Importieren': 'Import', 'Standard': 'Defaults', 'Einstellungen': 'Settings',
     'Einstellungen, Zonen und Änderungen als Datei speichern': 'Save settings, zones and changes to a file',
@@ -20,7 +20,7 @@ const I18n = (() => {
     'Reihenfolge': 'Order', 'unsichere zuerst': 'uncertain first', 'nach Datum': 'by date',
     'Gesichter erkennen': 'Detect faces', 'Läuft komplett lokal im Browser': 'Runs completely locally in the browser',
     'Namen zurücksetzen': 'Reset names', 'Erkennung (lokal)': 'Detection (local)', 'Ordner': 'Folder',
-    'Ziel wählen': 'Choose target', 'Ziel': 'Target', 'Struktur': 'Structure', 'Filter zurücksetzen': 'Reset filter',
+    'Ziel wählen': 'Choose target', 'Ziel': 'Target', 'Filter zurücksetzen': 'Reset filter',
     'Alle Filter zurücksetzen': 'Reset all filters', 'aktiv': 'active', 'Weiter: {0} {1}': 'Next: {0} {1}', 'Nächster Schritt': 'Next step',
     'Ort (bearbeitbar)': 'Place (editable)', 'Zeitraum': 'Period', 'Tage': 'Days', 'Davon Samstag/Sonntag': 'Of which Saturday/Sunday',
     'Sa/So': 'Sat/Sun', 'Bilder': 'Pictures', 'pro Tag': 'per day', 'Größte Entfernung von zu Hause': 'Greatest distance from home',
@@ -48,8 +48,7 @@ const I18n = (() => {
       '“Review” shows automatically assigned faces by date, with dividers between the years: ✓ confirms, ✕ removes wrong matches.',
     'Kann jederzeit abgebrochen werden, ein neuer Start setzt fort.': 'Can be cancelled at any time, starting again continues.',
     'Noch kein Zielordner gewählt.': 'No target folder chosen yet.',
-    'Es wird nur kopiert. Vorhandene Dateien werden nie überschrieben, ein zweiter Lauf überspringt sie.':
-      'Files are only copied. Existing files are never overwritten, a second run skips them.',
+    
     'Protokoll': 'Log', 'Protokoll anzeigen': 'Show log', 'Schließen': 'Close', 'Abbrechen': 'Cancel',
 
     // --- Status, Meldungen ---
@@ -193,18 +192,15 @@ const I18n = (() => {
       'Also show groups with only a few faces',
     'Bereits geprüfte Ereignisse überspringen':
       'Skip events that have already been reviewed',
-    'Es wird nichts kopiert oder verschoben. Es entsteht nur „{0}“ (Karte + Ordnerübersicht) mit Links auf die Originale.\n\nMit Vorschaubildern: zusätzlich kleine Bilder (ca. 10–20 KB je Foto) im Ordner „{1}“ – die Übersicht blättert damit schnell.\nOhne: nur die eine Datei, die Übersicht lädt dann jedes Original (langsamer, vor allem übers Netzwerk).\n\nDanach den Ordner wählen, in den die Übersicht kommt – am einfachsten der Quellordner selbst.':
-      'Nothing is copied or moved. Only “{0}” is created (map + folder overview) with links to the originals.\n\nWith thumbnails: additionally small pictures (about 10–20 KB per photo) in the folder “{1}” – the overview browses quickly with them.\nWithout: just the one file, the overview then loads every original (slower, especially over the network).\n\nThen choose the folder for the overview – easiest is the source folder itself.',
+    
     'Fertige ausblenden':
       'Hide finished',
     'Kleine Gruppen':
       'Small groups',
-    'Mit Vorschaubildern':
-      'With thumbnails',
+    
     'Mit „Fertig“ abgelegte Personen ganz ausblenden':
       'Hide people marked “Done” completely',
-    'Ohne Vorschaubilder':
-      'Without thumbnails',
+    
     'Schreibe Fotoübersicht …':
       'Writing photo overview …',
     'OK': 'OK',
@@ -315,17 +311,14 @@ const I18n = (() => {
     'Erstellt mit Sort My Pictures am {0}': 'Created with Sort My Pictures on {0}',
     'Ordner': 'Folders', '{0} Dateien': '{0} files', 'Verweist auf die Originale – nichts wurde kopiert.': 'Links to the originals – nothing was copied.',
     'Datei nicht gefunden – wurde das Original verschoben oder gelöscht?': 'File not found – was the original moved or deleted?',
-    'Im Ziel entsteht ein Protokoll <i>_protokoll_….csv</i> und eine Fotoübersicht <i>_fotos.html</i> (Karte + Ordner) zum Suchen nach Standort.':
-      'A log <i>_log_….csv</i> and a photo overview <i>_photos.html</i> (map + folders) for searching by location are written to the target.',
-    '<b>Verzeichnis ohne Kopieren</b> schreibt nur die Fotoübersicht mit Links auf die Originale – kein Speicherplatz doppelt belegt.':
-      '<b>Index without copying</b> writes only the photo overview with links to the originals – no storage used twice.',
-    'Fotoübersicht ins Ziel schreiben': 'Write a photo overview to the target',
-    'Nach dem Kopieren entsteht im Ziel _fotos.html: Karte und Ordner zum Durchsuchen, auch offline und ohne dieses Programm. Vorschaubilder kommen in den Ordner _fotos.':
-      'After copying, _photos.html is created in the target: map and folders to browse, also offline and without this program. Thumbnails go into the folder _photos.',
-    'Fotoübersicht (_fotos.html)': 'Photo overview (_photos.html)', 'Übersicht speichern': 'Save overview',
-    'Fotoübersicht (Karte + Ordner) mit den kopierten Fotos ins Ziel schreiben, ohne erneut zu kopieren': 'Write the photo overview (map + folders) of the copied photos to the target without copying again',
-    'Verzeichnis ohne Kopieren': 'Index without copying', 'Nur Links': 'Links only',
-    'Nichts kopieren: nur eine Fotoübersicht (Karte + Ordner) schreiben, die direkt auf die Originale verlinkt': 'Copy nothing: only write a photo overview (map + folders) that links directly to the originals',
+    
+    
+    
+    
+    
+    
+    
+    
     'Der gewählte Ordner liegt nicht neben der Quelle „{0}“.\nDamit die Links funktionieren, bitte den vollständigen Pfad der Quelle eingeben (aus der Adresszeile des Explorers kopieren):':
       'The chosen folder is not next to the source “{0}”.\nFor the links to work, please enter the full path of the source (copy it from the Explorer address bar):',
     'Schreibe Fotoübersicht … {0} / {1} Vorschaubilder': 'Writing photo overview … {0} / {1} thumbnails',
@@ -418,6 +411,70 @@ const I18n = (() => {
     // Sonderordner
     'Regeln „Muster => Ordner“': 'Rules “pattern => folder”', 'Eine Regel pro Zeile, Muster im Dateinamen (Text oder /RegEx/).': 'One rule per line, pattern in the file name (text or /RegEx/).',
     'Zusätzlich {REGEL} = Ordner der Regel.': 'Also {RULE} = folder of the rule.', 'Nicht zusätzlich im Monatsordner': 'Not additionally in the month folder',
+    // --- Schritt 6 Ausgabe ---
+    'Ausgabe': 'Output',
+    'Ausführen': 'Run',
+    'Optionen': 'Options',
+    'Start': 'Start',
+    'Übersicht': 'Overview',
+    'Index': 'Index',
+    'Vorschaubilder': 'Thumbnails',
+    'Verschieben': 'Move',
+    'Umsortieren': 'Reorganize',
+    'In Quelle umsortieren': 'Reorganize source',
+    'In der Quelle umsortieren': 'Reorganize in the source',
+    'Umsortieren zurücknehmen': 'Undo reorganizing',
+    'Zurücknehmen': 'Undo',
+    'Fotos (eines oder keines)': 'Photos (one or none)',
+    'Index (Ordnerliste)': 'Index (folder list)',
+    'nichts (nur Übersicht)': 'nothing (overview only)',
+    'Nur Übersicht': 'Overview only',
+    'Ordner wählen …': 'Choose folder …',
+    '{0} schreiben': 'Write {0}',
+    '_Duplikate': '_Duplicates',
+    'umsortiert': 'reorganized',
+    'verschoben': 'moved',
+    'zurück': 'restored',
+    'Dateien im Ziel': 'Files in target',
+    'Dateien einsortieren': 'Files to sort in',
+    'Einträge in der Übersicht': 'Entries in the overview',
+    'Duplikate → {0}': 'Duplicates → {0}',
+    'Fotos bleiben, wo sie sind': 'Photos stay where they are',
+    'Sortierte Kopien in einen Zielordner schreiben. Die Originale bleiben unverändert.': 'Write sorted copies to a target folder. The originals stay unchanged.',
+    'Sortiert in einen Zielordner bringen und danach in der Quelle entfernen. Jede Datei wird erst entfernt, wenn sie im Ziel geprüft ist.': 'Bring sorted into a target folder, then remove from the source. Each file is only removed after it has been verified in the target.',
+    'Die Quelle selbst umbenennen und in Ordner einsortieren – ohne Zielordner, ohne zusätzlichen Platz. Lässt sich zurücknehmen.': 'Rename and sort the source itself into folders – no target folder, no extra space. Can be undone.',
+    'Das letzte Umsortieren in diesem Ordner zurücknehmen: alle Dateien zurück an ihren alten Platz': 'Undo the last reorganizing in this folder: all files back to their old place',
+    'Wie „Start“ in Schritt 6: ausführen, was dort gewählt ist': 'Like “Start” in step 6: run what is selected there',
+    'Oben wählen, was mit den Fotos passiert – <b>Kopieren</b>, <b>Verschieben</b> oder <b>In Quelle umsortieren</b> – oder keines davon. Dazu unabhängig <b>Index</b> und/oder <b>Karte</b> als <i>_fotos.html</i>.': 'Choose above what happens to the photos – <b>Copy</b>, <b>Move</b> or <b>Reorganize source</b> – or none of them. Independently add <b>Index</b> and/or <b>Map</b> as <i>_photos.html</i>.',
+    'Vorhandene Dateien werden nie überschrieben, ein zweiter Lauf überspringt sie. Jeder Lauf schreibt ein Protokoll (_protokoll_….csv).': 'Existing files are never overwritten, a second run skips them. Every run writes a log (_log_….csv).',
+    'Schreibt _fotos.html mit der Ordneransicht: alle Fotos nach Ordnern zum Durchblättern, auch offline und ohne dieses Programm.': 'Writes _photos.html with the folder view: browse all photos by folder, offline and without this program.',
+    'Schreibt _fotos.html mit der Kartenansicht: Fotos nach Aufnahmeort. Sind Index und Karte an, steckt beides in derselben Datei.': 'Writes _photos.html with the map view: photos by location. With index and map on, both are in the same file.',
+    'Kleine Bilder (ca. 10–20 KB je Foto) im Ordner _fotos: die Übersicht blättert damit schnell. Aus: nur die eine Datei, sie lädt dann jedes Original (langsamer, vor allem übers Netzwerk).': 'Small images (about 10–20 KB per photo) in the _photos folder make the overview fast. Off: just the one file, which then loads every original (slower, especially over the network).',
+    'Keine Fotos mit Standort – statt einer leeren Karte wird der Index geschrieben.': 'No photos with location – writing the index instead of an empty map.',
+    'Die Fotos bleiben, wo sie sind. Es entsteht nur „{0}“ mit Links auf die Originale.\n\nIm nächsten Fenster den Ordner wählen, in den die Übersicht kommt – am einfachsten der Quellordner selbst.': 'The photos stay where they are. Only “{0}” is written, linking to the originals.\n\nIn the next window choose the folder for the overview – simplest is the source folder itself.',
+    'Ohne Schreibzugriff auf die Quelle kann nichts verschoben werden.': 'Without write access to the source nothing can be moved.',
+    'Ziel und Quelle dürfen beim Verschieben nicht ineinander liegen. Zum Sortieren innerhalb der Quelle „In Quelle umsortieren“ wählen.': 'For moving, target and source must not be inside each other. To sort within the source choose “Reorganize source”.',
+    '{0} Dateien ({1}) von „{2}“ nach „{3}“ verschieben?\n\nJede Datei wird erst in der Quelle entfernt, wenn sie im Ziel vollständig geprüft ist. Der Browser löscht ohne Papierkorb.\n{4} Duplikate kommen in den Ordner „{5}“ im Ziel.': 'Move {0} files ({1}) from “{2}” to “{3}”?\n\nEach file is only removed from the source after it has been fully verified in the target. The browser deletes without a recycle bin.\n{4} duplicates go to the folder “{5}” in the target.',
+    '{0} Dateien in „{1}“ umbenennen und in Ordner einsortieren?\n\n{2} Duplikate kommen in den Ordner „{3}“. Leer gewordene Ordner werden entfernt.\nMit „Umsortieren zurücknehmen“ kommt alles wieder an den alten Platz.\n\nAchtung: Programme und Verknüpfungen, die auf die alten Pfade zeigen (z. B. Lightroom), finden die Dateien danach nicht mehr.': 'Rename {0} files in “{1}” and sort them into folders?\n\n{2} duplicates go to the folder “{3}”. Folders that become empty are removed.\n“Undo reorganizing” puts everything back.\n\nNote: programs and shortcuts pointing to the old paths (e.g. Lightroom) will no longer find the files.',
+    'Das letzte Umsortieren in „{0}“ zurücknehmen?\n\nAlle Dateien kommen zurück an ihren alten Platz und bekommen ihren alten Namen. Duplikate kommen aus „{1}“ zurück.': 'Undo the last reorganizing in “{0}”?\n\nAll files go back to their old place and get their old name. Duplicates come back from “{1}”.',
+    '{0} gestartet: {1} Dateien': '{0} started: {1} files',
+    '{0} … {1} / {2} · {3}/s': '{0} … {1} / {2} · {3}/s',
+    '{0}: {1} verschoben, {2} zusätzliche Kopien, {3} übersprungen, {4} Duplikate abgelegt, {5} Fehler · Protokoll: {6}': '{0}: {1} moved, {2} extra copies, {3} skipped, {4} duplicates set aside, {5} errors · Log: {6}',
+    '{0} leere Ordner entfernt': '{0} empty folders removed',
+    'Gesichtsnamen und geprüfte Ereignisse mit ins Ziel genommen („{0}“).': 'Face names and reviewed events taken along to the target (“{0}”).',
+    'Zurück an den alten Platz … {0} / {1}': 'Back to the old place … {0} / {1}',
+    'Zurückgenommen: {0} von {1} Dateien wieder am alten Platz, {2} Fehler.': 'Undone: {0} of {1} files back at their old place, {2} errors.',
+    'Kopie stimmt nicht mit dem Original überein': 'Copy does not match the original',
+    'Name am Ziel schon belegt – Datei bleibt, wo sie ist': 'Name already taken at the target – file stays where it is',
+    'Duplikat von {0} – zum Prüfen abgelegt': 'Duplicate of {0} – set aside for checking',
+    'am alten Platz liegt schon eine Datei': 'a file already exists at the old place',
+    'kopiert – Original bleibt wegen eines Fehlers': 'copied – original kept because of an error',
+    'liegt schon richtig': 'already in place',
+    'war schon im Ziel – Original entfernt': 'was already in the target – original removed',
+    'Sortierte Kopien in den Zielordner. Die Originale bleiben unverändert.': 'Sorted copies in the target folder. The originals stay unchanged.',
+    'Sortiert in den Zielordner, danach in der Quelle entfernt – jede Datei erst, wenn sie im Ziel vollständig geprüft ist. Der Browser löscht ohne Papierkorb. Duplikate kommen in den Ordner „{0}“ im Ziel, Gesichtsnamen und geprüfte Ereignisse werden mitgenommen.': 'Sorted into the target folder, then removed from the source – each file only after it has been fully verified in the target. The browser deletes without a recycle bin. Duplicates go to the folder “{0}” in the target; face names and reviewed events are taken along.',
+    'Die Quelle selbst wird umbenannt und in Ordner einsortiert – ohne Zielordner und ohne zusätzlichen Platz. Jedes Foto bekommt genau einen Platz (Ereignis, sonst Sonderordner, sonst Monat), Personenordner entfallen. Duplikate kommen in den Ordner „{0}“. Programme, die auf die alten Pfade zeigen, finden die Dateien danach nicht mehr. „Umsortieren zurücknehmen“ bringt alles zurück.': 'The source itself is renamed and sorted into folders – no target folder, no extra space. Each photo gets exactly one place (event, else special folder, else month); person folders are skipped. Duplicates go to the folder “{0}”. Programs pointing to the old paths will no longer find the files. “Undo reorganizing” puts everything back.',
+    'Es wird nur die Übersicht geschrieben, mit Links auf die Originale. Beim Start wählst du den Ordner dafür – am einfachsten den Quellordner.': 'Only the overview is written, linking to the originals. On start you choose the folder for it – simplest is the source folder.',
   };
 
   const KEY = 'fotosortierer.lang';

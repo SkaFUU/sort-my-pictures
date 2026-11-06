@@ -2,7 +2,7 @@
 const Meta = (() => {
   const PHOTO = ['jpg', 'jpeg', 'heic', 'heif', 'png', 'tif', 'tiff', 'dng', 'webp'];
   const VIDEO = ['mp4', 'mov', 'm4v', '3gp'];
-  const SKIP_DIRS = ['_fotos', '_photos', '_karte', '_map'];
+  const SKIP_DIRS = ['_fotos', '_photos', '_karte', '_map', '_Duplikate', '_Duplicates'];
 
   // Ordner rekursiv auflisten
   async function listFiles(dirHandle, { recursive, exts }, onProgress) {

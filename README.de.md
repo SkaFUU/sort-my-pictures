@@ -4,7 +4,7 @@
 
 **➜ Direkt im Browser öffnen: https://skafuu.github.io/sort-my-pictures/**
 
-Sortiert Fotos und Videos lokal in eine Ordnerstruktur nach Jahr und Monat. Zusätzlich erkennt es anhand der GPS-Daten Urlaube, Ausflüge, Dienstreisen und eigene Kategorien. Es ist eine einzige HTML-Datei und läuft ohne Installation im Browser. Die Fotos verlassen dabei nie deinen Rechner.
+Sortiert Fotos und Videos lokal in eine Ordnerstruktur nach Jahr und Monat. Zusätzlich erkennt es anhand der GPS-Daten Urlaube, Ausflüge, Dienstreisen und eigene Kategorien. Es kopiert in einen Zielordner, verschiebt dorthin oder sortiert direkt im Ordner um. Es ist eine einzige HTML-Datei und läuft ohne Installation im Browser. Die Fotos verlassen dabei nie deinen Rechner.
 
 ```
 Ziel/
@@ -36,7 +36,7 @@ Die Oberfläche führt Schritt für Schritt durch die Register von links nach re
 3. **Ereignisse:** Ändere Art und Ortsname je Ereignis. Ein Klick auf eine Zeile zeigt die Bilder, dort lassen sich einzelne Bilder herausnehmen. Hier legst du auch **eigene Kategorien** an (siehe unten).
 4. **Prüfen:** Klicke die Ereignisse nacheinander durch, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `5`–`9` deine eigenen Kategorien. `Enter` übernimmt den Vorschlag, `←`/`→` blättert. **Neu prüfen** markiert alles wieder als ungeprüft (die Auswahl bleibt als Vorschlag), mit Rückfrage.
 5. **Personen** (optional): Lass die Gesichter erkennen und benenne die Gruppen, siehe [Gesichtserkennung](#gesichtserkennung).
-6. **Ziel & Kopieren:** Lege Ordnerstruktur, Dateinamen und Filter fest und prüfe den Ordnerbaum. Dann wählst du das **Ziel** und klickst **Kopieren**.
+6. **Ausgabe:** Lege Ordnerstruktur, Dateinamen und Filter fest und prüfe den Ordnerbaum. Wähle, was mit den Fotos passiert (siehe [Ausgabe](#ausgabe-kopieren-verschieben-umsortieren)), und klicke **Start**.
 
 Oben rechts schaltest du mit **DE | EN** die Sprache um. Beim ersten Start richtet sie sich nach dem Browser. Ordnernamen, die du nicht geändert hast, werden mit umgestellt (Urlaube → Holidays).
 
@@ -44,11 +44,28 @@ Ein Klick auf ein Bild (Vorschaubild, Kartenpunkt, Datei im Ordnerbaum) öffnet 
 
 Mit dem **Filter** wird nur ein Teil sortiert: nach Zeitraum, Uhrzeit (auch über Mitternacht), Wochentagen, Foto/Video, GPS, Zone, Kamera oder Personen.
 
-Die Originale werden nur gelesen. Vorhandene Dateien im Ziel werden nie überschrieben, ein zweiter Lauf überspringt sie.
+### Ausgabe: Kopieren, Verschieben, Umsortieren
+
+Oben wählst du **einen** von drei Modi oder keinen:
+
+| Modus | Was passiert | Originale |
+|---|---|---|
+| **Kopieren** (Standard) | sortierte Kopien in einen Zielordner | bleiben unverändert |
+| **Verschieben** | sortiert in den Zielordner, danach in der Quelle entfernt | werden entfernt |
+| **In Quelle umsortieren** | die Quelle selbst wird umbenannt und in Ordner einsortiert | werden umbenannt/verschoben |
+| keiner | nur die Übersicht, mit Links auf die Originale | bleiben unverändert |
+
+Unabhängig davon schaltest du **Index** (Ordnerliste), **Karte** und **Vorschaubilder** für die Übersicht `_fotos.html` ein oder aus.
+
+- Vorhandene Dateien werden nie überschrieben, ein zweiter Lauf überspringt sie. Jeder Lauf schreibt ein Protokoll `_protokoll_….csv`.
+- **Verschieben:** Jede Datei wird erst in der Quelle entfernt, wenn die Kopie im Ziel vollständig geprüft ist (Größe und Inhalt). Bei einem Fehler oder Abbruch bleibt das Original. Der Browser löscht **ohne Papierkorb**. Gesichtsnamen und geprüfte Ereignisse kommen als `_sortmypictures.json` mit ins Ziel.
+- **Umsortieren:** Jedes Foto bekommt genau einen Platz (Ereignis, sonst Sonderordner, sonst Monat), sonst lägen Kopien in der Quelle. Personenordner entfallen. Auf demselben Laufwerk ist das nur Umbenennen: schnell, kein zusätzlicher Platz, Änderungsdatum bleibt. Leer gewordene Ordner werden entfernt. Namen der Gesichter und Haken an Ereignissen werden auf die neuen Pfade umgeschrieben. **Umsortieren zurücknehmen** bringt alles zurück an den alten Platz. Programme oder Verknüpfungen, die auf die alten Pfade zeigen (z. B. Lightroom), finden die Dateien danach nicht mehr.
+- **Duplikate** werden beim Verschieben und Umsortieren nie gelöscht, sondern in den Ordner `_Duplikate` gelegt. Dort kannst du sie anschauen und selbst löschen.
+- Wo der Browser nicht direkt verschieben kann (z. B. auf manchen Netzlaufwerken), wird kopiert, geprüft und dann gelöscht. Das ist langsamer, aber genauso sicher. Das Änderungsdatum der Datei ist dann das von heute. Das Programm selbst richtet sich ohnehin nach dem Aufnahmedatum.
 
 ### Wo dein Stand gespeichert ist
 
-Der Stand liegt im Browser (IndexedDB/localStorage) **und** als kleine Datei `_sortmypictures.json` im Quellordner. Die Fotos selbst werden nie verändert, nur diese eine Datei wird geschrieben (dafür fragt der Browser einmal nach Schreibzugriff). Schließt du die Seite oder brichst ab, bleibt der Stand erhalten: Ordner wieder öffnen und **Einlesen** klicken. Mit einem anderen Browser oder PC wird der Stand aus der Datei übernommen; gilt immer der neuere. Ohne Schreibzugriff bleibt er nur im Browser.
+Der Stand liegt im Browser (IndexedDB/localStorage) **und** als kleine Datei `_sortmypictures.json` im Quellordner. Beim Einlesen und Sortieren werden die Fotos selbst nicht verändert, nur diese eine Datei wird geschrieben (außer du wählst in Schritt 6 Verschieben oder Umsortieren) (dafür fragt der Browser einmal nach Schreibzugriff). Schließt du die Seite oder brichst ab, bleibt der Stand erhalten: Ordner wieder öffnen und **Einlesen** klicken. Mit einem anderen Browser oder PC wird der Stand aus der Datei übernommen; gilt immer der neuere. Ohne Schreibzugriff bleibt er nur im Browser.
 
 - **Je Quellordner:** Namen der Gesichter, Änderungen und Haken an Ereignissen, fertige Personen. Öffnest du zwischendurch einen anderen Ordner, behält jeder seinen eigenen Stand. Der Ordner wird über seinen Zugriff erkannt, nicht nur über den Namen.
 - **Für alle Ordner:** Einstellungen, Zonen, gemerkte Personen, Ortsnamen, Ergebnisse der Gesichtserkennung.
@@ -56,7 +73,7 @@ Der Stand liegt im Browser (IndexedDB/localStorage) **und** als kleine Datei `_s
 
 ## Fotoübersicht: Karte und Ordner
 
-Nach dem Kopieren liegt im Ziel **`_fotos.html`**, abschaltbar unter „Fotoübersicht (_fotos.html)“. Mit **Übersicht speichern** lässt sie sich auch ohne erneutes Kopieren schreiben.
+Nach dem Kopieren oder Verschieben liegt im Ziel **`_fotos.html`**, nach dem Umsortieren in der Quelle. Mit **Index** und **Karte** in Schritt 6 wählst du, welche Ansichten sie enthält. Sind beide an, steckt beides in derselben Datei. Nachträglich schreiben: einfach noch einmal **Start**, schon kopierte Dateien werden übersprungen.
 
 - Doppelklick öffnet sie in jedem Browser, auch offline und ohne dieses Programm.
 - **Karte:** Alle Fotos mit Standort sind Punkte. Rechts stehen die Fotos des sichtbaren Ausschnitts: hineinzoomen = nach Ort suchen.
@@ -65,12 +82,12 @@ Nach dem Kopieren liegt im Ziel **`_fotos.html`**, abschaltbar unter „Fotoübe
 - Vorschaubilder liegen im Ordner `_fotos`, die Fotos selbst werden über relative Links geladen. Die Übersicht muss also neben den Fotos bleiben (der ganze Ordner darf verschoben werden).
 - Der Kartenhintergrund (🌐) lässt sich dort wählen: Straßenkarte, Satellit, Gelände oder keiner.
 
-### Verzeichnis ohne Kopieren
+### Nur Übersicht, ohne Kopieren
 
-Wer keinen Speicherplatz doppelt belegen will: **6 Ziel → Verzeichnis ohne Kopieren**. Dann wird nichts kopiert oder verschoben. Es entsteht nur `_fotos.html` mit Karte und der gewünschten Ordnerstruktur. Diese verlinkt direkt auf die Originale.
+Wer keinen Speicherplatz doppelt belegen will: In **6 Ausgabe** keinen Modus wählen, nur **Index** und/oder **Karte**, dann **Start**. Dann wird nichts kopiert oder verschoben. Es entsteht nur `_fotos.html` mit der gewünschten Ordnerstruktur und/oder Karte. Diese verlinkt direkt auf die Originale.
 
-- **Mit Vorschaubildern:** Zusätzlich kommen kleine Bilder (ca. 10–20 KB je Foto) in den Ordner `_fotos`. Damit blättert die Übersicht schnell.
-- **Ohne Vorschaubilder:** Es entsteht nur die eine Datei. Die Übersicht lädt dann jedes Original, das ist langsamer, vor allem übers Netzwerk.
+- **Vorschaubilder an:** Zusätzlich kommen kleine Bilder (ca. 10–20 KB je Foto) in den Ordner `_fotos`. Damit blättert die Übersicht schnell.
+- **Vorschaubilder aus:** Es entsteht nur die eine Datei. Die Übersicht lädt dann jedes Original, das ist langsamer, vor allem übers Netzwerk.
 
 - Am einfachsten legst du die Übersicht in den Quellordner selbst (oder in einen Ordner darüber). Dann sind die Links relativ und funktionieren auch, wenn der Ordner verschoben wird.
 - Liegt sie woanders, fragt das Programm nach dem vollständigen Pfad der Quelle (z. B. `D:\Fotos\Kamera`).

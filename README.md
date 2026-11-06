@@ -4,7 +4,7 @@
 
 **➜ Open it directly in your browser: https://skafuu.github.io/sort-my-pictures/**
 
-Sorts photos and videos locally into folders by year and month. It also uses the GPS data to detect holidays, day trips, business trips and your own custom categories. It is a single HTML file that runs in the browser without installation. Your photos never leave your computer.
+Sorts photos and videos locally into folders by year and month. It also uses the GPS data to detect holidays, day trips, business trips and your own custom categories. It copies into a target folder, moves there or reorganizes the folder in place. It is a single HTML file that runs in the browser without installation. Your photos never leave your computer.
 
 ```
 Target/
@@ -36,7 +36,7 @@ The interface guides you step by step through the tabs from left to right:
 3. **Events:** Change type and place name per event. Clicking a row shows its pictures, where you can take single pictures out. This is also where you create **custom categories** (see below).
 4. **Review:** Go through the events one by one, uncertain ones first. Keys `1`–`4` choose holiday, day trip, business trip or no folder, `5`–`9` your custom categories. `Enter` accepts the suggestion, `←`/`→` browse. **Review again** marks everything as not reviewed (your choices stay as suggestions), after asking.
 5. **People** (optional): Detect faces and name the groups, see [Face recognition](#face-recognition).
-6. **Target & copy:** Set folder structure, file names and filters, check the folder tree. Then choose the **target** and click **Copy**.
+6. **Output:** Set folder structure, file names and filters, check the folder tree. Choose what happens to the photos (see [Output](#output-copy-move-reorganize)) and click **Start**.
 
 Switch the language with **DE | EN** at the top right. On first start it follows the browser language. Folder names you have not changed are switched too (Urlaube → Holidays).
 
@@ -44,11 +44,28 @@ Clicking a picture (thumbnail, map point, file in the folder tree) opens the **v
 
 With the **filter** only part of the pictures is sorted: by period, time of day (also across midnight), weekdays, photo/video, GPS, zone, camera or people.
 
-Originals are only read. Existing files in the target are never overwritten, a second run skips them.
+### Output: copy, move, reorganize
+
+At the top you choose **one** of three modes, or none:
+
+| Mode | What happens | Originals |
+|---|---|---|
+| **Copy** (default) | sorted copies in a target folder | stay unchanged |
+| **Move** | sorted into the target folder, then removed from the source | are removed |
+| **Reorganize source** | the source itself is renamed and sorted into folders | are renamed/moved |
+| none | only the overview, linking to the originals | stay unchanged |
+
+Independently, switch **Index** (folder list), **Map** and **Thumbnails** for the overview `_photos.html` on or off.
+
+- Existing files are never overwritten, a second run skips them. Every run writes a log `_log_….csv`.
+- **Move:** each file is only removed from the source after its copy in the target has been fully verified (size and content). On an error or cancel the original stays. The browser deletes **without a recycle bin**. Face names and reviewed events go along to the target as `_sortmypictures.json`.
+- **Reorganize:** each photo gets exactly one place (event, else special folder, else month), otherwise there would be copies in the source. Person folders are skipped. On the same drive this is just renaming: fast, no extra space, modified date kept. Folders that become empty are removed. Face names and ticks on events are rewritten to the new paths. **Undo reorganizing** puts everything back. Programs or shortcuts pointing to the old paths (e.g. Lightroom) will no longer find the files.
+- **Duplicates** are never deleted when moving or reorganizing; they go to the folder `_Duplicates` where you can check and delete them yourself.
+- Where the browser cannot move directly (e.g. some network drives), files are copied, verified and then deleted. Slower, but just as safe. The file's modified date is then today's; the program itself goes by the date taken anyway.
 
 ### Where your progress is stored
 
-Your progress is stored in the browser (IndexedDB/localStorage) **and** as a small file `_sortmypictures.json` in the source folder. The photos themselves are never changed, only this one file is written (the browser asks once for write access). If you close the page or cancel, the state is kept: open the folder again and click **Scan**. With another browser or PC the progress is taken from the file; the newer one always wins. Without write access it stays in the browser only.
+Your progress is stored in the browser (IndexedDB/localStorage) **and** as a small file `_sortmypictures.json` in the source folder. Scanning and sorting never change the photos themselves, only this one file is written (unless you choose Move or Reorganize in step 6) (the browser asks once for write access). If you close the page or cancel, the state is kept: open the folder again and click **Scan**. With another browser or PC the progress is taken from the file; the newer one always wins. Without write access it stays in the browser only.
 
 - **Per source folder:** face names, changes and ticks on events, finished people. If you open another folder in between, each keeps its own state. The folder is recognised by its access, not just its name.
 - **For all folders:** settings, zones, remembered people, place names, face detection results.
@@ -56,7 +73,7 @@ Your progress is stored in the browser (IndexedDB/localStorage) **and** as a sma
 
 ## Photo overview: map and folders
 
-After copying, the target contains **`_photos.html`** (can be switched off with “Photo overview (_photos.html)”). **Save overview** writes it without copying again.
+After copying or moving, the target contains **`_photos.html`**; after reorganizing it is in the source. **Index** and **Map** in step 6 choose which views it contains; with both on, both are in the same file. To write it later just click **Start** again – files already copied are skipped.
 
 - Double-click opens it in any browser, also offline and without this program.
 - **Map:** all photos with a location are points. On the right you see the photos of the visible area: zoom in = search by place.
@@ -65,12 +82,12 @@ After copying, the target contains **`_photos.html`** (can be switched off with 
 - Thumbnails live in the folder `_photos`, the photos themselves are loaded via relative links. So the overview must stay next to the photos (the whole folder may be moved).
 - The map background (🌐) can be chosen there: street map, satellite, terrain or none.
 
-### Index without copying
+### Overview only, without copying
 
-If you don't want to use storage twice: **6 Target → Index without copying**. Nothing is copied or moved. Only `_photos.html` is written, with the map and the folder structure you set up. It links directly to the originals.
+If you don't want to use storage twice: in **6 Output** choose no mode, only **Index** and/or **Map**, then **Start**. Nothing is copied or moved. Only `_photos.html` is written, with the folder structure and/or map. It links directly to the originals.
 
-- **With thumbnails:** small pictures (about 10–20 KB per photo) are added in the folder `_photos`. The overview browses quickly with them.
-- **Without thumbnails:** just the one file. The overview then loads every original, which is slower, especially over the network.
+- **Thumbnails on:** small pictures (about 10–20 KB per photo) are added in the folder `_photos`. The overview browses quickly with them.
+- **Thumbnails off:** just the one file. The overview then loads every original, which is slower, especially over the network.
 
 - The easiest is to put the overview into the source folder itself (or a folder above it). Then the links are relative and keep working when the folder is moved.
 - If it goes somewhere else, the program asks for the full path of the source (e.g. `D:\Photos\Camera`).

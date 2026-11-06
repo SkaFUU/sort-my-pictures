@@ -32,8 +32,11 @@ const MapExport = (() => {
   // opts.linkBase: gesetzt = nichts wurde kopiert, Links gehen auf die Originale (linkBase + Pfad in der Quelle)
   async function write(root, plan, analysis, s, opts, onProgress, signal) {
     // opts.thumbs: false = keine Vorschaubilder schreiben, die Seite zeigt dann die Originale
-    const { failed = new Set(), linkBase = null, thumbs: withThumbs = true } = opts || {};
+    // opts.list / opts.map: Ordneransicht (Index) und Kartenansicht einzeln; opts.note: Hinweis „verweist auf die Originale“
+    // opts.at: Item -> relativer Pfad, an dem die Datei jetzt liegt (nach Verschieben/Umsortieren)
+    const { failed = new Set(), linkBase = null, thumbs: withThumbs = true, list: withList = true, map: withMap = true, at = null } = opts || {};
     const index = linkBase !== null;
+    const note = opts?.note ?? index;
     const folder = T('_fotos');
     const pageName = folder + '.html';
     // ein Eintrag je Bild; Link nach dem Kopieren bevorzugt in den Monatsordner
@@ -42,8 +45,10 @@ const MapExport = (() => {
     for (const op of plan.ops) {
       const rel = [...op.dir, op.name].join('/');
       if (failed.has(rel)) continue;
+      if (at && !at.has(op.item)) continue;
       const cur = byItem.get(op.item);
-      if (!cur || (op.kind === 'month' && cur.kind !== 'month')) byItem.set(op.item, { rel, kind: op.kind });
+      if (at) byItem.set(op.item, { rel: at.get(op.item), kind: op.kind });
+      else if (!cur || (op.kind === 'month' && cur.kind !== 'month')) byItem.set(op.item, { rel, kind: op.kind });
       const d = op.dir.join('/');
       if (!dirs.has(d)) dirs.set(d, []);
       dirs.get(d).push([op.item, op.name]);
@@ -65,7 +70,7 @@ const MapExport = (() => {
         let thumb = '';
         if (thumbs && !it.isVideo) {
           try {
-            if (!(await exists(thumbs, tname))) await writeFile(thumbs, tname, await thumbOf(await it.handle.getFile()));
+            if (!(await exists(thumbs, tname))) await writeFile(thumbs, tname, await thumbOf(await (opts.fileOf ? opts.fileOf(it) : it.handle.getFile())));
             thumb = enc(`${folder}/${tname}`);
           } catch { /* ohne Vorschau */ }
         }
@@ -81,14 +86,14 @@ const MapExport = (() => {
 
     const itemIdx = new Map(list.map(([it], i) => [it, i]));
     const data = {
-      lang: I18n.lang, title: T('Fotoübersicht'), created: Date.now(), index,
+      lang: I18n.lang, title: T('Fotoübersicht'), created: Date.now(), index: note, showMap: withMap, showList: withList,
       // Kartenhintergrund: die Seite wird meist als Datei geoeffnet – dort sperrt OpenStreetMap, daher Esri/OpenTopoMap
       tile: s.tiles ? (s.tileSrc && s.tileSrc !== 'auto' ? s.tileSrc : 'street') : '',
       srcs: Object.entries(MapView.TILE_SOURCES).map(([k, v]) => [k, T(TILE_LABELS[k]), v.url, v.max, v.attr()]),
       kinds: kinds.map(k => [k.id, k.label, k.color]),
       events: events.map(e => [e.place, kinds.findIndex(k => k.id === e.kind), e.start.getTime(), e.end.getTime()]),
       persons, items,
-      folders: [...dirs.entries()].sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }))
+      folders: !withList ? [] : [...dirs.entries()].sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }))
         .map(([d, fs]) => [d, fs.sort((a, b) => a[0].date - b[0].date).map(([it, name]) => [itemIdx.get(it), name])]),
       t: Object.fromEntries(['Alle Jahre', 'Alle Ereignisse', 'Alle Personen', 'Ohne Ereignis', '{0} Fotos im Kartenausschnitt', 'Ohne Kartenhintergrund',
         'Alle zeigen', 'Datei öffnen', 'Nur die ersten {0} – näher hineinzoomen.', 'Erstellt mit Sort My Pictures am {0}',
@@ -112,7 +117,7 @@ const MapExport = (() => {
 #app{display:flex;flex-direction:column;height:100%}
 header{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:6px 10px;background:var(--top)}
 header b{margin-right:6px}select,button{padding:5px 8px;border-radius:6px;border:1px solid #444;background:var(--bg);color:var(--fg);font:inherit;cursor:pointer}
-button.on{border-color:var(--tab);color:var(--tab)}.views{display:flex}.views button{border-radius:0}.views button:first-child{border-radius:6px 0 0 6px}.views button:last-child{border-radius:0 6px 6px 0;margin-left:-1px}
+button.on{border-color:var(--tab);color:var(--tab)}.views{display:flex}.views.one{display:none}.views button{border-radius:0}.views button:first-child{border-radius:6px 0 0 6px}.views button:last-child{border-radius:0 6px 6px 0;margin-left:-1px}
 .note{color:var(--muted);font-size:12px}
 .view{flex:1;display:flex;min-height:0}.view[hidden]{display:none}#map{flex:1;background:#202327}
 .no-tiles{background:#202327 repeating-linear-gradient(0deg,transparent 0 79px,#2a2e33 79px 80px),repeating-linear-gradient(90deg,transparent 0 79px,#2a2e33 79px 80px)!important}
@@ -167,8 +172,11 @@ function fig(p,cap,list){const f=document.createElement('figure');
  f.title=cap;f.onclick=()=>openLb(list,p);return f}
 
 // ---- Ansicht wechseln ----
-let view=localStorage.getItem('smp.view')||'map';if(!P.length)view='dir';
-$('#vmap').textContent='🗺 '+T('Karte');$('#vdir').textContent='📁 '+T('Ordner');if(!P.length)$('#vmap').hidden=true;
+// Index (Ordner) und Karte sind einzeln waehlbar; ohne Fotos mit Standort gibt es keine Karte
+const hasMap=D.showMap!==false&&P.length>0,hasDir=D.showList!==false||!hasMap;
+let view=localStorage.getItem('smp.view')||'map';if(!hasMap)view='dir';if(!hasDir)view='map';
+$('#vmap').textContent='🗺 '+T('Karte');$('#vdir').textContent='📁 '+T('Ordner');if(!hasMap)$('#vmap').hidden=true;if(!hasDir)$('#vdir').hidden=true;
+if(!hasMap||!hasDir)$('.views').classList.add('one');
 function setView(v){view=v;localStorage.setItem('smp.view',v);$('#mapview').hidden=v!=='map';$('#dirview').hidden=v!=='dir';
  $('#vmap').classList.toggle('on',v==='map');$('#vdir').classList.toggle('on',v==='dir');$('#tiles').hidden=$('#all').hidden=v!=='map';
  if(v==='map'){map.invalidateSize();if(!drawn)draw(true)}else showDir(curDir)}

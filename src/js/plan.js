@@ -80,6 +80,7 @@ const Plan = (() => {
     for (const ev of analysis.events) ev.passCount = ev.items.filter(i => passSet.has(i)).length;
     const ops = [];
     const taken = new Set();
+    const single = s.outMode === 'inplace';
     const rules = parseRules(s.rulesText);
     const ext = it => '.' + (s.lowerExt ? it.ext.toLowerCase() : it.name.split('.').pop());
 
@@ -117,6 +118,14 @@ const Plan = (() => {
       }
       const tokens = itemTokens(it, s);
       const rule = rules.find(r => r.re.test(it.name));
+      // In der Quelle umsortieren: jedes Foto bekommt genau einen Platz (Ereignis, sonst Sonderordner, sonst Monat),
+      // sonst laegen danach Kopien in der Quelle, die beim naechsten Einlesen als Duplikate auftauchen
+      if (single) {
+        if (it.event && evDir.has(it.event)) add(it, evDir.get(it.event), it.event.kind, it.event);
+        else if (rule) add(it, Util.templatePath(s.rulesTpl, { ...tokens, REGEL: rule.folder, RULE: rule.folder }), 'rule');
+        else if (s.monthFolders) add(it, Util.templatePath(s.monthTpl, tokens), 'month');
+        continue;
+      }
       if (rule) add(it, Util.templatePath(s.rulesTpl, { ...tokens, REGEL: rule.folder, RULE: rule.folder }), 'rule');
       if (s.monthFolders && !(rule && s.rulesExclusive)) add(it, Util.templatePath(s.monthTpl, tokens), 'month');
       if (it.event && evDir.has(it.event)) add(it, evDir.get(it.event), it.event.kind, it.event);
@@ -129,7 +138,7 @@ const Plan = (() => {
       if (!byItem.has(op.item.id)) byItem.set(op.item.id, []);
       byItem.get(op.item.id).push(op);
     }
-    return { ops, dups, evDir, byItem, filtered: analysis.items.length - passed.length };
+    return { ops, dups, evDir, byItem, single, filtered: analysis.items.length - passed.length };
   }
 
   // Baum fuer die Vorschau: { name, children: Map, files: [] }
