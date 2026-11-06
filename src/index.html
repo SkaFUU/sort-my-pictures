@@ -43,7 +43,6 @@
     <div id="qat">
       <span class="logo"><svg class="ic"><use href="#i-logo"/></svg></span>
       <span id="docTitle" data-noi18n>Sort My Pictures <span class="fld" id="srcName"></span></span>
-      <button id="btnCopy" class="qbtn primary" disabled title="Wie „Start“ in Schritt 6: ausführen, was dort gewählt ist"><svg class="ic"><use href="#i-check"/></svg><span class="qtxt" id="btnCopyText">Start</span></button>
       <span class="grow"></span>
       <span id="netState" class="net offline"></span>
       <div class="lang"><button data-lang="de" title="Deutsch">DE</button><button data-lang="en" title="English">EN</button></div>
@@ -126,8 +125,8 @@
       <!-- 5 Personen -->
       <div class="rpanel" data-tab="people">
         <div class="grp"><div class="gbody">
-          <button class="big c-face" id="btnFaces" title="Läuft komplett lokal im Browser"><svg class="ic"><use href="#i-faces"/></svg><span>Gesichter erkennen</span></button>
           <div class="stack">
+            <button class="big c-face" id="btnFaces" title="Fotos auf Gesichter untersuchen – nur neue oder noch nicht untersuchte, läuft komplett lokal im Browser"><svg class="ic"><use href="#i-faces"/></svg><span>Gesichter erkennen</span></button>
             <button class="big c-view" id="btnUndoNames" title="Letzte Zuordnung rückgängig machen (Strg+Z)"><svg class="ic"><use href="#i-prev"/></svg><span>Rückgängig</span></button>
             <button class="big c-del" id="btnFacesReset"><svg class="ic"><use href="#i-reset"/></svg><span>Namen zurücksetzen</span></button>
           </div>
@@ -159,10 +158,7 @@
           <button class="big c-ok" id="btnRun" disabled><svg class="ic"><use href="#i-check"/></svg><span id="btnRunText">Start</span></button>
           <button class="big c-del" id="btnUndo" hidden title="Das letzte Umsortieren in diesem Ordner zurücknehmen: alle Dateien zurück an ihren alten Platz"><svg class="ic"><use href="#i-reset"/></svg><span>Umsortieren zurücknehmen</span></button>
         </div><div class="gcap">Ausführen</div></div>
-        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="eventFolders,personFolders,dupSkip"></div></div><div class="gcap">Ordner</div></div>
-        <div class="grp"><div class="gbody">
-          <button class="big c-view" id="btnFilterReset" title="Alle Filter zurücksetzen"><svg class="ic"><use href="#i-filter"/></svg><span>Filter zurücksetzen</span></button>
-        </div><div class="gcap">Filter <span id="filterBadge" class="badge-filter" hidden>aktiv</span></div></div>
+        <div class="grp"><div class="gbody"><div class="gchecks stack" data-checks="eventFolders,personFolders,dupSkip"></div></div><div class="gcap">Ordner</div></div>
       </div>
     </div>
   </header>

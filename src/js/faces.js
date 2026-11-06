@@ -275,6 +275,8 @@ const Faces = (() => {
     return { cache, namesChanged };
   }
 
+  // Wie viele Fotos noch nicht auf Gesichter untersucht sind (neu, geaendert oder noch nie)
+  const pending = (items, cache) => items.filter(it => !it.isVideo && !cache?.[cacheKey(it)]).length;
   async function loadCache(rootName) {
     try { return (await Util.idb.get(dbKey(rootName))) || null; } catch { return null; }
   }
@@ -595,5 +597,5 @@ const Faces = (() => {
   // Gesichter eines Bildes (fuer die Bildansicht)
   const facesOf = (it, cache) => (cache && cache[cacheKey(it)]) || [];
 
-  return { VERSION, load, detect, scanAll, loadCache, carryCache, cluster, anomalies, facesOf, loadLib, saveLib, learn };
+  return { VERSION, load, detect, scanAll, pending, loadCache, carryCache, cluster, anomalies, facesOf, loadLib, saveLib, learn };
 })();

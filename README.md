@@ -35,7 +35,7 @@ The interface guides you step by step through the tabs from left to right:
 2. **Places:** Add zones on the map (Home, Everyday place, Work place, Named place). Optionally switch on place names from OpenStreetMap (🌐, they are fetched right away and after every scan) and a map background.
 3. **Events:** Change type and place name per event. Clicking a row shows its pictures, where you can take single pictures out. This is also where you create **custom categories** (see below).
 4. **Review:** Go through the events one by one, uncertain ones first. Keys `1`–`4` choose holiday, day trip, business trip or no folder, `5`–`9` your custom categories. `Enter` accepts the suggestion, `←`/`→` browse. **Review again** marks everything as not reviewed (your choices stay as suggestions), after asking.
-5. **People:** Detect faces and name the groups, see [Face recognition](#face-recognition).
+5. **People:** When you first open it, the app asks whether to start face recognition (afterwards only for new photos). Name the groups, see [Face recognition](#face-recognition).
 6. **Output:** Set folder structure, file names and filters, check the folder tree. Under **Folders** you turn event folders, person folders and skipping duplicates on or off. Choose what happens to the photos (see [Output](#output-copy-move-reorganize)) and click **Start**.
 
 Switch the language with **DE | EN** at the top right. On first start it follows the browser language. Folder names you have not changed are switched too (Urlaube → Holidays).

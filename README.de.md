@@ -35,7 +35,7 @@ Die Oberfläche führt Schritt für Schritt durch die Register von links nach re
 2. **Orte:** Lege auf der Karte Zonen an (Zuhause, Alltagsort, Dienstort, Benannter Ort). Optional schaltest du hier Ortsnamen von OpenStreetMap ein (🌐, sie werden gleich und nach jedem Einlesen geholt) und einen Kartenhintergrund.
 3. **Ereignisse:** Ändere Art und Ortsname je Ereignis. Ein Klick auf eine Zeile zeigt die Bilder, dort lassen sich einzelne Bilder herausnehmen. Hier legst du auch **eigene Kategorien** an (siehe unten).
 4. **Prüfen:** Klicke die Ereignisse nacheinander durch, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `5`–`9` deine eigenen Kategorien. `Enter` übernimmt den Vorschlag, `←`/`→` blättert. **Neu prüfen** markiert alles wieder als ungeprüft (die Auswahl bleibt als Vorschlag), mit Rückfrage.
-5. **Personen:** Lass die Gesichter erkennen und benenne die Gruppen, siehe [Gesichtserkennung](#gesichtserkennung).
+5. **Personen:** Beim ersten Öffnen fragt das Programm, ob die Gesichtserkennung starten soll (danach nur noch für neue Fotos). Benenne die Gruppen, siehe [Gesichtserkennung](#gesichtserkennung).
 6. **Ausgabe:** Lege Ordnerstruktur, Dateinamen und Filter fest und prüfe den Ordnerbaum. Unter **Ordner** schaltest du Ereignisordner, Personenordner und das Überspringen von Duplikaten ein oder aus. Wähle, was mit den Fotos passiert (siehe [Ausgabe](#ausgabe-kopieren-verschieben-umsortieren)), und klicke **Start**.
 
 Oben rechts schaltest du mit **DE | EN** die Sprache um. Beim ersten Start richtet sie sich nach dem Browser. Ordnernamen, die du nicht geändert hast, werden mit umgestellt (Urlaube → Holidays).

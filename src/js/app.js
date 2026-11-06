@@ -140,7 +140,7 @@
   function renderOut() {
     const m = st.s.outMode || '';
     document.querySelectorAll('[data-mode]').forEach(b => b.classList.toggle('on', b.dataset.mode === m));
-    $('#btnRunText').textContent = $('#btnCopyText').textContent = runLabel();
+    $('#btnRunText').textContent = runLabel();
     $('#btnDst').hidden = !(m === 'copy' || m === 'move');
     $('#dstName').hidden = $('#btnDst').hidden;
     document.querySelector('.tog[data-key="outThumbs"]')?.classList.toggle('dis', !wantOverview());
@@ -152,7 +152,7 @@
     renderOut();
     const b = document.body.classList.contains('busy');
     $('#btnScan').disabled = b || !st.src;
-    $('#btnCopy').disabled = $('#btnRun').disabled = b || !st.plan || !st.plan.ops.length || !(st.s.outMode || st.s.outIndex || st.s.outMap);
+    $('#btnRun').disabled = b || !st.plan || !st.plan.ops.length || !(st.s.outMode || st.s.outIndex || st.s.outMap);
     $('#btnUndo').disabled = b;
     for (const id of ['#btnSrc', '#btnDst', '#btnFaces']) $(id).disabled = b;
     document.querySelectorAll('[data-lang]').forEach(x => { x.disabled = b; });
@@ -201,10 +201,16 @@
             h('button', { onclick: async () => { if (await Ask.confirm(T('Gespeicherte Ortsnamen löschen?'))) { Geo.clear(); recompute(); } } }, T('Cache leeren')),
             h('span', { id: 'geoCacheInfo', class: 'hint' })));
         }
+        if (sec.section === 'Filter') {
+          body.prepend(h('div', { class: 'hint' }, T('Nur Fotos, die zu allen Filtern passen, kommen in die Ausgabe. Leer = kein Filter.')));
+          body.append(h('div', { class: 'row filter-reset', hidden: !filterActive() },
+            h('button', { onclick: resetFilter }, T('Filter zurücksetzen'))));
+        }
         const closed = ['Sonderordner', 'Bilder ohne GPS', 'Ortsnamen', 'Karte'].includes(sec.section) || (sec.section === 'Filter' && !filterActive());
         box.append(h('details', { class: 'sec', open: !closed, 'data-sec': sec.section },
           h('summary', {}, T(sec.section),
-            sec.online ? h('span', { class: 'badge-online', title: T('Nutzt das Internet') }, '🌐 online') : null),
+            sec.online ? h('span', { class: 'badge-online', title: T('Nutzt das Internet') }, '🌐 online') : null,
+            sec.section === 'Filter' ? h('span', { class: 'badge-filter filter-badge', hidden: !filterActive() }, T('aktiv')) : null),
           body));
       }
     }
@@ -300,18 +306,22 @@
 
   const FILTER_KEYS = Settings.SCHEMA.find(s => s.section === 'Filter').items.map(i => i.key);
   const filterActive = () => FILTER_KEYS.some(k => String(st.s[k]) !== String(Settings.byKey[k].def) && k !== 'filterZoneMode');
+  // Filter aktiv: Hinweis am Abschnitt „Filter“ in der Seitenleiste, Knopf zum Zuruecksetzen nur dann
+  function showFilterState() {
+    const on = filterActive();
+    document.querySelectorAll('.filter-badge, .filter-reset').forEach(e => { e.hidden = !on; });
+  }
   function resetFilter() {
     for (const k of FILTER_KEYS) st.s[k] = Settings.byKey[k].def;
     Settings.save(st.s);
     buildSettings();
     renderZoneSelect();
-    $('#filterBadge').hidden = true;
     recompute();
   }
 
   function onSettingChanged(it) {
     netState();
-    $('#filterBadge').hidden = !filterActive();
+    showFilterState();
     if (it.key.startsWith('out')) { if (it.key === 'outMode') recompute(); else updateButtons(); return; }
     if (it.level === 'map') { setTiles(); return; }
     if (it.level === 'faces') { status(T('Gilt für Fotos, die neu analysiert werden.')); return; }
@@ -502,11 +512,13 @@
       st.items = await Meta.scan(st.src, st.s, t => status(t, -1), st.abort.signal);
       st.faceCache = await Faces.loadCache(st.src.name);
       st.oldFaces = !st.faceCache && !!(await Util.idb.get('faces:' + st.src.name).catch(() => null));
+      st.facesAsked = false;
       busy(false);
       recompute();
       MapView.fitAll(st.analysis);
       log(T('Eingelesen: {0} Dateien aus „{1}“ in {2} s', st.items.length, st.src.name, ((Date.now() - t0) / 1000).toFixed(0)));
       refreshUndo();
+      if (curTab === 'people') offerFaces();
     } catch (e) { busy(false); status(T('Fehler beim Einlesen: {0}', e.message)); return; }
     if (st.s.geocode) geocode();
   }
@@ -523,6 +535,18 @@
   }
 
   // ---------------- Gesichter ----------------
+  // Beim Oeffnen von „Personen“: sind Fotos noch nicht untersucht, einmal je Einlesen fragen, ob die Erkennung starten soll
+  async function offerFaces() {
+    if (st.facesAsked || !st.items || document.body.classList.contains('busy')) return;
+    const n = Faces.pending(st.items, st.faceCache);
+    if (!n) return;
+    st.facesAsked = true;
+    const min = Math.max(1, Math.round(n / 800));
+    const text = st.faceCache && !st.oldFaces
+      ? T('{0} Fotos sind noch nicht auf Gesichter untersucht (neu dazugekommen oder Erkennung abgebrochen). Jetzt erkennen?\n\nLäuft komplett lokal, ca. {1} min.', n, min)
+      : T('Gesichter in {0} Fotos erkennen?\n\nLäuft komplett lokal und nutzt alle Prozessorkerne, ca. {1} min. Kann jederzeit abgebrochen und später fortgesetzt werden.', n, min);
+    if (await Ask.confirm(text, { title: T('Gesichtserkennung'), yes: T('Jetzt starten'), no: T('Später') })) scanFaces();
+  }
   async function scanFaces() {
     if (!st.items) {
       const t = st.src ? T('Zuerst in Schritt 1 „Einlesen“ klicken.') : T('Zuerst in Schritt 1 eine Quelle wählen und einlesen.');
@@ -864,7 +888,7 @@
     if (name !== 'orte' && MapView.addMode) MapView.setAddMode(false);
     mapHint();
     if (name === 'review') Review.render();
-    if (name === 'people') People.render();
+    if (name === 'people') { People.render(); offerFaces(); }
   }
   // Am Ende jedes Ribbons: Knopf zum naechsten Schritt
   function addNextButtons() {
@@ -1225,7 +1249,7 @@
     $('#btnSrc').onclick = pickSrc;
     $('#btnDst').onclick = pickDst;
     $('#btnScan').onclick = scan;
-    $('#btnCopy').onclick = $('#btnRun').onclick = run;
+    $('#btnRun').onclick = run;
     $('#btnUndo').onclick = undoInplace;
     // Modus: hoechstens einer; nochmal klicken = keiner (nur Übersicht)
     document.querySelectorAll('[data-mode]').forEach(b => {
@@ -1246,8 +1270,6 @@
     $('#btnReset').onclick = resetConfig;
     $('#btnResetOverrides').onclick = resetOverrides;
     $('#btnAddCat').onclick = () => addCat();
-    $('#btnFilterReset').onclick = resetFilter;
-    $('#filterBadge').hidden = !filterActive();
     $('#btnLog').onclick = () => showLog();
     $('#btnLogClose').onclick = () => showLog(false);
     document.querySelectorAll('[data-lang]').forEach(b => { b.onclick = () => setLang(b.dataset.lang); });

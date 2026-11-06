@@ -294,6 +294,8 @@ const People = (() => {
     const hidden = p.groups.filter(g => !g.name).length - unnamed.length;
     info.textContent = T('{0} Gesichter · {1} Personen benannt · {2} unbenannte Gruppen', p.faceCount, named.length, p.groups.length - named.length) +
       (hidden ? T(' ({0} kleine ausgeblendet)', hidden) : '') + (p.ignored ? T(' · {0} ignoriert', p.ignored) : '');
+    const todo = Faces.pending(app.st.items, app.st.faceCache);
+    if (todo) info.append(' · ', h('a', { href: '#', onclick: e => { e.preventDefault(); app.scanFaces(); } }, T('{0} Fotos noch nicht untersucht – jetzt erkennen', todo)));
 
     // Vorschlaege fuer Namen
     const dl = $('#personNames');
