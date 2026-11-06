@@ -874,8 +874,10 @@
 
   // ---------------- Start ----------------
   function setTiles() {
-    MapView.setTiles(st.s.tiles);
-    document.querySelectorAll('[data-tiles]').forEach(b => b.classList.toggle('sel', (b.dataset.tiles === '1') === !!st.s.tiles));
+    MapView.setTiles(st.s.tiles, st.s.tileSrc);
+    // Ribbon: Ohne / Karte (automatisch) / Satellit / Gelaende; andere Quellen aus der Seitenleiste markieren „Karte“
+    const cur = !st.s.tiles ? '' : ['sat', 'topo'].includes(st.s.tileSrc) ? st.s.tileSrc : 'auto';
+    document.querySelectorAll('[data-tiles]').forEach(b => b.classList.toggle('sel', b.dataset.tiles === cur));
   }
 
   // Seitenleiste: ein-/ausklappen und Breite ziehen (wird gemerkt)
@@ -941,7 +943,13 @@
     $('#btnCancel').onclick = () => st.abort?.abort();
     $('#btnAddZone').onclick = () => { showTab('orte'); MapView.setAddMode(!MapView.addMode); };
     $('#btnFit').onclick = () => MapView.fitAll(st.analysis);
-    document.querySelectorAll('[data-tiles]').forEach(b => { b.onclick = () => setSetting(Settings.byKey.tiles, b.dataset.tiles === '1'); });
+    document.querySelectorAll('[data-tiles]').forEach(b => {
+      b.onclick = () => {
+        const v = b.dataset.tiles;
+        if (v) setSetting(Settings.byKey.tileSrc, v);
+        setSetting(Settings.byKey.tiles, !!v);
+      };
+    });
     $('#btnGeocode').onclick = geocode;
     $('#btnExport').onclick = exportConfig;
     $('#btnImport').onclick = importConfig;

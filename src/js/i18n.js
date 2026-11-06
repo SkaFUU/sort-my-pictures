@@ -9,8 +9,9 @@ const I18n = (() => {
     'Dateien': 'Files', 'Exportieren': 'Export', 'Importieren': 'Import', 'Standard': 'Defaults', 'Einstellungen': 'Settings',
     'Einstellungen, Zonen und Änderungen als Datei speichern': 'Save settings, zones and changes to a file',
     'Zone setzen': 'Add zone', 'Danach auf die Karte klicken': 'Then click on the map', 'Alle zeigen': 'Show all', 'Zonen': 'Zones',
-    'Ohne Karte': 'No map', 'OpenStreet­Map 🌐': 'OpenStreet­Map 🌐', 'Kartenhintergrund': 'Map background',
-    'Lädt Kacheln von tile.openstreetmap.org': 'Loads tiles from tile.openstreetmap.org',
+    'Ohne Karte': 'No map', 'Karte 🌐': 'Map 🌐', 'Satellit 🌐': 'Satellite 🌐', 'Gelände 🌐': 'Terrain 🌐', 'Kartenhintergrund': 'Map background',
+    'OpenStreetMap auf der Webseite, Esri-Straßenkarte, wenn die Datei direkt geöffnet ist': 'OpenStreetMap on the website, Esri street map when the file is opened directly',
+    'Satellitenbild von Esri': 'Satellite image from Esri', 'Geländekarte von OpenTopoMap': 'Terrain map from OpenTopoMap',
     'Ortsnamen holen': 'Get place names', 'Ortsnamen holen 🌐': 'Get place names 🌐', 'Ortsnamen holen ({0})': 'Get place names ({0})',
     'Sendet einen Koordinatenpunkt pro Ereignis an nominatim.openstreetmap.org': 'Sends one coordinate point per event to nominatim.openstreetmap.org',
     'Erkennung': 'Detection', 'Erkennen': 'Detect', 'Art': 'Type', 'Alle': 'All', 'Jahr': 'Year', 'Alle Jahre': 'All years', 'Ort': 'Place',
@@ -272,7 +273,7 @@ const I18n = (() => {
 
     // --- Fotoübersicht (_fotos.html) ---
     '_fotos': '_photos', 'Fotoübersicht': 'Photo overview', 'Alle Ereignisse': 'All events', 'Alle Personen': 'All people',
-    'Ohne Ereignis': 'No event', '{0} Fotos im Kartenausschnitt': '{0} photos in the map area', 'Kartenhintergrund (online)': 'Map background (online)',
+    'Ohne Ereignis': 'No event', '{0} Fotos im Kartenausschnitt': '{0} photos in the map area', 'Ohne Kartenhintergrund': 'No map background',
     'Datei öffnen': 'Open file', 'Nur die ersten {0} – näher hineinzoomen.': 'Only the first {0} – zoom in closer.',
     'Erstellt mit Sort My Pictures am {0}': 'Created with Sort My Pictures on {0}',
     'Ordner': 'Folders', '{0} Dateien': '{0} files', 'Verweist auf die Originale – nichts wurde kopiert.': 'Links to the originals – nothing was copied.',
@@ -372,7 +373,11 @@ const I18n = (() => {
     'Sprache': 'Language', 'Heimatland (ohne Land im Namen)': 'Home country (no country in the name)',
     'So geschrieben, wie OpenStreetMap das Land in der gewählten Sprache nennt.': 'Spelled the way OpenStreetMap names the country in the chosen language.',
     'Ortsname im Ausland': 'Place name abroad', 'Ortsname im Heimatland': 'Place name in the home country', '{LAND} {REGION} {STADT}': '{COUNTRY} {REGION} {TOWN}',
-    'Lädt Kartenkacheln von tile.openstreetmap.org. Aus: nur Punkte auf leerem Hintergrund.': 'Loads map tiles from tile.openstreetmap.org. Off: only points on an empty background.',
+    'Lädt Kartenkacheln aus dem Internet. Aus: nur Punkte auf leerem Hintergrund.': 'Loads map tiles from the internet. Off: only points on an empty background.',
+    'Kartenquelle': 'Map source', 'Automatisch': 'Automatic', 'OpenStreetMap': 'OpenStreetMap',
+    'Straßenkarte (Esri)': 'Street map (Esri)', 'Satellit (Esri)': 'Satellite (Esri)', 'Gelände (OpenTopoMap)': 'Terrain (OpenTopoMap)',
+    'Automatisch: OpenStreetMap auf der Webseite, Esri-Straßenkarte, wenn die Datei direkt geöffnet ist (OpenStreetMap sperrt dort die Kacheln).':
+      'Automatic: OpenStreetMap on the website, Esri street map when the file is opened directly (OpenStreetMap blocks the tiles there).',
     // Sonderordner
     'Regeln „Muster => Ordner“': 'Rules “pattern => folder”', 'Eine Regel pro Zeile, Muster im Dateinamen (Text oder /RegEx/).': 'One rule per line, pattern in the file name (text or /RegEx/).',
     'Zusätzlich {REGEL} = Ordner der Regel.': 'Also {RULE} = folder of the rule.', 'Nicht zusätzlich im Monatsordner': 'Not additionally in the month folder',

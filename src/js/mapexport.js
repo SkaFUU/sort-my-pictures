@@ -3,6 +3,7 @@
 // Nach dem Kopieren verlinkt sie auf die Kopien, im Modus „Verzeichnis ohne Kopieren“ direkt auf die Originale.
 const MapExport = (() => {
   const THUMB = 240;  // Kantenlaenge der Vorschaubilder
+  const TILE_LABELS = { osm: 'OpenStreetMap', street: 'Straßenkarte (Esri)', sat: 'Satellit (Esri)', topo: 'Gelände (OpenTopoMap)' };
 
   const enc = path => path.split('/').map(encodeURIComponent).join('/');
 
@@ -80,13 +81,16 @@ const MapExport = (() => {
 
     const itemIdx = new Map(list.map(([it], i) => [it, i]));
     const data = {
-      lang: I18n.lang, title: T('Fotoübersicht'), created: Date.now(), tiles: !!s.tiles, index,
+      lang: I18n.lang, title: T('Fotoübersicht'), created: Date.now(), index,
+      // Kartenhintergrund: die Seite wird meist als Datei geoeffnet – dort sperrt OpenStreetMap, daher Esri/OpenTopoMap
+      tile: s.tiles ? (s.tileSrc && s.tileSrc !== 'auto' ? s.tileSrc : 'street') : '',
+      srcs: Object.entries(MapView.TILE_SOURCES).map(([k, v]) => [k, T(TILE_LABELS[k]), v.url, v.max, v.attr()]),
       kinds: kinds.map(k => [k.id, k.label, k.color]),
       events: events.map(e => [e.place, kinds.findIndex(k => k.id === e.kind), e.start.getTime(), e.end.getTime()]),
       persons, items,
       folders: [...dirs.entries()].sort((a, b) => a[0].localeCompare(b[0], undefined, { numeric: true }))
         .map(([d, fs]) => [d, fs.sort((a, b) => a[0].date - b[0].date).map(([it, name]) => [itemIdx.get(it), name])]),
-      t: Object.fromEntries(['Alle Jahre', 'Alle Ereignisse', 'Alle Personen', 'Ohne Ereignis', '{0} Fotos im Kartenausschnitt', 'Kartenhintergrund (online)',
+      t: Object.fromEntries(['Alle Jahre', 'Alle Ereignisse', 'Alle Personen', 'Ohne Ereignis', '{0} Fotos im Kartenausschnitt', 'Ohne Kartenhintergrund',
         'Alle zeigen', 'Datei öffnen', 'Nur die ersten {0} – näher hineinzoomen.', 'Erstellt mit Sort My Pictures am {0}',
         'Karte', 'Ordner', '{0} Dateien', 'Verweist auf die Originale – nichts wurde kopiert.',
         'Datei nicht gefunden – wurde das Original verschoben oder gelöscht?'].map(k => [k, T(k)])),
@@ -133,7 +137,7 @@ aside{width:340px;display:flex;flex-direction:column;border-left:1px solid var(-
 .leaflet-control-attribution{background:rgba(23,25,28,.7)!important;color:var(--muted)}.leaflet-control-attribution a{color:var(--tab)}
 @media(max-width:700px){.view{flex-direction:column}aside{width:auto;height:40%}#tree{width:auto;height:35%;border-right:0}}
 </style></head><body><div id="app">
-<header><b id="ttl"></b><span class="views"><button id="vmap"></button><button id="vdir"></button></span><select id="fy"></select><select id="fe"></select><select id="fp"></select><button id="tiles"></button><button id="all"></button><span class="note" id="note"></span></header>
+<header><b id="ttl"></b><span class="views"><button id="vmap"></button><button id="vdir"></button></span><select id="fy"></select><select id="fe"></select><select id="fp"></select><select id="tiles" title="🌐"></select><button id="all"></button><span class="note" id="note"></span></header>
 <div class="view" id="mapview"><div id="map" style="position:relative"><div id="legend"></div></div><aside><div class="info" id="info"></div><div class="grid" id="grid"></div></aside></div>
 <div class="view" id="dirview" hidden><div id="tree"></div><div id="fside"><div id="crumb"></div><div class="grid" id="fgrid"></div></div></div></div>
 <div id="lb"><div class="st"></div><div class="bar"><button id="lbp">‹</button><span id="lbt"></span><a id="lbo" target="_blank"></a><button id="lbn">›</button><button id="lbx">✕</button></div></div>
@@ -174,12 +178,14 @@ $('#vmap').onclick=()=>setView('map');$('#vdir').onclick=()=>setView('dir');
 $('#legend').innerHTML=D.kinds.map(k=>'<span><i style="background:'+k[2]+'"></i>'+esc(k[1])+'</span>').join('')+'<span><i style="background:#adb5bd"></i>'+T('Ohne Ereignis')+'</span>';
 const map=L.map('map',{preferCanvas:true,worldCopyJump:true});
 const canvas=L.canvas({padding:.3});let layer=L.layerGroup().addTo(map),tiles=null,drawn=false;
-let useTiles=localStorage.getItem('smp.tiles');useTiles=useTiles==null?D.tiles:useTiles==='1';
-function setTiles(on){useTiles=on;localStorage.setItem('smp.tiles',on?'1':'0');
- if(on&&!tiles)tiles=L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png',{maxZoom:19,attribution:'&copy; OpenStreetMap'}).addTo(map);
- if(!on&&tiles){map.removeLayer(tiles);tiles=null}
- map.getContainer().classList.toggle('no-tiles',!on);$('#tiles').textContent='🌐 '+T('Kartenhintergrund (online)');$('#tiles').classList.toggle('on',on)}
-$('#tiles').onclick=()=>setTiles(!useTiles);$('#all').textContent=T('Alle zeigen');
+// OpenStreetMap nur, wenn die Seite ueber http(s) kommt (als Datei geoeffnet sperrt OSM die Kacheln)
+const web=location.protocol.startsWith('http'),SRC=D.srcs.filter(s=>web||s[0]!=='osm');
+let tileSrc=localStorage.getItem('smp.src');if(tileSrc==null||(tileSrc&&!SRC.some(s=>s[0]===tileSrc)))tileSrc=D.tile;
+$('#tiles').innerHTML='<option value="">'+T('Ohne Kartenhintergrund')+'</option>'+SRC.map(s=>'<option value="'+s[0]+'">🌐 '+esc(s[1])+'</option>').join('');
+function setTiles(k){tileSrc=k;localStorage.setItem('smp.src',k);if(tiles){map.removeLayer(tiles);tiles=null}
+ const s=SRC.find(x=>x[0]===k);if(s)tiles=L.tileLayer(s[2],{maxZoom:19,maxNativeZoom:s[3],attribution:s[4]}).addTo(map);
+ map.getContainer().classList.toggle('no-tiles',!s);$('#tiles').value=s?k:''}
+$('#tiles').onchange=e=>setTiles(e.target.value);$('#all').textContent=T('Alle zeigen');
 let cur=[];
 function draw(fit){if(view!=='map')return;drawn=true;cur=P.filter(ok);layer.clearLayers();
  for(const p of cur)L.circleMarker([p.lat,p.lon],{renderer:canvas,radius:5,weight:1,color:'#000',opacity:.4,fillColor:col(p),fillOpacity:.85}).on('click',()=>openLb(inView(),p)).addTo(layer);
@@ -231,7 +237,7 @@ $('#lb .st').onclick=e=>{if(e.target===e.currentTarget)closeLb()};
 document.onkeydown=e=>{if(!$('#lb').classList.contains('on'))return;if(e.key==='Escape')closeLb();if(e.key==='ArrowLeft')$('#lbp').click();if(e.key==='ArrowRight')$('#lbn').click()};
 
 for(const id of ['#fy','#fe','#fp'])$(id).onchange=()=>{drawn=false;view==='map'?draw(true):showDir(curDir)};
-map.setView([48,13],5);setTiles(useTiles);
+map.setView([48,13],5);setTiles(tileSrc);
 map.attributionControl.addAttribution(esc(T('Erstellt mit Sort My Pictures am {0}',fd(D.created))));
 setView(view);
 </script></body></html>`;

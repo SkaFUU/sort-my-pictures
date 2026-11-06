@@ -25,12 +25,24 @@ const MapView = (() => {
   // eine gemeinsame Zeichenflaeche fuer Punkte, Kreise und Zonen (nicht bei jedem Neuberechnen eine weitere)
   const renderer = () => (pointCanvas ||= L.canvas({ padding: 0.3 }));
 
-  function setTiles(on) {
-    if (on && !tiles) {
-      tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        maxZoom: 19, attribution: '&copy; ' + T('OpenStreetMap-Mitwirkende'),
-      }).addTo(map);
-    } else if (!on && tiles) { map.removeLayer(tiles); tiles = null; }
+  // Kartenquellen. OpenStreetMap liefert nur mit Herkunftsangabe (Webseite), bei direkt geoeffneter Datei (file://)
+  // kommt „Access blocked“ – dann nimmt „auto“ die Esri-Strassenkarte.
+  const ESRI = 'https://server.arcgisonline.com/ArcGIS/rest/services/';
+  const TILE_SOURCES = {
+    osm: { url: 'https://tile.openstreetmap.org/{z}/{x}/{y}.png', max: 19, attr: () => '&copy; ' + T('OpenStreetMap-Mitwirkende') },
+    street: { url: ESRI + 'World_Street_Map/MapServer/tile/{z}/{y}/{x}', max: 19, attr: () => 'Tiles &copy; Esri' },
+    sat: { url: ESRI + 'World_Imagery/MapServer/tile/{z}/{y}/{x}', max: 19, attr: () => 'Tiles &copy; Esri, Maxar, Earthstar Geographics' },
+    topo: { url: 'https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', max: 17, attr: () => '&copy; ' + T('OpenStreetMap-Mitwirkende') + ', SRTM | &copy; OpenTopoMap (CC-BY-SA)' },
+  };
+  const tileKey = src => (!src || src === 'auto' ? (location.protocol.startsWith('http') ? 'osm' : 'street') : src);
+  function tileLayer(src) {
+    const t = TILE_SOURCES[tileKey(src)] || TILE_SOURCES.street;
+    return L.tileLayer(t.url, { maxZoom: t.max, maxNativeZoom: t.max, attribution: t.attr() });
+  }
+  let tilesSrc = null;
+  function setTiles(on, src = 'auto') {
+    if (tiles && (!on || tilesSrc !== tileKey(src))) { map.removeLayer(tiles); tiles = null; }
+    if (on && !tiles) { tiles = tileLayer(src).addTo(map); tilesSrc = tileKey(src); }
     map.getContainer().classList.toggle('no-tiles', !on);
   }
 
@@ -101,5 +113,5 @@ const MapView = (() => {
   const focus = (lat, lon, zoom = 12) => map.setView([lat, lon], zoom);
   const invalidate = () => map && map.invalidateSize();
 
-  return { init, setTiles, setAddMode, render, renderZones, fitAll, fitEvent, focus, invalidate, COLORS, color, ZONE_TYPES, ZONE_LABELS, ZONE_COLORS, get addMode() { return addMode; } };
+  return { init, setTiles, tileLayer, tileKey, TILE_SOURCES,setAddMode, render, renderZones, fitAll, fitEvent, focus, invalidate, COLORS, color, ZONE_TYPES, ZONE_LABELS, ZONE_COLORS, get addMode() { return addMode; } };
 })();

@@ -55,7 +55,7 @@ Nach dem Kopieren liegt im Ziel **`_fotos.html`**, abschaltbar unter „Fotoübe
 - **Ordner:** die sortierte Ordnerstruktur zum Durchklicken, mit Vorschaubildern und den neuen Dateinamen.
 - Filter nach Jahr, Ereignis und Person. Ein Klick öffnet die Großansicht, `←`/`→` blättert.
 - Vorschaubilder liegen im Ordner `_fotos`, die Fotos selbst werden über relative Links geladen. Die Übersicht muss also neben den Fotos bleiben (der ganze Ordner darf verschoben werden).
-- Der Kartenhintergrund (OpenStreetMap 🌐) lässt sich dort ein- und ausschalten.
+- Der Kartenhintergrund (🌐) lässt sich dort wählen: Straßenkarte, Satellit, Gelände oder keiner.
 
 ### Verzeichnis ohne Kopieren
 
@@ -132,7 +132,9 @@ Standardmäßig läuft alles **offline**. Zwei Funktionen nutzen das Internet. S
 | Funktion | Dienst | Was gesendet wird |
 |---|---|---|
 | Ortsnamen | nominatim.openstreetmap.org | ein Koordinatenpunkt pro Ereignis (max. 1/s, Ergebnis wird lokal gespeichert) |
-| Kartenhintergrund | tile.openstreetmap.org | Kartenausschnitt (welche Kacheln angezeigt werden) |
+| Kartenhintergrund | tile.openstreetmap.org, server.arcgisonline.com (Esri), tile.opentopomap.org | Kartenausschnitt (welche Kacheln angezeigt werden) |
+
+OpenStreetMap liefert Kacheln nur an die Webseite. Öffnest du die heruntergeladene HTML-Datei oder `_fotos.html` direkt, sperrt OpenStreetMap sie („Access blocked“). „Karte“ nimmt dann automatisch die Esri-Straßenkarte. Satellit (Esri) und Gelände (OpenTopoMap) sind ebenfalls wählbar.
 
 Ohne Ortsnamen bekommen Ordner die Koordinaten (`47.39N_13.72E`) oder den Namen einer Zone. Zonen vom Typ „Benannter Ort“ sind damit eine reine Offline-Alternative.
 

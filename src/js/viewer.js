@@ -108,8 +108,9 @@ const Viewer = (() => {
     const mapEl = root.querySelector('#vMap');
     mapEl.hidden = !it.hasGps;
     if (it.hasGps) {
-      if (app.st.s.tiles && !tiles) tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', { maxZoom: 19, attribution: '&copy; OpenStreetMap' }).addTo(map);
-      if (!app.st.s.tiles && tiles) { map.removeLayer(tiles); tiles = null; }
+      const src = MapView.tileKey(app.st.s.tileSrc);
+      if (tiles && (!app.st.s.tiles || tiles.src !== src)) { map.removeLayer(tiles); tiles = null; }
+      if (app.st.s.tiles && !tiles) { tiles = MapView.tileLayer(src).addTo(map); tiles.src = src; }
       mapEl.classList.toggle('no-tiles', !app.st.s.tiles);
       setTimeout(() => { map.invalidateSize(); map.setView([it.lat, it.lon], map.getZoom() || 12); marker.setLatLng([it.lat, it.lon]); }, 0);
     }

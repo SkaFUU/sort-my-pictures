@@ -55,7 +55,7 @@ After copying, the target contains **`_photos.html`** (can be switched off with 
 - **Folders:** the sorted folder structure to click through, with thumbnails and the new file names.
 - Filter by year, event and person. A click opens the large view, `←`/`→` browse.
 - Thumbnails live in the folder `_photos`, the photos themselves are loaded via relative links. So the overview must stay next to the photos (the whole folder may be moved).
-- The map background (OpenStreetMap 🌐) can be switched on and off there.
+- The map background (🌐) can be chosen there: street map, satellite, terrain or none.
 
 ### Index without copying
 
@@ -132,7 +132,9 @@ By default everything runs **offline**. Two features use the internet. They are 
 | Feature | Service | What is sent |
 |---|---|---|
 | Place names | nominatim.openstreetmap.org | one coordinate point per event (max. 1/s, result stored locally) |
-| Map background | tile.openstreetmap.org | the map area shown (which tiles are displayed) |
+| Map background | tile.openstreetmap.org, server.arcgisonline.com (Esri), tile.opentopomap.org | the map area shown (which tiles are displayed) |
+
+OpenStreetMap only delivers tiles to the website. When the downloaded HTML file or `_photos.html` is opened directly, OpenStreetMap blocks them (“Access blocked”), so “Map” then uses the Esri street map automatically. Satellite (Esri) and terrain (OpenTopoMap) can be chosen as well.
 
 Without place names, folders get the coordinates (`47.39N_13.72E`) or the name of a zone. Zones of type “Named place” are a purely offline alternative.
 

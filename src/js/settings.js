@@ -119,7 +119,10 @@ const Settings = (() => {
     ]},
     { section: 'Karte', online: true, items: [
       { key: 'tiles', label: 'Kartenhintergrund laden', type: 'bool', def: false, online: true, level: 'map',
-        help: 'Lädt Kartenkacheln von tile.openstreetmap.org. Aus: nur Punkte auf leerem Hintergrund.' },
+        help: 'Lädt Kartenkacheln aus dem Internet. Aus: nur Punkte auf leerem Hintergrund.' },
+      { key: 'tileSrc', label: 'Kartenquelle', type: 'select', def: 'auto', online: true, level: 'map', dep: 'tiles',
+        options: [['auto', 'Automatisch'], ['osm', 'OpenStreetMap'], ['street', 'Straßenkarte (Esri)'], ['sat', 'Satellit (Esri)'], ['topo', 'Gelände (OpenTopoMap)']],
+        help: 'Automatisch: OpenStreetMap auf der Webseite, Esri-Straßenkarte, wenn die Datei direkt geöffnet ist (OpenStreetMap sperrt dort die Kacheln).' },
     ]},
     { section: 'Sonderordner', items: [
       { key: 'rulesText', label: 'Regeln „Muster => Ordner“', type: 'area', def: 'Screenshot => Screenshots\n-WA0 => WhatsApp',
