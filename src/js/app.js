@@ -223,11 +223,11 @@
   }
   const RIBBON_LABELS = { recursive: 'Unterordner', includePhotos: 'Fotos', includeVideos: 'Videos', geocode: 'Ortsnamen (OSM)',
     homeAuto: 'Wohnort automatisch', autoDaily: 'Alltagsorte automatisch', vacEnabled: 'Urlaube', tripEnabled: 'Ausflüge',
-    workEnabled: 'Dienstreisen', personFolders: 'Personenordner anlegen', monthFolders: 'Monatsordner', dupSkip: 'Duplikate überspringen', lowerExt: 'Endung klein',
+    workEnabled: 'Dienstreisen', personFolders: 'Personenordner', eventFolders: 'Ereignisordner', monthFolders: 'Monatsordner', dupSkip: 'Duplikate überspringen', lowerExt: 'Endung klein',
     outIndex: 'Index', outMap: 'Karte', outThumbs: 'Vorschaubilder' };
   const ribbonLabel = it => T(RIBBON_LABELS[it.key] || it.label);
   const RIBBON_ICONS = { vacEnabled: ['i-vac', 'c-vac'], tripEnabled: ['i-trip', 'c-trip'], workEnabled: ['i-work', 'c-work'],
-    personFolders: ['i-faces', 'c-face'], monthFolders: ['i-folder', 'c-file'], dupSkip: ['i-copy', 'c-view'], lowerExt: ['i-tag', 'c-view'],
+    personFolders: ['i-faces', 'c-face'], eventFolders: ['i-vac', 'c-vac'], monthFolders: ['i-folder', 'c-file'], dupSkip: ['i-copy', 'c-view'], lowerExt: ['i-tag', 'c-view'],
     outIndex: ['i-grid', 'c-view'], outMap: ['i-map', 'c-zone'], outThumbs: ['i-pin', 'c-view'] };
   // Ein-/Aus-Schalter im Ribbon: grosser Knopf mit Symbol, eingeschaltet = hinterlegt (das Kaestchen ist unsichtbar)
   function toggleBtn(cb, ic, cls, text, title = '', key = null) {

@@ -10,10 +10,10 @@ Sorts photos and videos locally into folders by year and month. It also uses the
 Target/
   2023/
     06_June/21_14-32-08.jpg                          ← all pictures and videos
-    Holidays/06_June_Italy_Lignano/20_10-32-32.jpg   ← additionally as a copy
+    Holidays/06_June_Italy_Lignano/20_10-32-32.jpg   ← additionally as a copy (can be turned off)
     Day trips/05_May_Vienna/…
     Business trips/01_January_Linz/…
-    People/Anna/…                                    ← optional, via face recognition
+    People/Anna/…                                    ← if you want, via face recognition
   _photos.html                                     ← photo overview: map + folders to search
   _log_2026-11-04_12-00-00.csv
 ```
@@ -31,12 +31,12 @@ The interface guides you step by step through the tabs from left to right:
 - **Next** takes you to the next step.
 - Finished steps get a ✓.
 
-1. **Source:** Share a drive or your main folder once, then pick subfolders directly in the **folder tree** in the side panel (● = saved progress available). Or choose a folder (network drives work too) and click **Scan**. Copy photos from a phone to the PC first, e.g. with a USB cable in Explorer. Date taken and GPS come from EXIF or from the MP4/MOV metadata.
+1. **Source:** Share a drive or your main folder once, then pick subfolders directly in the **folder tree** in the side panel (● = saved progress available). The folder tree is only shown in this step. Or choose a folder (network drives work too) and click **Scan**. Copy photos from a phone to the PC first, e.g. with a USB cable in Explorer. Date taken and GPS come from EXIF or from the MP4/MOV metadata.
 2. **Places:** Add zones on the map (Home, Everyday place, Work place, Named place). Optionally switch on place names from OpenStreetMap (🌐, they are fetched right away and after every scan) and a map background.
 3. **Events:** Change type and place name per event. Clicking a row shows its pictures, where you can take single pictures out. This is also where you create **custom categories** (see below).
 4. **Review:** Go through the events one by one, uncertain ones first. Keys `1`–`4` choose holiday, day trip, business trip or no folder, `5`–`9` your custom categories. `Enter` accepts the suggestion, `←`/`→` browse. **Review again** marks everything as not reviewed (your choices stay as suggestions), after asking.
-5. **People** (optional): Detect faces and name the groups, see [Face recognition](#face-recognition).
-6. **Output:** Set folder structure, file names and filters, check the folder tree. Choose what happens to the photos (see [Output](#output-copy-move-reorganize)) and click **Start**.
+5. **People:** Detect faces and name the groups, see [Face recognition](#face-recognition).
+6. **Output:** Set folder structure, file names and filters, check the folder tree. Under **Folders** you turn event folders, person folders and skipping duplicates on or off. Choose what happens to the photos (see [Output](#output-copy-move-reorganize)) and click **Start**.
 
 Switch the language with **DE | EN** at the top right. On first start it follows the browser language. Folder names you have not changed are switched too (Urlaube → Holidays).
 

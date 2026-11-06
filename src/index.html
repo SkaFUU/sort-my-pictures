@@ -53,7 +53,7 @@
       <button data-tab="orte"><span class="step">2</span>Orte</button>
       <button data-tab="events"><span class="step">3</span>Ereignisse <span id="cntEvents" class="pill"></span></button>
       <button data-tab="review"><span class="step">4</span>Prüfen <span id="cntReview" class="pill pill-open"></span></button>
-      <button data-tab="people"><span class="step">5</span>Personen <i class="opt">optional</i></button>
+      <button data-tab="people"><span class="step">5</span>Personen</button>
       <button data-tab="ziel"><span class="step">6</span>Ausgabe</button>
     </nav>
     <div id="ribbon">
@@ -127,21 +127,24 @@
       <div class="rpanel" data-tab="people">
         <div class="grp"><div class="gbody">
           <button class="big c-face" id="btnFaces" title="Läuft komplett lokal im Browser"><svg class="ic"><use href="#i-faces"/></svg><span>Gesichter erkennen</span></button>
-          <button class="big c-view" id="btnUndoNames" title="Letzte Zuordnung rückgängig machen (Strg+Z)"><svg class="ic"><use href="#i-prev"/></svg><span>Rückgängig</span></button>
-          <button class="big c-del" id="btnFacesReset"><svg class="ic"><use href="#i-reset"/></svg><span>Namen zurücksetzen</span></button>
+          <div class="stack">
+            <button class="big c-view" id="btnUndoNames" title="Letzte Zuordnung rückgängig machen (Strg+Z)"><svg class="ic"><use href="#i-prev"/></svg><span>Rückgängig</span></button>
+            <button class="big c-del" id="btnFacesReset"><svg class="ic"><use href="#i-reset"/></svg><span>Namen zurücksetzen</span></button>
+          </div>
         </div><div class="gcap">Erkennung (lokal)</div></div>
         <div class="grp"><div class="gbody">
           <button class="big c-ok" id="btnQuiz" title="Ein Gesicht nach dem anderen: „Wer ist das?“ mit Vorschlag – ähnliche werden nach jeder Antwort automatisch mit zugeordnet"><svg class="ic"><use href="#i-faces"/></svg><span>Schnell zuordnen</span></button>
-          <button class="big c-view" id="btnRecheck" title="Alle nicht bestätigten Gesichter mit dem Wissen aus den bisher zugeordneten neu vergleichen"><svg class="ic"><use href="#i-scan"/></svg><span>Erneut prüfen</span></button>
-          <button class="big c-ok" id="btnLearn" title="Benannte Personen merken: sie werden dann auch in anderen Ordnern wiedererkannt (nur Merkmale, keine Bilder)"><svg class="ic"><use href="#i-check"/></svg><span>Personen merken</span></button>
-          <button class="big c-del" id="btnForget" title="Alle gemerkten Personen löschen"><svg class="ic"><use href="#i-trash"/></svg><span>Gemerkte löschen</span></button>
+          <div class="stack">
+            <button class="big c-view" id="btnRecheck" title="Alle nicht bestätigten Gesichter mit dem Wissen aus den bisher zugeordneten neu vergleichen"><svg class="ic"><use href="#i-scan"/></svg><span>Erneut prüfen</span></button>
+            <button class="big c-ok" id="btnLearn" title="Benannte Personen merken: sie werden dann auch in anderen Ordnern wiedererkannt (nur Merkmale, keine Bilder)"><svg class="ic"><use href="#i-check"/></svg><span>Personen merken</span></button>
+            <button class="big c-del" id="btnForget" title="Alle gemerkten Personen löschen"><svg class="ic"><use href="#i-trash"/></svg><span>Gemerkte löschen</span></button>
+          </div>
         </div><div class="gcap">Lernen <span id="libInfo" data-noi18n></span></div></div>
-        <div class="grp"><div class="gbody">
+        <div class="grp"><div class="gbody"><div class="stack">
           <label class="big tog c-view" data-icon="i-grid" title="Auch Gruppen mit nur wenigen Gesichtern anzeigen"><input id="pplSmall" type="checkbox">Kleine Gruppen</label>
           <label class="big tog c-ok" data-icon="i-check" title="Mit „Fertig“ abgelegte Personen ganz ausblenden"><input id="pplHideDone" type="checkbox">Fertige ausblenden</label>
           <label class="big tog c-del" data-icon="i-cancel" title="Als fremd oder „kein Gesicht“ markierte Gesichter zeigen – daraus lassen sich neue Personen machen"><input id="pplShowIg" type="checkbox">Ignorierte zeigen</label>
-        </div><div class="gcap">Anzeigen</div></div>
-        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="personFolders"></div></div><div class="gcap">Ordner</div></div>
+        </div></div><div class="gcap">Anzeigen</div></div>
       </div>
       <!-- 6 Ziel -->
       <div class="rpanel" data-tab="ziel">
@@ -156,7 +159,7 @@
           <button class="big c-ok" id="btnRun" disabled><svg class="ic"><use href="#i-check"/></svg><span id="btnRunText">Start</span></button>
           <button class="big c-del" id="btnUndo" hidden title="Das letzte Umsortieren in diesem Ordner zurücknehmen: alle Dateien zurück an ihren alten Platz"><svg class="ic"><use href="#i-reset"/></svg><span>Umsortieren zurücknehmen</span></button>
         </div><div class="gcap">Ausführen</div></div>
-        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="dupSkip,personFolders"></div></div><div class="gcap">Optionen</div></div>
+        <div class="grp"><div class="gbody"><div class="gchecks" data-checks="eventFolders,personFolders,dupSkip"></div></div><div class="gcap">Ordner</div></div>
         <div class="grp"><div class="gbody">
           <button class="big c-view" id="btnFilterReset" title="Alle Filter zurücksetzen"><svg class="ic"><use href="#i-filter"/></svg><span>Filter zurücksetzen</span></button>
         </div><div class="gcap">Filter <span id="filterBadge" class="badge-filter" hidden>aktiv</span></div></div>

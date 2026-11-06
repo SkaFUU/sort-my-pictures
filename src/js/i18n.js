@@ -414,8 +414,7 @@ const I18n = (() => {
     // --- Schritt 6 Ausgabe ---
     'Ausgabe': 'Output',
     'Ausführen': 'Run',
-    'Optionen': 'Options',
-    'Start': 'Start',
+        'Start': 'Start',
     'Übersicht': 'Overview',
     'Index': 'Index',
     'Vorschaubilder': 'Thumbnails',
@@ -479,6 +478,9 @@ const I18n = (() => {
     'Dazu kommen {0} Kopien in Personenordner (die Fotos bleiben dabei an ihrem einen Platz).': 'Plus {0} copies in person folders (the photos themselves stay in their one place).',
     'Kopie wurde verändert – bleibt': 'Copy was changed – kept',
     'Kopie entfernt': 'Copy removed',
+    'Ereignisordner': 'Event folders',
+    'Ereignisordner anlegen': 'Create event folders',
+    'Urlaube, Ausflüge, Dienstreisen und eigene Kategorien bekommen eigene Ordner. Aus: die Ereignisse werden nur angezeigt, die Fotos landen in den Monatsordnern.': 'Holidays, day trips, business trips and custom categories get their own folders. Off: events are only shown, the photos go to the month folders.',
   };
 
   const KEY = 'fotosortierer.lang';

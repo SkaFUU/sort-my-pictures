@@ -98,7 +98,7 @@ const Plan = (() => {
     const evDir = new Map();
     const usedEv = new Set();
     for (const ev of analysis.events) {
-      if (ev.kind === 'none' || !ev.passCount) continue;
+      if (!s.eventFolders || ev.kind === 'none' || !ev.passCount) continue;
       const dir = Util.templatePath(s.eventTpl, eventTokens(ev, s));
       let key = dir.join('/').toLowerCase(), n = 2;
       const last = dir[dir.length - 1];

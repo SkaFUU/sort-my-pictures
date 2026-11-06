@@ -10,10 +10,10 @@ Sortiert Fotos und Videos lokal in eine Ordnerstruktur nach Jahr und Monat. Zus�
 Ziel/
   2023/
     06_Juni/21_14-32-08.jpg                        ← alle Bilder und Videos
-    Urlaube/06_Juni_Italien_Lignano/20_10-32-32.jpg ← zusätzlich als Kopie
+    Urlaube/06_Juni_Italien_Lignano/20_10-32-32.jpg ← zusätzlich als Kopie (abschaltbar)
     Ausflüge/05_Mai_Wien/…
     Dienstreisen/01_Jänner_Linz/…
-    Personen/Anna/…                                ← optional, per Gesichtserkennung
+    Personen/Anna/…                                ← auf Wunsch, per Gesichtserkennung
   _fotos.html                                      ← Fotoübersicht: Karte + Ordner zum Suchen
   _protokoll_2026-11-04_12-00-00.csv
 ```
@@ -31,12 +31,12 @@ Die Oberfläche führt Schritt für Schritt durch die Register von links nach re
 - **Weiter** führt zum nächsten Schritt.
 - Erledigte Schritte bekommen ein ✓.
 
-1. **Quelle:** Gib einmal ein Laufwerk oder deinen Hauptordner frei, dann wählst du die Unterordner direkt im **Ordnerbaum** in der Seitenleiste (● = gespeicherter Stand vorhanden). Oder wähle einen Ordner (auch Netzlaufwerk) und klicke auf **Einlesen**. Fotos vom Handy vorher auf den PC kopieren, z. B. per USB-Kabel im Explorer. Aufnahmedatum und GPS kommen aus EXIF bzw. aus den MP4/MOV-Metadaten.
+1. **Quelle:** Gib einmal ein Laufwerk oder deinen Hauptordner frei, dann wählst du die Unterordner direkt im **Ordnerbaum** in der Seitenleiste (● = gespeicherter Stand vorhanden). Der Ordnerbaum ist nur in diesem Schritt zu sehen. Oder wähle einen Ordner (auch Netzlaufwerk) und klicke auf **Einlesen**. Fotos vom Handy vorher auf den PC kopieren, z. B. per USB-Kabel im Explorer. Aufnahmedatum und GPS kommen aus EXIF bzw. aus den MP4/MOV-Metadaten.
 2. **Orte:** Lege auf der Karte Zonen an (Zuhause, Alltagsort, Dienstort, Benannter Ort). Optional schaltest du hier Ortsnamen von OpenStreetMap ein (🌐, sie werden gleich und nach jedem Einlesen geholt) und einen Kartenhintergrund.
 3. **Ereignisse:** Ändere Art und Ortsname je Ereignis. Ein Klick auf eine Zeile zeigt die Bilder, dort lassen sich einzelne Bilder herausnehmen. Hier legst du auch **eigene Kategorien** an (siehe unten).
 4. **Prüfen:** Klicke die Ereignisse nacheinander durch, die unsicheren zuerst. Mit den Tasten `1`–`4` wählst du Urlaub, Ausflug, Dienstreise oder keinen Ordner, `5`–`9` deine eigenen Kategorien. `Enter` übernimmt den Vorschlag, `←`/`→` blättert. **Neu prüfen** markiert alles wieder als ungeprüft (die Auswahl bleibt als Vorschlag), mit Rückfrage.
-5. **Personen** (optional): Lass die Gesichter erkennen und benenne die Gruppen, siehe [Gesichtserkennung](#gesichtserkennung).
-6. **Ausgabe:** Lege Ordnerstruktur, Dateinamen und Filter fest und prüfe den Ordnerbaum. Wähle, was mit den Fotos passiert (siehe [Ausgabe](#ausgabe-kopieren-verschieben-umsortieren)), und klicke **Start**.
+5. **Personen:** Lass die Gesichter erkennen und benenne die Gruppen, siehe [Gesichtserkennung](#gesichtserkennung).
+6. **Ausgabe:** Lege Ordnerstruktur, Dateinamen und Filter fest und prüfe den Ordnerbaum. Unter **Ordner** schaltest du Ereignisordner, Personenordner und das Überspringen von Duplikaten ein oder aus. Wähle, was mit den Fotos passiert (siehe [Ausgabe](#ausgabe-kopieren-verschieben-umsortieren)), und klicke **Start**.
 
 Oben rechts schaltest du mit **DE | EN** die Sprache um. Beim ersten Start richtet sie sich nach dem Browser. Ordnernamen, die du nicht geändert hast, werden mit umgestellt (Urlaube → Holidays).
 
