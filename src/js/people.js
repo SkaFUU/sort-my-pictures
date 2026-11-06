@@ -57,6 +57,12 @@ const People = (() => {
     app = appCtx;
     $('#btnFaces').onclick = () => app.scanFaces();
     $('#pplSmall').onchange = render;
+    // Ignorierte (fremd / kein Gesicht) ein-/ausblenden, Standard aus; beim Einschalten dorthin springen
+    $('#pplShowIg').onchange = e => {
+      showIgnored = e.target.checked;
+      render();
+      if (showIgnored) document.querySelector('#pplGroups .ig-head')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    };
     $('#pplHideDone').checked = localStorage.getItem('fotosortierer.peopleHideDone') === '1';
     $('#pplHideDone').onchange = e => { localStorage.setItem('fotosortierer.peopleHideDone', e.target.checked ? '1' : ''); render(); };
     $('#btnFacesReset').onclick = async () => {
@@ -321,9 +327,8 @@ const People = (() => {
     const ig = p.ignoredGroups || [];
     if (ig.length) {
       const n = ig.reduce((a, g) => a + g.faces.length, 0);
-      box.append(h('h3', { class: 'ig-head' }, T('Ignoriert ({0}) – fremd oder kein Gesicht', n), ' ',
-        h('button', { onclick: () => { showIgnored = !showIgnored; render(); } }, showIgnored ? T('Verbergen') : T('Zeigen'))));
       if (showIgnored) {
+        box.append(h('h3', { class: 'ig-head' }, T('Ignoriert ({0}) – fremd oder kein Gesicht', n)));
         box.append(h('div', { class: 'hint' }, T('Für eine neue Person: Namen eintippen oder Gesichter markieren und Rechtsklick. „Zurückholen“ macht die Gruppe wieder offen.')));
         for (const g of ig.slice(0, 200)) box.append(ignoredCard(g));
       }

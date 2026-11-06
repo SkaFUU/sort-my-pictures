@@ -434,3 +434,6 @@ dialog { background:var(--panel); color:var(--fg); }
 .ft-mark { color:var(--tab); font-size:10px; margin-left:auto; }
 #libTree .row-btns { display:flex; gap:6px; flex-wrap:wrap; margin-top:6px; }
 #libTree .hint { margin-bottom:6px; }
+
+#libTree.flash { animation:treeflash 1.4s ease-out; border-radius:6px; }
+@keyframes treeflash { 0%, 40% { box-shadow:0 0 0 3px var(--tab); } 100% { box-shadow:0 0 0 0 transparent; } }

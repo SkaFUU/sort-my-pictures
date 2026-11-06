@@ -16,6 +16,7 @@ const FolderTree = (() => {
 
   async function init(appCtx) {
     app = appCtx;
+    document.getElementById('btnTree').onclick = focus;
     try { root = (await Util.idb.get(ROOT_KEY)) || null; } catch { root = null; }
     if (root) access = (await root.queryPermission({ mode: 'readwrite' })) === 'granted';
     render();
@@ -102,11 +103,21 @@ const FolderTree = (() => {
       h('button', { class: 'mini', onclick: pickRoot }, T('Anderen Hauptordner …'))));
   }
 
+  // Ribbon-Knopf „Ordnerbaum“: ohne Freigabe gleich das Laufwerk waehlen lassen, sonst Seitenleiste zeigen und hinspringen
+  async function focus() {
+    if (!root) return pickRoot();
+    if (document.getElementById('props').classList.contains('hide')) document.getElementById('togProps')?.click();
+    if (!access) await renew();
+    const box = $();
+    box.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    box.classList.remove('flash'); void box.offsetWidth; box.classList.add('flash');
+  }
+
   async function choose(dir, path) {
     if (document.body.classList.contains('busy')) return;
     await app.useSource(dir);
     render();
   }
 
-  return { init, render };
+  return { init, render, focus };
 })();

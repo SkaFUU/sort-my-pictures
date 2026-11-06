@@ -181,7 +181,9 @@ const I18n = (() => {
       'Allow access',
     '„{0}“ konnte nicht geschrieben werden: {1}':
       '“{0}” could not be written: {1}',
-    'Ignoriert ({0}) – fremd oder kein Gesicht': 'Ignored ({0}) – stranger or not a face', 'Verbergen': 'Hide', 'Zeigen': 'Show',
+    'Ignoriert ({0}) – fremd oder kein Gesicht': 'Ignored ({0}) – stranger or not a face', 'Ignorierte zeigen': 'Show ignored', 'Ordnerbaum': 'Folder tree',
+    'Als fremd oder „kein Gesicht“ markierte Gesichter zeigen – daraus lassen sich neue Personen machen': 'Show faces marked as stranger or “not a face” – new people can be made from them',
+    'Einmal ein Laufwerk oder den Hauptordner freigeben, dann die Unterordner direkt in der Seitenleiste wählen': 'Share a drive or the main folder once, then choose subfolders directly in the side panel',
     'Für eine neue Person: Namen eintippen oder Gesichter markieren und Rechtsklick. „Zurückholen“ macht die Gruppe wieder offen.':
       'For a new person: type a name or select faces and right-click. “Bring back” makes the group open again.',
     'Wieder als offene Gruppe anzeigen': 'Show as an open group again', 'Zurückholen': 'Bring back', '{0} Gesichter': '{0} faces',

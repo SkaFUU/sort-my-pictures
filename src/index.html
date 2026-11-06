@@ -61,6 +61,7 @@
       <div class="rpanel" data-tab="quelle">
         <div class="grp"><div class="gbody">
           <button class="big c-file" id="btnSrc"><svg class="ic"><use href="#i-folder"/></svg><span>Ordner wählen</span></button>
+          <button class="big c-file" id="btnTree" title="Einmal ein Laufwerk oder den Hauptordner freigeben, dann die Unterordner direkt in der Seitenleiste wählen"><svg class="ic"><use href="#i-grid"/></svg><span>Ordnerbaum</span></button>
           <button class="big c-file" id="btnScan" disabled title="Dateien und Metadaten einlesen"><svg class="ic"><use href="#i-scan"/></svg><span>Einlesen</span></button>
         </div><div class="gcap">Quelle</div></div>
         <div class="grp"><div class="gbody"><div class="gchecks" data-checks="recursive,includePhotos,includeVideos"></div></div><div class="gcap">Dateien</div></div>
@@ -138,6 +139,7 @@
         <div class="grp"><div class="gbody">
           <label class="big tog c-view" data-icon="i-grid" title="Auch Gruppen mit nur wenigen Gesichtern anzeigen"><input id="pplSmall" type="checkbox">Kleine Gruppen</label>
           <label class="big tog c-ok" data-icon="i-check" title="Mit „Fertig“ abgelegte Personen ganz ausblenden"><input id="pplHideDone" type="checkbox">Fertige ausblenden</label>
+          <label class="big tog c-del" data-icon="i-cancel" title="Als fremd oder „kein Gesicht“ markierte Gesichter zeigen – daraus lassen sich neue Personen machen"><input id="pplShowIg" type="checkbox">Ignorierte zeigen</label>
         </div><div class="gcap">Anzeigen</div></div>
         <div class="grp"><div class="gbody"><div class="gchecks" data-checks="personFolders"></div></div><div class="gcap">Ordner</div></div>
       </div>
